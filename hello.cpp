@@ -15,20 +15,42 @@ class HelloWorldNodeEditor
 public:
     void show()
     {
-        ImNodesStyle& test = ImNodes::GetStyle();
-        test.GridSpacing = 48/2;
-        //ImNodesCol_::
-        //ImNodes::GImNodes->Style.Flags
-        //ImNodes::
-        ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
-        //test.Flags = test.Flags | ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
-
+        ImNodesStyle& style = ImNodes::GetStyle();
         
-        ImNodesStyle& test2 = ImNodes::GetStyle();
+        ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
+        //ImNodes::GetStyle().GridSpacing = 48;
+        style.Colors[ImNodesCol_GridBackground] = IM_COL32(5, 69, 141, 255);
+        style.Colors[ImNodesCol_GridLine] = IM_COL32(32, 109, 177, 255);
+        style.Colors[ImNodesCol_Link] = IM_COL32(200, 200, 200, 255);
+        style.Colors[ImNodesCol_LinkHovered] = IM_COL32(255, 255, 255, 255);
+        style.Colors[ImNodesCol_LinkSelected] = IM_COL32(255, 255, 255, 255);
+        style.Colors[ImNodesCol_NodeOutline] = IM_COL32(200, 200, 200, 255);
+        style.Colors[ImNodesCol_NodeBackground] = IM_COL32(5, 69, 141, 255);
+        style.Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(25, 89, 161, 255);
+        style.Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(25, 89, 161, 255);
+        style.Colors[ImNodesCol_TitleBar] = IM_COL32(25, 89, 161, 255);
+        style.Colors[ImNodesCol_TitleBarHovered] = IM_COL32(45, 109, 181, 255);
+        style.Colors[ImNodesCol_TitleBarSelected] = IM_COL32(45, 109, 181, 255);
+        style.Colors[ImNodesCol_Pin] = IM_COL32(200, 200, 200, 255);
+        style.Colors[ImNodesCol_PinHovered] = IM_COL32(255, 255, 255, 255);
+        style.Colors[ImNodesCol_BoxSelector] = IM_COL32(250, 250, 250, 20);
+        style.Colors[ImNodesCol_BoxSelectorOutline] = IM_COL32(255, 255, 255, 255);
 
-        //std::cout << "space : " << test2.GridSpacing << std::endl;
+        /*ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(25 / 255.0, 89 / 255.0, 161 / 255.0, 1);
+        ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(5 / 255.0, 69 / 255.0, 141 / 255.0, 1);
+        ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(5/255.0, 69/255.0, 141/255.0, 1);*/
 
-        ImGui::Begin("simple node editor");
+        //ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(20, 20, 20, 30);
+        /*ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(20, 20, 20, 30);
+        ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(20, 20, 20, 30);*/
+
+        ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
+         
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+        const ImGuiViewport * viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->Pos);
+        ImGui::SetNextWindowSize(viewport->Size);
+        ImGui::Begin("simple node editor", NULL, flags);
 
         ImNodes::BeginNodeEditor();
         ImNodes::BeginNode(1);
@@ -109,6 +131,21 @@ public:
         //ImGui::Text("  w/ default threshold: (%.1f, %.1f)", value_with_lock_threshold.x, value_with_lock_threshold.y);
         //ImGui::Text("  w/ zero threshold: (%.1f, %.1f)", value_raw.x, value_raw.y);
         ImGuiIO& io = ImGui::GetIO();
+
+        //const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+        //ImVec4      Colors[ImGuiCol_COUNT] in ImGuiStyle
+
+        //ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(0.25, 0.5, 0.75, 1);
+        //std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].x;
+        //std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].y;
+        //std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].z;
+        //std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].w << std::endl;;
+        ////ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(20, 20, 20, 30);
+        ///*ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(20, 20, 20, 30);
+        //ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(20, 20, 20, 30);*/
+
+        
+
         ImGui::Button("Output");
         if (ImGui::IsItemActive()) {
             ImVec2 value_raw = ImGui::GetMouseDragDelta(0, 0.0f);
