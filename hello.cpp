@@ -25,12 +25,15 @@ public:
         style.Colors[ImNodesCol_LinkHovered] = IM_COL32(255, 255, 255, 255);
         style.Colors[ImNodesCol_LinkSelected] = IM_COL32(255, 255, 255, 255);
         style.Colors[ImNodesCol_NodeOutline] = IM_COL32(200, 200, 200, 255);
-        style.Colors[ImNodesCol_NodeBackground] = IM_COL32(5, 69, 141, 255);
-        style.Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(25, 89, 161, 255);
-        style.Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(25, 89, 161, 255);
-        style.Colors[ImNodesCol_TitleBar] = IM_COL32(25, 89, 161, 255);
-        style.Colors[ImNodesCol_TitleBarHovered] = IM_COL32(45, 109, 181, 255);
-        style.Colors[ImNodesCol_TitleBarSelected] = IM_COL32(45, 109, 181, 255);
+
+        style.Colors[ImNodesCol_NodeBackground] = IM_COL32(5, 69, 141, 100);
+        style.Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(25, 89, 161, 150);
+        style.Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(25, 89, 161, 150);
+
+        style.Colors[ImNodesCol_TitleBar] = IM_COL32(25, 89, 161, 0);
+        style.Colors[ImNodesCol_TitleBarHovered] = IM_COL32(45, 109, 181, 0);
+        style.Colors[ImNodesCol_TitleBarSelected] = IM_COL32(45, 109, 181, 0);
+
         style.Colors[ImNodesCol_Pin] = IM_COL32(200, 200, 200, 255);
         style.Colors[ImNodesCol_PinHovered] = IM_COL32(255, 255, 255, 255);
         style.Colors[ImNodesCol_BoxSelector] = IM_COL32(250, 250, 250, 20);
