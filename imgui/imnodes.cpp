@@ -392,6 +392,97 @@ inline bool RectangleOverlapsSlopedCurve(const ImRect& rectangle, const SlopedCu
     return false;
 }
 
+struct Curve {
+    CubicBezier* cubic_bezier;
+    SlopedCurve* sloped_curve;
+    ImNodesLinkType type;
+};
+
+ImVec2 GetClosestPointOnCurve(const int num_segments, const ImVec2& p, const Curve& c)
+{
+    switch (c.type)
+    {
+    case ImNodesLinkType_::ImNodesLinkType_Bezier:
+        return GetClosestPointOnCubicBezier(num_segments, p, *c.cubic_bezier);
+    case ImNodesLinkType_::ImNodesLinkType_Sloped:
+        return GetClosestPointOnSlopedCurve(num_segments, p, *c.sloped_curve);
+    }
+}
+
+inline float GetDistanceToCurve(
+    const ImVec2& pos,
+    const Curve& curve,
+    const int num_segments)
+{
+    const ImVec2 point_on_curve = GetClosestPointOnCurve(num_segments, pos, curve);
+
+    const ImVec2 to_curve = point_on_curve - pos;
+    return ImSqrt(ImLengthSqr(to_curve));
+}
+
+inline ImRect GetContainingRectForCurve(const Curve& c)
+{
+    switch (c.type)
+    {
+    case ImNodesLinkType_::ImNodesLinkType_Bezier:
+        return GetContainingRectForCubicBezier(*c.cubic_bezier);
+    case ImNodesLinkType_::ImNodesLinkType_Sloped:
+        return GetContainingRectForSlopedCurve(*c.sloped_curve);
+    }
+}
+
+inline Curve GetCurve(
+    ImVec2                     start,
+    ImVec2                     end,
+    const ImNodesAttributeType start_type,
+    const float                line_segments_per_length,
+    const ImNodesLinkType      type)
+{
+    Curve curve{NULL, NULL, type};
+    switch (curve.type)
+    {
+    case ImNodesLinkType_::ImNodesLinkType_Bezier:
+        curve.cubic_bezier = new CubicBezier(GetCubicBezier(start, end, start_type, line_segments_per_length));
+        break;
+    case ImNodesLinkType_::ImNodesLinkType_Sloped:
+        curve.sloped_curve = new SlopedCurve(GetSlopedCurve(start, end, start_type));
+        break;
+    }
+    return curve;
+}
+
+inline Curve GetCurve(
+    ImVec2                     start,
+    ImVec2                     end,
+    const ImNodesAttributeType start_type,
+    const ImNodesAttributeType end_type,
+    const float                line_segments_per_length,
+    const ImNodesLinkType      type)
+{
+    Curve curve{ NULL, NULL, type };
+    switch (curve.type)
+    {
+    case ImNodesLinkType_::ImNodesLinkType_Bezier:
+        curve.cubic_bezier = new CubicBezier(GetCubicBezier(start, end, start_type, end_type, line_segments_per_length));
+        break;
+    case ImNodesLinkType_::ImNodesLinkType_Sloped:
+        curve.sloped_curve = new SlopedCurve(GetSlopedCurve(start, end, start_type, end_type));
+        break;
+    }
+    return curve;
+}
+
+inline bool RectangleOverlapsCurve(const ImRect& rectangle, const Curve& curve)
+{
+    switch (curve.type)
+    {
+    case ImNodesLinkType_::ImNodesLinkType_Bezier:
+        return RectangleOverlapsBezier(rectangle, *curve.cubic_bezier);
+    case ImNodesLinkType_::ImNodesLinkType_Sloped:
+        return RectangleOverlapsSlopedCurve(rectangle, *curve.sloped_curve);
+    }
+}
+
 inline bool RectangleOverlapsLink(
     const ImRect&              rectangle,
     const ImVec2&              start,
@@ -1812,8 +1903,7 @@ void DrawLink(ImNodesEditorContext& editor, const int link_idx)
         GImNodes->Style.LinkThickness,
         cubic_bezier.NumSegments);
 
-    for(int i = 0; i < sloped_curve.NumSegments; i++)
-        GImNodes->CanvasDrawList->AddLine(sloped_curve.P[i], sloped_curve.P[i+1], link_color, GImNodes->Style.LinkThickness);
+    GImNodes->CanvasDrawList->AddPolyline(sloped_curve.P, sloped_curve.NumSegments+1, link_color, 0, GImNodes->Style.LinkThickness);
 }
 
 void BeginPinAttribute(

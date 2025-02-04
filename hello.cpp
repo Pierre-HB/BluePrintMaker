@@ -18,6 +18,7 @@ public:
         ImNodesStyle& style = ImNodes::GetStyle();
         
         ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
+        //ImNodes::PushStyleVar(ImNodesStyleVar_LinkThickness, 10.0f);
         /*ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinSlope, 0.0f);
         ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinOffset, 50.0f);*/
 
