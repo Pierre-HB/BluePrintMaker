@@ -197,6 +197,9 @@ struct ImLinkData
 
     ImNodesLinkType LinkType;
 
+    //user inputed deformation for each control point of the curve
+    ImVec2 Deformations[MAX_CONTROL_PT_PER_CURVE];
+
     ImLinkData(const int link_id) : Id(link_id), StartPinIdx(), EndPinIdx(), ColorStyle(), LinkType(ImNodesLinkType_::ImNodesLinkType_Bezier) {}
 };
 

@@ -11,6 +11,8 @@
 #define IMNODES_NAMESPACE ImNodes
 #endif
 
+#define MAX_CONTROL_PT_PER_CURVE 6
+
 typedef int ImNodesCol;             // -> enum ImNodesCol_
 typedef int ImNodesStyleVar;        // -> enum ImNodesStyleVar_
 typedef int ImNodesStyleFlags;      // -> enum ImNodesStyleFlags_
