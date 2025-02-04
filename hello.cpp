@@ -18,7 +18,16 @@ public:
         ImNodesStyle& style = ImNodes::GetStyle();
         
         ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
-        //ImNodes::GetStyle().GridSpacing = 48;
+        ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinSlope, 2.0f);
+
+        /*std::cout << ImNodes::GetStyle().LinkSlopedMinSlope << std::endl;
+        ImNodes::PopStyleVar(1);
+        std::cout << ImNodes::GetStyle().LinkSlopedMinSlope << std::endl;*/
+
+        /*ImNodes::PushStyleVar(ImNodesStyleVar_GridSpacing, 50);
+        ImNodes::PushStyleVar(ImNodesStyleVar_GridSpacing, 150);
+        ImNodes::PopStyleVar(3);*/
+        //ImNodes::GetStyle().GridSpacing = 48; // ?OT SUPPOESED TO BE CHANGE DIRECTLY
         style.Colors[ImNodesCol_GridBackground] = IM_COL32(5, 69, 141, 255);
         style.Colors[ImNodesCol_GridLine] = IM_COL32(32, 109, 177, 255);
         style.Colors[ImNodesCol_Link] = IM_COL32(200, 200, 200, 255);
@@ -65,9 +74,15 @@ public:
         ImGui::TextUnformatted("simple node :)");
         ImNodes::EndNodeTitleBar();
 
-        ImNodes::BeginInputAttribute(2);
+        
+        ImNodes::PushStyleVar(ImNodesStyleVar_PinQuadSideLength, 20.0f);
+
+        ImNodes::BeginInputAttribute(2, ImNodesPinShape_::ImNodesPinShape_QuadFilled);
         ImGui::Text("input");
         ImNodes::EndInputAttribute();
+
+        //ImNodes::PopStyleVar(1);
+
 
         ImNodes::BeginOutputAttribute(3);
         ImGui::Indent(40*10);
@@ -100,6 +115,11 @@ public:
         ImGui::Indent(40 * 10);
         ImGui::Text("output");
         ImNodes::EndOutputAttribute();
+
+        ImNodes::BeginInputAttribute(42);
+        ImNodes::EndInputAttribute();
+        ImNodes::BeginInputAttribute(43);
+        ImNodes::EndInputAttribute();
 
         ImNodes::EndNode();
 

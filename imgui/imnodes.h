@@ -17,6 +17,7 @@ typedef int ImNodesStyleFlags;      // -> enum ImNodesStyleFlags_
 typedef int ImNodesPinShape;        // -> enum ImNodesPinShape_
 typedef int ImNodesAttributeFlags;  // -> enum ImNodesAttributeFlags_
 typedef int ImNodesMiniMapLocation; // -> enum ImNodesMiniMapLocation_
+typedef int ImNodesLinkType;        // -> enum ImNodesLinkType_
 
 enum ImNodesCol_
 {
@@ -61,6 +62,7 @@ enum ImNodesStyleVar_
     ImNodesStyleVar_LinkThickness,
     ImNodesStyleVar_LinkLineSegmentsPerLength,
     ImNodesStyleVar_LinkHoverDistance,
+    ImNodesStyleVar_LinkSlopedMinSlope,
     ImNodesStyleVar_PinCircleRadius,
     ImNodesStyleVar_PinQuadSideLength,
     ImNodesStyleVar_PinTriangleSideLength,
@@ -89,6 +91,12 @@ enum ImNodesPinShape_
     ImNodesPinShape_TriangleFilled,
     ImNodesPinShape_Quad,
     ImNodesPinShape_QuadFilled
+};
+
+enum ImNodesLinkType_
+{
+    ImNodesLinkType_Bezier,
+    ImNodesLinkType_Sloped
 };
 
 // This enum controls the way the attribute pins behave.
@@ -173,6 +181,7 @@ struct ImNodesStyle
     float LinkThickness;
     float LinkLineSegmentsPerLength;
     float LinkHoverDistance;
+    float LinkSlopedMinSlope;
 
     // The following variables control the look and behavior of the pins. The default size of each
     // pin shape is balanced to occupy approximately the same surface area on the screen.
@@ -325,7 +334,7 @@ void PopAttributeFlag();
 // Render a link between attributes.
 // The attributes ids used here must match the ids used in Begin(Input|Output)Attribute function
 // calls. The order of start_attr and end_attr doesn't make a difference for rendering the link.
-void Link(int id, int start_attribute_id, int end_attribute_id);
+void Link(int id, int start_attribute_id, int end_attribute_id, ImNodesLinkType linkType=ImNodesLinkType_::ImNodesLinkType_Bezier);
 
 // Enable or disable the ability to click and drag a specific node.
 void SetNodeDraggable(int node_id, const bool draggable);

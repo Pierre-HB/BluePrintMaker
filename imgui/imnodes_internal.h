@@ -26,6 +26,7 @@ typedef int ImNodesAttributeType;
 typedef int ImNodesUIState;
 typedef int ImNodesClickInteractionType;
 typedef int ImNodesLinkCreationType;
+typedef int ImNodesLinkType;
 
 enum ImNodesScope_
 {
@@ -194,7 +195,9 @@ struct ImLinkData
         ImU32 Base, Hovered, Selected;
     } ColorStyle;
 
-    ImLinkData(const int link_id) : Id(link_id), StartPinIdx(), EndPinIdx(), ColorStyle() {}
+    ImNodesLinkType LinkType;
+
+    ImLinkData(const int link_id) : Id(link_id), StartPinIdx(), EndPinIdx(), ColorStyle(), LinkType(ImNodesLinkType_::ImNodesLinkType_Bezier) {}
 };
 
 struct ImClickInteractionState
