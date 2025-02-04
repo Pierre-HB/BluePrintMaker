@@ -18,7 +18,8 @@ public:
         ImNodesStyle& style = ImNodes::GetStyle();
         
         ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
-        ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinSlope, 2.0f);
+        /*ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinSlope, 0.0f);
+        ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinOffset, 50.0f);*/
 
         /*std::cout << ImNodes::GetStyle().LinkSlopedMinSlope << std::endl;
         ImNodes::PopStyleVar(1);
@@ -213,8 +214,8 @@ public:
             // as the unique identifier
             ImNodes::Link(i+10, p.first, p.second);
         }
-        ImNodes::Link(15, 3, 6);
-        ImNodes::Link(16, 6, 3);
+        ImNodes::Link(15, 3, 5);
+        //ImNodes::Link(16, 6, 3);
 
         //ImNodes::MiniMap();
         ImNodes::EndNodeEditor();

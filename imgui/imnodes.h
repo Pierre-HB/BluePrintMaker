@@ -63,6 +63,7 @@ enum ImNodesStyleVar_
     ImNodesStyleVar_LinkLineSegmentsPerLength,
     ImNodesStyleVar_LinkHoverDistance,
     ImNodesStyleVar_LinkSlopedMinSlope,
+    ImNodesStyleVar_LinkSlopedMinOffset,
     ImNodesStyleVar_PinCircleRadius,
     ImNodesStyleVar_PinQuadSideLength,
     ImNodesStyleVar_PinTriangleSideLength,
@@ -182,6 +183,7 @@ struct ImNodesStyle
     float LinkLineSegmentsPerLength;
     float LinkHoverDistance;
     float LinkSlopedMinSlope;
+    float LinkSlopedMinOffset;
 
     // The following variables control the look and behavior of the pins. The default size of each
     // pin shape is balanced to occupy approximately the same surface area on the screen.

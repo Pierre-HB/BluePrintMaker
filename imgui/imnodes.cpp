@@ -140,8 +140,8 @@ inline CubicBezier GetCubicBezier(
     const ImNodesAttributeType end_type,
     const float                line_segments_per_length)
 {
-    /*IM_ASSERT(
-        (start_type == ImNodesAttributeType_Input) || (start_type == ImNodesAttributeType_Output));*/
+    IM_ASSERT(
+        (start_type == ImNodesAttributeType_Input) || (start_type == ImNodesAttributeType_Output));
     /*if (start_type == ImNodesAttributeType_Input)
     {
         ImSwap(start, end);
@@ -162,6 +162,144 @@ inline CubicBezier GetCubicBezier(
     cubic_bezier.P3 = end;
     cubic_bezier.NumSegments = ImMax(static_cast<int>(link_length * line_segments_per_length), 1);
     return cubic_bezier;
+}
+
+// [SECTION] sloped curve helpers
+
+// a slope curve is a line made of 3 segment, the first and the last segment are horizontal and of minimal length 'LinkSlopedMinOffset'. The middle segment is a sloped segment of minimal slope 'LinkSlopedMinSlope'
+//If the slope is suppose to go backward, it add 2 poitn to make a loop like form
+struct SlopedCurve
+{
+    ImVec2 P[6];
+    int NumSegments;
+};
+
+//inline ImVec2 EvalSlopedCurve(
+//    const float   t,
+//    const ImVec2& P0,
+//    const ImVec2& P1,
+//    const ImVec2& P2,
+//    const ImVec2& P3)
+//{
+//    // B(t) = (1-t)**3 p0 + 3(1 - t)**2 t P1 + 3(1-t)t**2 P2 + t**3 P3
+//
+//    const float u = 1.0f - t;
+//    const float b0 = u * u * u;
+//    const float b1 = 3 * u * u * t;
+//    const float b2 = 3 * u * t * t;
+//    const float b3 = t * t * t;
+//    return ImVec2(
+//        b0 * P0.x + b1 * P1.x + b2 * P2.x + b3 * P3.x,
+//        b0 * P0.y + b1 * P1.y + b2 * P2.y + b3 * P3.y);
+//}
+
+// Calculates the closest point along each segment.
+ImVec2 GetClosestPointOnSlopedCurve(const int num_segments, const ImVec2& p, const SlopedCurve& sc)
+{
+    //ImVec2 p_last = sc.P0;
+    ImVec2 p_last = sc.P[0];
+    ImVec2 p_closest;
+    float  p_closest_dist = FLT_MAX;
+    for (int i = 1; i <= num_segments+1; ++i)
+    {
+        //ImVec2 p_current = EvalCubicBezier(t_step * i, cb.P0, cb.P1, cb.P2, cb.P3);
+        ImVec2 p_current = sc.P[i];
+        //ImVec2 p_current = *(& (sc.P1) + i); //dirty c hack //MIGHT NEED A CHECK
+        ImVec2 p_line = ImLineClosestPoint(p_last, p_current, p);
+        float  dist = ImLengthSqr(p - p_line);
+        if (dist < p_closest_dist)
+        {
+            p_closest = p_line;
+            p_closest_dist = dist;
+        }
+        p_last = p_current;
+    }
+    return p_closest;
+}
+
+inline float GetDistanceToSlopedCurve(
+    const ImVec2& pos,
+    const SlopedCurve& sloped_curve,
+    const int          num_segments)
+{
+    const ImVec2 point_on_curve = GetClosestPointOnSlopedCurve(num_segments, pos, sloped_curve);
+
+    const ImVec2 to_curve = point_on_curve - pos;
+    return ImSqrt(ImLengthSqr(to_curve));
+}
+
+inline ImRect GetContainingRectForSlopedCurve(const SlopedCurve& sc)
+{
+    /*const ImVec2 min = ImVec2(ImMin(sc.P[0].x, sc.P[3].x), ImMin(sc.P[0].y, sc.P[3].y));
+    const ImVec2 max = ImVec2(ImMax(sc.P[0].x, sc.P[3].x), ImMax(sc.P[0].y, sc.P[3].y));
+
+    const float hover_distance = GImNodes->Style.LinkHoverDistance;
+
+    ImRect rect(min, max);
+    rect.Add(sc.P[1]);
+    rect.Add(sc.P[2]);
+    rect.Expand(ImVec2(hover_distance, hover_distance));*/
+
+    const float hover_distance = GImNodes->Style.LinkHoverDistance;
+
+    ImRect rect(ImVec2(FLT_MAX, FLT_MAX), ImVec2(-FLT_MAX, -FLT_MAX));
+    for (int i = 0; i < sc.NumSegments+1; i++)
+        rect.Add(sc.P[i]);
+    rect.Expand(ImVec2(hover_distance, hover_distance));
+
+    return rect;
+}
+
+inline SlopedCurve GetSlopedCurve(
+    ImVec2                     start,
+    ImVec2                     end,
+    const ImNodesAttributeType start_type)
+{
+    IM_ASSERT(
+        (start_type == ImNodesAttributeType_Input) || (start_type == ImNodesAttributeType_Output));
+    if (start_type == ImNodesAttributeType_Input)
+    {
+        ImSwap(start, end);
+    }
+    //start is either an output or the mouse
+
+    float min_slope = ImNodes::GetStyle().LinkSlopedMinSlope;
+    float min_offset = ImNodes::GetStyle().LinkSlopedMinOffset;
+
+    ImVec2 offset = ImVec2(min_offset, 0.0f);
+    SlopedCurve sloped_curve;
+    sloped_curve.P[0] = start;
+    sloped_curve.P[1] = start + offset;
+
+    if (end.x >= start.x + 2*min_offset) {
+        //standart sloped curve
+        float h = end.y - start.y;
+        float d = abs(h) / min_slope;//distance traveld with the min slope
+        if (min_slope > 0.001f && d < end.x - start.x - 2 * min_offset)
+            sloped_curve.P[2] = sloped_curve.P[1] + ImVec2(d, h);
+        else
+            sloped_curve.P[2] = end - offset;
+        sloped_curve.P[3] = end;
+        sloped_curve.NumSegments = 3;
+    }
+    else {
+        float mid_y = (end.y + start.y) / 2;
+        sloped_curve.P[2] = ImVec2(sloped_curve.P[1].x, mid_y);
+        sloped_curve.P[3] = ImVec2(end.x - min_offset, mid_y);
+        sloped_curve.P[4] = end - offset;
+        sloped_curve.P[5] = end;
+        sloped_curve.NumSegments = 5;
+    }
+    return sloped_curve;
+}
+
+inline SlopedCurve GetSlopedCurve(
+    ImVec2                     start,
+    ImVec2                     end,
+    const ImNodesAttributeType start_type,
+    const ImNodesAttributeType end_type)
+{
+    return GetSlopedCurve(start, end, start_type);
 }
 
 inline float EvalImplicitLineEq(const ImVec2& p1, const ImVec2& p2, const ImVec2& p)
@@ -238,6 +376,18 @@ inline bool RectangleOverlapsBezier(const ImRect& rectangle, const CubicBezier& 
             return true;
         }
         current = next;
+    }
+    return false;
+}
+
+inline bool RectangleOverlapsSlopedCurve(const ImRect& rectangle, const SlopedCurve& sloped_curve)
+{
+    for (int i = 0; i < sloped_curve.NumSegments; ++i)
+    {
+        if (RectangleOverlapsLineSegment(rectangle, sloped_curve.P[i], sloped_curve.P[i+1]))
+        {
+            return true;
+        }
     }
     return false;
 }
@@ -1617,6 +1767,8 @@ void DrawLink(ImNodesEditorContext& editor, const int link_idx)
 
     const CubicBezier cubic_bezier = GetCubicBezier(
         start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength);
+    const SlopedCurve sloped_curve = GetSlopedCurve(
+        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type);
 
     const bool link_hovered =
         GImNodes->HoveredLinkIdx == link_idx &&
@@ -1659,6 +1811,9 @@ void DrawLink(ImNodesEditorContext& editor, const int link_idx)
         link_color,
         GImNodes->Style.LinkThickness,
         cubic_bezier.NumSegments);
+
+    for(int i = 0; i < sloped_curve.NumSegments; i++)
+        GImNodes->CanvasDrawList->AddLine(sloped_curve.P[i], sloped_curve.P[i+1], link_color, GImNodes->Style.LinkThickness);
 }
 
 void BeginPinAttribute(
@@ -2024,7 +2179,7 @@ ImNodesIO::ImNodesIO()
 
 ImNodesStyle::ImNodesStyle()
     : GridSpacing(24.f), NodeCornerRounding(4.f), NodePadding(8.f, 8.f), NodeBorderThickness(1.f),
-      LinkThickness(3.f), LinkLineSegmentsPerLength(0.1f), LinkHoverDistance(10.f), LinkSlopedMinSlope(5.0f),
+      LinkThickness(3.f), LinkLineSegmentsPerLength(0.1f), LinkHoverDistance(10.f), LinkSlopedMinSlope(5.0f), LinkSlopedMinOffset(50.0f),
       PinCircleRadius(4.f), PinQuadSideLength(7.f), PinTriangleSideLength(9.5),
       PinLineThickness(1.f), PinHoverRadius(10.f), PinOffset(0.f), MiniMapPadding(8.0f, 8.0f),
       MiniMapOffset(4.0f, 4.0f), Flags(ImNodesStyleFlags_NodeOutline | ImNodesStyleFlags_GridLines),
@@ -2642,6 +2797,7 @@ void Link(const int id, const int start_attr_id, const int end_attr_id, ImNodesL
     link.ColorStyle.Base = GImNodes->Style.Colors[ImNodesCol_Link];
     link.ColorStyle.Hovered = GImNodes->Style.Colors[ImNodesCol_LinkHovered];
     link.ColorStyle.Selected = GImNodes->Style.Colors[ImNodesCol_LinkSelected];
+    link.LinkType = linkType;
 
     // Check if this link was created by the current link event
     if ((editor.ClickInteraction.Type == ImNodesClickInteractionType_LinkCreation &&
@@ -2694,6 +2850,8 @@ static const ImNodesStyleVarInfo GStyleVarInfo[] = {
     {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, LinkHoverDistance)},
     // ImNodesStyleVar_LinkSlopedMinSlope
     {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, LinkSlopedMinSlope)},
+    // ImNodesStyleVar_LinkSlopedMinOffset
+    {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, LinkSlopedMinOffset)},
     // ImNodesStyleVar_PinCircleRadius
     {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, PinCircleRadius)},
     // ImNodesStyleVar_PinQuadSideLength
