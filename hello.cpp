@@ -18,6 +18,11 @@ public:
         ImNodesStyle& style = ImNodes::GetStyle();
         
         ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
+        
+        //To change the link type of currently created links
+        ImNodes::PushStyleVar(ImNodesStyleVar_LinkCreationType, ImNodesLinkType_::ImNodesLinkType_Sloped);
+        ImNodes::PopStyleVar(1);
+
         //ImNodes::PushStyleVar(ImNodesStyleVar_LinkThickness, 10.0f);
         /*ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinSlope, 0.0f);
         ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinOffset, 50.0f);*/
@@ -215,7 +220,7 @@ public:
             // as the unique identifier
             ImNodes::Link(i+10, p.first, p.second);
         }
-        ImNodes::Link(15, 3, 5);
+        ImNodes::Link(15, 3, 5, ImNodesLinkType_::ImNodesLinkType_Sloped);
         //ImNodes::Link(16, 6, 3);
 
         //ImNodes::MiniMap();
@@ -229,6 +234,11 @@ public:
             std::cout << "NEW LINK! " << start_attr << ", " << end_attr << std::endl;
 
             links.push_back(std::make_pair(start_attr, end_attr));
+        }
+
+        int link_id;
+        if (ImNodes::IsLinkDestroyed(&link_id)) {
+            std::cout << "destroyed link " << link_id << std::endl;
         }
 
 
@@ -262,7 +272,15 @@ public:
 static HelloWorldNodeEditor editor;
 } // namespace
 
-void NodeEditorInitialize() { ImNodes::SetNodeGridSpacePos(1, ImVec2(200.0f, 200.0f)); }
+void NodeEditorInitialize() {
+    ImNodes::SetNodeGridSpacePos(1, ImVec2(200.0f, 200.0f)); 
+
+    //Set up the modifier key.
+    //When press the user can click a link, it will:
+    // -> destroy the link (detectable with ImNodes::IsLinkDestroyed)
+    // -> create a pending link from the farthest pin of the destroyed link
+    ImNodes::GetIO().LinkDetachWithModifierClick.Modifier = &ImGui::GetIO().KeyCtrl;
+}
 
 void NodeEditorShow() { editor.show(); }
 

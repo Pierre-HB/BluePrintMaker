@@ -66,6 +66,7 @@ enum ImNodesStyleVar_
     ImNodesStyleVar_LinkHoverDistance,
     ImNodesStyleVar_LinkSlopedMinSlope,
     ImNodesStyleVar_LinkSlopedMinOffset,
+    ImNodesStyleVar_LinkCreationType,
     ImNodesStyleVar_PinCircleRadius,
     ImNodesStyleVar_PinQuadSideLength,
     ImNodesStyleVar_PinTriangleSideLength,
@@ -186,6 +187,8 @@ struct ImNodesStyle
     float LinkHoverDistance;
     float LinkSlopedMinSlope;
     float LinkSlopedMinOffset;
+    //Type of link being drag by the user
+    ImNodesLinkType LinkCreationType;
 
     // The following variables control the look and behavior of the pins. The default size of each
     // pin shape is balanced to occupy approximately the same surface area on the screen.
@@ -294,6 +297,7 @@ void MiniMap(
 // Use PushColorStyle and PopColorStyle to modify ImNodesStyle::Colors mid-frame.
 void PushColorStyle(ImNodesCol item, unsigned int color);
 void PopColorStyle();
+void PushStyleVar(ImNodesStyleVar style_item, const int);
 void PushStyleVar(ImNodesStyleVar style_item, float value);
 void PushStyleVar(ImNodesStyleVar style_item, const ImVec2& value);
 void PopStyleVar(int count = 1);
@@ -418,15 +422,17 @@ bool IsLinkStarted(int* started_at_attribute_id);
 bool IsLinkDropped(int* started_at_attribute_id = NULL, bool including_detached_links = true);
 // Did the user finish creating a new link?
 bool IsLinkCreated(
-    int*  started_at_attribute_id,
-    int*  ended_at_attribute_id,
-    bool* created_from_snap = NULL);
+    int*                   started_at_attribute_id,
+    int*                   ended_at_attribute_id,
+    bool*                  created_from_snap = NULL,
+    ImNodesLinkType* const link_type = NULL);
 bool IsLinkCreated(
-    int*  started_at_node_id,
-    int*  started_at_attribute_id,
-    int*  ended_at_node_id,
-    int*  ended_at_attribute_id,
-    bool* created_from_snap = NULL);
+    int*                   started_at_node_id,
+    int*                   started_at_attribute_id,
+    int*                   ended_at_node_id,
+    int*                   ended_at_attribute_id,
+    bool*                  created_from_snap = NULL, 
+    ImNodesLinkType* const link_type = NULL);
 
 // Was an existing link detached from a pin by the user? The detached link's id is assigned to the
 // output argument link_id.

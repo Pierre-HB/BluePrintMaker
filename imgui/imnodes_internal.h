@@ -234,16 +234,25 @@ struct ImNodesStyleVarElement
 {
     ImNodesStyleVar Item;
     float           FloatValue[2];
+    int             IntValue;
+
+    ImNodesStyleVarElement(const ImNodesStyleVar variable, const int value) : Item(variable)
+    {
+        FloatValue[0] = 0.0f;
+        IntValue = value;
+    }
 
     ImNodesStyleVarElement(const ImNodesStyleVar variable, const float value) : Item(variable)
     {
         FloatValue[0] = value;
+        IntValue = 0;
     }
 
     ImNodesStyleVarElement(const ImNodesStyleVar variable, const ImVec2 value) : Item(variable)
     {
         FloatValue[0] = value.x;
         FloatValue[1] = value.y;
+        IntValue = 0;
     }
 };
 
