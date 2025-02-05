@@ -92,120 +92,199 @@ public:
 
 
         ImNodes::BeginOutputAttribute(3);
-        ImGui::Indent(40*10);
+        ImGui::Indent(40);
+        //ImGui::Indent(40*10);
         ImGui::Text("output");
         ImNodes::EndOutputAttribute();
 
         ImNodes::EndNode();
 
-        //ImNodes::SnapNodeToGrid(1);
 
-        //std::cout << "flag : " << ImNodes::GetStyle().Flags;
-        ImNodes::GetStyle().Flags &= ~ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
-        //std::cout << " after : " << ImNodes::GetStyle().Flags << std::endl;
-        ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
-
-        ImNodes::BeginNode(4);
-
-        tmp = ImNodes::GetNodeGridSpacePos(4);
-        //std::cout << tmp.x << ", " << tmp.y << std::endl;
-
-        ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted("simple node 2 no snap :)");
-        ImNodes::EndNodeTitleBar();
-
-        ImNodes::BeginInputAttribute(5);
-        ImGui::Text("input");
-        ImNodes::EndInputAttribute();
-
-        ImNodes::BeginOutputAttribute(6);
-        ImGui::Indent(40 * 10);
-        ImGui::Text("output");
-        ImNodes::EndOutputAttribute();
-
-        ImNodes::BeginInputAttribute(42);
-        ImNodes::EndInputAttribute();
-        ImNodes::BeginInputAttribute(43);
-        ImNodes::EndInputAttribute();
-
-        ImNodes::EndNode();
-
-        //ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
 
         ImNodes::BeginNode(7);
 
-        tmp = ImNodes::GetNodeGridSpacePos(7);
-        //std::cout << tmp.x << ", " << tmp.y << std::endl;
 
         ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted("simple node 3 :)");
+        ImGui::TextUnformatted("simple node..... :)");
         ImNodes::EndNodeTitleBar();
 
-        if (!swap) {
-            ImNodes::BeginInputAttribute(8);
-            ImGui::Text("input");
-            ImNodes::EndInputAttribute();
-        }
-        
 
-        //if (ImGui::Button("rd button"))
-        //    std::cout << "PRESS" << std::endl;
+        //ImNodes::PushStyleVar(ImNodesStyleVar_PinQuadSideLength, 20.0f);
 
-        ImNodes::BeginOutputAttribute(9);
-        ////ImGui::Indent(40);
-        //ImGui::Text("output");
-        //ImVec2 value_raw = ImGui::GetMouseDragDelta(0, 0.0f);
-        //ImVec2 value_with_lock_threshold = ImGui::GetMouseDragDelta(0);
-        ////ImVec2 /*mouse_delta*/ = io.MouseDelta;
-        //ImGui::Text("GetMouseDragDelta(0):");
-        //ImGui::Text("  w/ default threshold: (%.1f, %.1f)", value_with_lock_threshold.x, value_with_lock_threshold.y);
-        //ImGui::Text("  w/ zero threshold: (%.1f, %.1f)", value_raw.x, value_raw.y);
-        ImGuiIO& io = ImGui::GetIO();
+        ImNodes::BeginInputAttribute(2);
+        ImGui::Text("input");
+        ImNodes::EndInputAttribute();
 
-        //const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-        //ImVec4      Colors[ImGuiCol_COUNT] in ImGuiStyle
+        //ImNodes::PopStyleVar(1);
+        ImGui::SameLine();
 
-        //ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(0.25, 0.5, 0.75, 1);
-        //std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].x;
-        //std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].y;
-        //std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].z;
-        //std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].w << std::endl;;
-        ////ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(20, 20, 20, 30);
-        ///*ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(20, 20, 20, 30);
-        //ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(20, 20, 20, 30);*/
 
-        
-
-        ImGui::Button("Output");
-        if (ImGui::IsItemActive()) {
-            ImVec2 value_raw = ImGui::GetMouseDragDelta(0, 0.0f);
-            //ImGui::Text("  w/ zero threshold: (%.1f, %.1f)", value_raw.x, value_raw.y);
-            ImGui::GetForegroundDrawList()->AddLine(io.MouseClickedPos[0], io.MousePos, ImGui::GetColorU32(ImGuiCol_Button), 4.0f);
-            //if (abs(value_raw.y) > 20)
-                //swap = !swap;
-            if (value_raw.y < -20)
-                swap = true;
-            if (value_raw.y > 20)
-                swap = false;
-        }
-            
-        //ImGui::Text("io.MouseDelta: (%.1f, %.1f)", mouse_delta.x, mouse_delta.y);
-
+        ImNodes::BeginOutputAttribute(3);
+        ImGui::Indent(40);
+        ImGui::Text("output");
         ImNodes::EndOutputAttribute();
 
-        if (swap) {
-            ImNodes::BeginInputAttribute(8);
-            ImGui::Text("input");
-            ImNodes::EndInputAttribute();
-        }
+        //if (!swap) {
+        //    ImNodes::BeginInputAttribute(8);
+        //    ImGui::Text("input");
+        //    ImNodes::EndInputAttribute();
+        //}
 
-        //std::cout << ImNodes::IsAttributeActive() << std::endl;
-        if (ImNodes::IsAttributeActive())
-            std::cout << "attribute active" << std::endl;
 
-        
+        ////if (ImGui::Button("rd button"))
+        ////    std::cout << "PRESS" << std::endl;
+
+        //ImNodes::BeginOutputAttribute(9);
+        //////ImGui::Indent(40);
+        ////ImGui::Text("output");
+        ////ImVec2 value_raw = ImGui::GetMouseDragDelta(0, 0.0f);
+        ////ImVec2 value_with_lock_threshold = ImGui::GetMouseDragDelta(0);
+        //////ImVec2 /*mouse_delta*/ = io.MouseDelta;
+        ////ImGui::Text("GetMouseDragDelta(0):");
+        ////ImGui::Text("  w/ default threshold: (%.1f, %.1f)", value_with_lock_threshold.x, value_with_lock_threshold.y);
+        ////ImGui::Text("  w/ zero threshold: (%.1f, %.1f)", value_raw.x, value_raw.y);
+        //ImGuiIO& io = ImGui::GetIO();
+
+        ////const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+        ////ImVec4      Colors[ImGuiCol_COUNT] in ImGuiStyle
+
+        ////ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(0.25, 0.5, 0.75, 1);
+        ////std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].x;
+        ////std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].y;
+        ////std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].z;
+        ////std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].w << std::endl;;
+        //////ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(20, 20, 20, 30);
+        /////*ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(20, 20, 20, 30);
+        ////ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(20, 20, 20, 30);*/
+
+
+
+        //ImGui::Button("Output");
+        //if (ImGui::IsItemActive()) {
+        //    ImVec2 value_raw = ImGui::GetMouseDragDelta(0, 0.0f);
+        //    //ImGui::Text("  w/ zero threshold: (%.1f, %.1f)", value_raw.x, value_raw.y);
+        //    ImGui::GetForegroundDrawList()->AddLine(io.MouseClickedPos[0], io.MousePos, ImGui::GetColorU32(ImGuiCol_Button), 4.0f);
+        //    //if (abs(value_raw.y) > 20)
+        //        //swap = !swap;
+        //    if (value_raw.y < -20)
+        //        swap = true;
+        //    if (value_raw.y > 20)
+        //        swap = false;
+        //}
+
+        ////ImGui::Text("io.MouseDelta: (%.1f, %.1f)", mouse_delta.x, mouse_delta.y);
+
+        //ImNodes::EndOutputAttribute();
+
+        //if (swap) {
+        //    ImNodes::BeginInputAttribute(8);
+        //    ImGui::Text("input");
+        //    ImNodes::EndInputAttribute();
+        //}
+
+        ////std::cout << ImNodes::IsAttributeActive() << std::endl;
+        //if (ImNodes::IsAttributeActive())
+        //    std::cout << "attribute active" << std::endl;
+
+
 
         ImNodes::EndNode();
+
+//======================= SELECTABLE attribute =============================
+        ImNodes::BeginNode(4);
+
+        ImNodes::BeginNodeTitleBar();
+        ImGui::TextUnformatted("Node with selectable Attribute");
+        ImNodes::EndNodeTitleBar();
+
+        ImVec2 vmin;
+        ImVec2 vmax;
+
+        ImNodes::BeginInputAttribute(5);
+        ImGui::Text("long input to test");
+        ImGui::Text("on two lines");
+        ImNodes::EndInputAttribute();
+        //Hack to precompute the size of the Attribute and add a selectable of the correct size on top of it
+        vmin = ImGui::GetItemRectMin();
+        vmax = ImGui::GetItemRectMax();
+        ImGui::SameLine();
+        ImGui::Indent(-0.1);
+        ImGui::Selectable("##input", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));
+
+        ImNodes::BeginInputAttribute(58);
+        ImGui::Text("long input to test");
+        ImGui::Text("on two lines");
+        ImNodes::EndInputAttribute();
+        //Hack to precompute the size of the Attribute and add a selectable of the correct size on top of it
+        vmin = ImGui::GetItemRectMin();
+        vmax = ImGui::GetItemRectMax();
+        ImGui::SameLine();
+        ImGui::Indent(-0.1);
+        ImGui::Selectable("##input2", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));
+
+
+        //Allow for same line input/Output
+        ImGui::SameLine();
+
+
+        //Create a topGroup for an attribute
+        ImGui::BeginGroup();
+        ImGui::PushID(888);
+        //start a bottom group for the attribute
+        ImNodes::BeginOutputAttribute(69);
+        ImGui::Text("output");
+        ImGui::Text("??");
+        ImGui::Text("!!!");
+        ImNodes::EndOutputAttribute();
+        //end the bottom group of teh attribute, compute it's size and add a selectable of the desired size on top of it
+
+        vmin = ImGui::GetItemRectMin();
+        vmax = ImGui::GetItemRectMax();
+        ImGui::SameLine();
+        ImGui::Indent(-0.1);
+        ImGui::Selectable("##output2", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));
+        //end top group
+        ImGui::PopID();
+        ImGui::EndGroup();
+        
+
+
+
+#define TMP
+#ifdef TMP
+        ImGui::PushItemFlag(ImGuiItemFlags_AllowDuplicateId, true);
+
+        // Simple reordering
+        
+        static const char* item_names[] = { "Item One", "Item Two", "Item Three", "Item Four", "Item Five" };
+        for (int n = 0; n < IM_ARRAYSIZE(item_names); n++)
+        {
+            const char* item = item_names[n];
+            ImGui::Selectable(item);
+
+            if (ImGui::IsItemActive() && !ImGui::IsItemHovered())
+            {
+                int n_next = n + (ImGui::GetMouseDragDelta(0).y < 0.f ? -1 : 1);
+                if (n_next >= 0 && n_next < IM_ARRAYSIZE(item_names))
+                {
+                    item_names[n] = item_names[n_next];
+                    item_names[n_next] = item;
+                    ImGui::ResetMouseDragDelta();
+                }
+            }
+        }
+
+        ImGui::PopItemFlag();
+#endif
+
+        ImNodes::EndNode();
+
+//======================= END SELECTABLE attribute =============================
+
+
+        //ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
+
+        
 
         if (ImNodes::IsAnyAttributeActive())
             std::cout << "any atribute active" << std::endl;
@@ -273,7 +352,7 @@ static HelloWorldNodeEditor editor;
 } // namespace
 
 void NodeEditorInitialize() {
-    ImNodes::SetNodeGridSpacePos(1, ImVec2(200.0f, 200.0f)); 
+    //ImNodes::SetNodeGridSpacePos(1, ImVec2(200.0f, 200.0f)); 
 
     //Set up the modifier key.
     //When press the user can click a link, it will:
