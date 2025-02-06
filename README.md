@@ -24,3 +24,4 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
  - BluePrint Style in colors
  - Sloped link
  - Manage several link style
+ - Swap of attribute

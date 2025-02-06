@@ -20,8 +20,16 @@ public:
         ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
         
         //To change the link type of currently created links
-        ImNodes::PushStyleVar(ImNodesStyleVar_LinkCreationType, ImNodesLinkType_::ImNodesLinkType_Sloped);
-        ImNodes::PopStyleVar(1);
+        ImNodes::PushStyleVar(ImNodesStyleVar_LinkCreationType, ImNodesLinkType_Sloped);
+        //ImNodes::PopStyleVar(1);
+        
+        //ImNodesStyleFlags_AttributeSwappable
+        //ImNodesStyleFlags
+        //ImNodes::PushStyleVar(ImNodesStyleVar_ImNodesStyleFlags, ImNodesStyleFlags_AttributeSwappable);
+
+        ImNodes::GetStyle().Flags |= ImNodesStyleFlags_AttributeSwappable;
+        ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
+        
 
         //ImNodes::PushStyleVar(ImNodesStyleVar_LinkThickness, 10.0f);
         /*ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinSlope, 0.0f);
@@ -72,10 +80,9 @@ public:
         ImGui::Begin("simple node editor", NULL, flags);
 
         ImNodes::BeginNodeEditor();
-        ImNodes::BeginNode(1);
 
-        ImVec2 tmp = ImNodes::GetNodeGridSpacePos(1);
-        //std::cout << tmp.x << ", " << tmp.y << " | ";
+
+        ImNodes::BeginNode(1);
 
         ImNodes::BeginNodeTitleBar();
         ImGui::TextUnformatted("simple node :)");
@@ -83,19 +90,34 @@ public:
 
         
         ImNodes::PushStyleVar(ImNodesStyleVar_PinQuadSideLength, 20.0f);
+        //ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
 
-        ImNodes::BeginInputAttribute(2, ImNodesPinShape_::ImNodesPinShape_QuadFilled);
-        ImGui::Text("input");
+
+        ImNodes::BeginInputAttribute(302, ImNodesPinShape_::ImNodesPinShape_QuadFilled);
+        ImGui::Text("302");
         ImNodes::EndInputAttribute();
 
-        //ImNodes::PopStyleVar(1);
+
+        //ImNodes::PopAttributeFlag();
+        ImNodes::PopStyleVar(1);
 
 
-        ImNodes::BeginOutputAttribute(3);
-        ImGui::Indent(40);
-        //ImGui::Indent(40*10);
-        ImGui::Text("output");
-        ImNodes::EndOutputAttribute();
+
+        static bool swap = true;
+        if (ImGui::Button("Swap"))
+            swap = !swap;
+
+        if (swap) {
+            ImNodes::BeginOutputAttribute(300);
+            ImGui::TextUnformatted("300");
+            ImNodes::EndOutputAttribute();
+        }
+        else {
+            ImNodes::BeginInputAttribute(300);
+            ImGui::TextUnformatted("300");
+            ImNodes::EndInputAttribute();
+        }
+        
 
         ImNodes::EndNode();
 
@@ -103,90 +125,24 @@ public:
 
         ImNodes::BeginNode(7);
 
-
         ImNodes::BeginNodeTitleBar();
-        ImGui::TextUnformatted("simple node..... :)");
+        ImGui::TextUnformatted("simple:)");
         ImNodes::EndNodeTitleBar();
 
 
-        //ImNodes::PushStyleVar(ImNodesStyleVar_PinQuadSideLength, 20.0f);
+        ImNodes::PushStyleVar(ImNodesStyleVar_PinQuadSideLength, 20.0f);
 
         ImNodes::BeginInputAttribute(2);
-        ImGui::Text("input");
+        ImGui::Text("2");
         ImNodes::EndInputAttribute();
 
-        //ImNodes::PopStyleVar(1);
+        ImNodes::PopStyleVar(1);
         ImGui::SameLine();
-
-
+        
+        ImGui::Indent(40*2);
         ImNodes::BeginOutputAttribute(3);
-        ImGui::Indent(40);
-        ImGui::Text("output");
+        ImGui::Text("3");
         ImNodes::EndOutputAttribute();
-
-        //if (!swap) {
-        //    ImNodes::BeginInputAttribute(8);
-        //    ImGui::Text("input");
-        //    ImNodes::EndInputAttribute();
-        //}
-
-
-        ////if (ImGui::Button("rd button"))
-        ////    std::cout << "PRESS" << std::endl;
-
-        //ImNodes::BeginOutputAttribute(9);
-        //////ImGui::Indent(40);
-        ////ImGui::Text("output");
-        ////ImVec2 value_raw = ImGui::GetMouseDragDelta(0, 0.0f);
-        ////ImVec2 value_with_lock_threshold = ImGui::GetMouseDragDelta(0);
-        //////ImVec2 /*mouse_delta*/ = io.MouseDelta;
-        ////ImGui::Text("GetMouseDragDelta(0):");
-        ////ImGui::Text("  w/ default threshold: (%.1f, %.1f)", value_with_lock_threshold.x, value_with_lock_threshold.y);
-        ////ImGui::Text("  w/ zero threshold: (%.1f, %.1f)", value_raw.x, value_raw.y);
-        //ImGuiIO& io = ImGui::GetIO();
-
-        ////const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-        ////ImVec4      Colors[ImGuiCol_COUNT] in ImGuiStyle
-
-        ////ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(0.25, 0.5, 0.75, 1);
-        ////std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].x;
-        ////std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].y;
-        ////std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].z;
-        ////std::cout << ", " << ImGui::GetStyle().Colors[ImGuiCol_Button].w << std::endl;;
-        //////ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(20, 20, 20, 30);
-        /////*ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(20, 20, 20, 30);
-        ////ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(20, 20, 20, 30);*/
-
-
-
-        //ImGui::Button("Output");
-        //if (ImGui::IsItemActive()) {
-        //    ImVec2 value_raw = ImGui::GetMouseDragDelta(0, 0.0f);
-        //    //ImGui::Text("  w/ zero threshold: (%.1f, %.1f)", value_raw.x, value_raw.y);
-        //    ImGui::GetForegroundDrawList()->AddLine(io.MouseClickedPos[0], io.MousePos, ImGui::GetColorU32(ImGuiCol_Button), 4.0f);
-        //    //if (abs(value_raw.y) > 20)
-        //        //swap = !swap;
-        //    if (value_raw.y < -20)
-        //        swap = true;
-        //    if (value_raw.y > 20)
-        //        swap = false;
-        //}
-
-        ////ImGui::Text("io.MouseDelta: (%.1f, %.1f)", mouse_delta.x, mouse_delta.y);
-
-        //ImNodes::EndOutputAttribute();
-
-        //if (swap) {
-        //    ImNodes::BeginInputAttribute(8);
-        //    ImGui::Text("input");
-        //    ImNodes::EndInputAttribute();
-        //}
-
-        ////std::cout << ImNodes::IsAttributeActive() << std::endl;
-        //if (ImNodes::IsAttributeActive())
-        //    std::cout << "attribute active" << std::endl;
-
-
 
         ImNodes::EndNode();
 
@@ -197,30 +153,32 @@ public:
         ImGui::TextUnformatted("Node with selectable Attribute");
         ImNodes::EndNodeTitleBar();
 
-        ImVec2 vmin;
-        ImVec2 vmax;
+        /*ImVec2 vmin;
+        ImVec2 vmax;*/
 
         ImNodes::BeginInputAttribute(5);
         ImGui::Text("long input to test");
         ImGui::Text("on two lines");
+        ImGui::Text("5");
         ImNodes::EndInputAttribute();
         //Hack to precompute the size of the Attribute and add a selectable of the correct size on top of it
-        vmin = ImGui::GetItemRectMin();
+        /*vmin = ImGui::GetItemRectMin();
         vmax = ImGui::GetItemRectMax();
         ImGui::SameLine();
         ImGui::Indent(-0.1);
-        ImGui::Selectable("##input", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));
+        ImGui::Selectable("##input", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));*/
 
         ImNodes::BeginInputAttribute(58);
         ImGui::Text("long input to test");
         ImGui::Text("on two lines");
+        ImGui::Text("58");
         ImNodes::EndInputAttribute();
         //Hack to precompute the size of the Attribute and add a selectable of the correct size on top of it
-        vmin = ImGui::GetItemRectMin();
+        /*vmin = ImGui::GetItemRectMin();
         vmax = ImGui::GetItemRectMax();
         ImGui::SameLine();
         ImGui::Indent(-0.1);
-        ImGui::Selectable("##input2", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));
+        ImGui::Selectable("##input2", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));*/
 
 
         //Allow for same line input/Output
@@ -228,29 +186,38 @@ public:
 
 
         //Create a topGroup for an attribute
-        ImGui::BeginGroup();
-        ImGui::PushID(888);
+        /*ImGui::BeginGroup();
+        ImGui::PushID("69");*/
         //start a bottom group for the attribute
         ImNodes::BeginOutputAttribute(69);
         ImGui::Text("output");
         ImGui::Text("??");
         ImGui::Text("!!!");
+        ImGui::Text("69");
+        ImGui::Button("test");
         ImNodes::EndOutputAttribute();
+
+        ImNodes::BeginStaticAttribute(690);
+        ImGui::Text("None");
+        ImNodes::EndStaticAttribute();
+        ImNodes::BeginStaticAttribute(691);
+        ImGui::Text("None 2");
+        ImNodes::EndStaticAttribute();
         //end the bottom group of teh attribute, compute it's size and add a selectable of the desired size on top of it
 
-        vmin = ImGui::GetItemRectMin();
-        vmax = ImGui::GetItemRectMax();
-        ImGui::SameLine();
-        ImGui::Indent(-0.1);
-        ImGui::Selectable("##output2", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));
-        //end top group
-        ImGui::PopID();
-        ImGui::EndGroup();
+        //vmin = ImGui::GetItemRectMin();
+        //vmax = ImGui::GetItemRectMax();
+        //ImGui::SameLine();
+        //ImGui::Indent(-0.1);
+        //ImGui::Selectable("##output2", false, 0, ImVec2(vmax.x - vmin.x, vmax.y - vmin.y));
+        ////end top group
+        //ImGui::PopID();
+        //ImGui::EndGroup();
         
 
 
 
-#define TMP
+//#define TMP
 #ifdef TMP
         ImGui::PushItemFlag(ImGuiItemFlags_AllowDuplicateId, true);
 
@@ -318,6 +285,12 @@ public:
         int link_id;
         if (ImNodes::IsLinkDestroyed(&link_id)) {
             std::cout << "destroyed link " << link_id << std::endl;
+        }
+
+        int src_attr, dest_attr;
+        if (ImNodes::IsAttributeSwapped(&src_attr, &dest_attr))
+        {
+            std::cout << "SWAP ATTRIBUTE " << src_attr << ", " << dest_attr << std::endl;
         }
 
 

@@ -355,6 +355,14 @@ struct ImNodesContext
     int  ActiveAttributeId;
     bool ActiveAttribute;
 
+    //active selectable for swappable attribute
+    int  ActiveSwappableAttributeId;
+    bool ActiveSwappableAttribute;
+
+    //hovered selectable for swappable attribute
+    int  HoveredSwappableAttributeId;
+    bool HoveredSwappableAttribute;
+
     // ImGui::IO cache
 
     ImVec2 MousePos;

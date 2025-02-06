@@ -1922,6 +1922,33 @@ void DrawLink(ImNodesEditorContext& editor, const int link_idx)
     DrawCurve(curve, link_color, GImNodes->Style.LinkThickness);
 }
 
+void BeginSwappableAttribute() {
+    if (GImNodes->CurrentAttributeFlags & ImNodesStyleFlags_AttributeSwappable) {
+        ImGui::BeginGroup();
+    }
+}
+
+void EndSwappableAttribute() {
+    if (GImNodes->CurrentAttributeFlags & ImNodesStyleFlags_AttributeSwappable) {
+        ImGui::SameLine();
+        ImGui::Indent(-0.1);
+        ImGui::PushID(ImGui::GetID(GImNodes->CurrentAttributeId));
+        ImGui::Selectable("##SwappableAttribute", false, 0, ImGui::GetItemRectSize());
+
+        if (ImGui::IsItemActive()) {
+            GImNodes->ActiveSwappableAttribute = true;
+            GImNodes->ActiveSwappableAttributeId = GImNodes->CurrentAttributeId;
+        }
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+            GImNodes->HoveredSwappableAttribute = true;
+            GImNodes->HoveredSwappableAttributeId = GImNodes->CurrentAttributeId;
+        }
+
+        ImGui::PopID();
+        ImGui::EndGroup();
+    }
+}
+
 void BeginPinAttribute(
     const int                  id,
     const ImNodesAttributeType type,
@@ -1932,6 +1959,8 @@ void BeginPinAttribute(
     // BeginAttribute()
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Node);
     GImNodes->CurrentScope = ImNodesScope_Attribute;
+
+    BeginSwappableAttribute();
 
     ImGui::BeginGroup();
     ImGui::PushID(id);
@@ -1971,6 +2000,8 @@ void EndPinAttribute()
     ImNodeData&           node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
     pin.AttributeRect = GetItemRect();
     node.PinIndices.push_back(GImNodes->CurrentPinIdx);
+
+    EndSwappableAttribute();
 }
 
 void Initialize(ImNodesContext* context)
@@ -2525,6 +2556,8 @@ void BeginNodeEditor()
              : ImGui::GetIO().KeyCtrl);
 
     GImNodes->ActiveAttribute = false;
+    GImNodes->ActiveSwappableAttribute = false;
+    GImNodes->HoveredSwappableAttribute = false;
 
     ImGui::BeginGroup();
     {
@@ -2843,6 +2876,8 @@ void BeginStaticAttribute(const int id)
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Node);
     GImNodes->CurrentScope = ImNodesScope_Attribute;
 
+    BeginSwappableAttribute();
+
     GImNodes->CurrentAttributeId = id;
 
     ImGui::BeginGroup();
@@ -2863,6 +2898,7 @@ void EndStaticAttribute()
         GImNodes->ActiveAttribute = true;
         GImNodes->ActiveAttributeId = GImNodes->CurrentAttributeId;
     }
+    EndSwappableAttribute();
 }
 
 void PushAttributeFlag(const ImNodesAttributeFlags flag)
@@ -3412,6 +3448,32 @@ bool IsLinkDestroyed(int* const link_id)
     }
 
     return link_destroyed;
+}
+
+bool IsAttributeSwapped(int* src_attr, int* dest_attr, ImNodesAttributeSwapFlags flags) {
+    if (GImNodes->ActiveSwappableAttribute && GImNodes->HoveredSwappableAttribute) {
+        if (GImNodes->ActiveSwappableAttributeId != GImNodes->HoveredSwappableAttributeId) {
+            ImNodesEditorContext& editor = EditorContextGet();
+            const int active_pin_idx = ObjectPoolFindOrCreateIndex(editor.Pins, GImNodes->ActiveSwappableAttributeId);
+            const int hovered_pin_idx = ObjectPoolFindOrCreateIndex(editor.Pins, GImNodes->HoveredSwappableAttributeId);
+
+            ImPinData& active_pin = editor.Pins.Pool[active_pin_idx];
+            ImPinData& hovered_pin = editor.Pins.Pool[hovered_pin_idx];
+
+            if (flags & ImNodesAttributeSwapFlags_SameNode && active_pin.ParentNodeIdx != hovered_pin.ParentNodeIdx) 
+                return false;
+
+            if (flags & ImNodesAttributeSwapFlags_SameType && active_pin.Type != hovered_pin.Type) 
+                return false;
+
+            if(src_attr != NULL)
+                *src_attr = GImNodes->ActiveSwappableAttributeId;
+            if (dest_attr != NULL)
+                *dest_attr = GImNodes->HoveredSwappableAttributeId;
+            return true;
+        }
+    }
+    return false;
 }
 
 namespace

@@ -18,6 +18,7 @@ typedef int ImNodesStyleVar;        // -> enum ImNodesStyleVar_
 typedef int ImNodesStyleFlags;      // -> enum ImNodesStyleFlags_
 typedef int ImNodesPinShape;        // -> enum ImNodesPinShape_
 typedef int ImNodesAttributeFlags;  // -> enum ImNodesAttributeFlags_
+typedef int ImNodesAttributeSwapFlags;  // -> enum ImNodesAttributeFlags_
 typedef int ImNodesMiniMapLocation; // -> enum ImNodesMiniMapLocation_
 typedef int ImNodesLinkType;        // -> enum ImNodesLinkType_
 
@@ -84,7 +85,8 @@ enum ImNodesStyleFlags_
     ImNodesStyleFlags_NodeOutline = 1 << 0,
     ImNodesStyleFlags_GridLines = 1 << 2,
     ImNodesStyleFlags_GridLinesPrimary = 1 << 3,
-    ImNodesStyleFlags_GridSnapping = 1 << 4
+    ImNodesStyleFlags_GridSnapping = 1 << 4,
+    ImNodesStyleFlags_AttributeSwappable = 1 << 5
 };
 
 enum ImNodesPinShape_
@@ -118,6 +120,16 @@ enum ImNodesAttributeFlags_
     // IsLinkDestroyed() after EndNodeEditor().
     ImNodesAttributeFlags_EnableLinkCreationOnSnap = 1 << 1
 };
+
+enum ImNodesAttributeSwapFlags_
+{
+    ImNodesAttributeSwapFlags_None = 0,
+    // Restrict the swaping detection to attribute swap of the same type.
+    ImNodesAttributeSwapFlags_SameType = 1 << 0,
+    // Restrict the swaping detection to attribute in the same node 
+    ImNodesAttributeSwapFlags_SameNode = 1 << 1
+};
+
 
 struct ImNodesIO
 {
@@ -437,6 +449,9 @@ bool IsLinkCreated(
 // Was an existing link detached from a pin by the user? The detached link's id is assigned to the
 // output argument link_id.
 bool IsLinkDestroyed(int* link_id);
+
+// Was an attribute selected and another one hovered ?
+bool IsAttributeSwapped(int* src_id, int* dest_id, ImNodesAttributeSwapFlags flags = ImNodesAttributeSwapFlags_SameNode | ImNodesAttributeSwapFlags_SameType);
 
 // Use the following functions to write the editor context's state to a string, or directly to a
 // file. The editor context is serialized in the INI file format.
