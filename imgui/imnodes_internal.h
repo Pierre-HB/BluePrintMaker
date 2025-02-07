@@ -26,7 +26,9 @@ typedef int ImNodesAttributeType;
 typedef int ImNodesUIState;
 typedef int ImNodesClickInteractionType;
 typedef int ImNodesLinkCreationType;
+typedef int ImNodesLinkControlType;
 typedef int ImNodesLinkType;
+typedef ImVec2 ImNodesLinkDeformations[MAX_CONTROL_PT_PER_CURVE];
 
 enum ImNodesScope_
 {
@@ -56,6 +58,7 @@ enum ImNodesClickInteractionType_
     ImNodesClickInteractionType_Node,
     ImNodesClickInteractionType_Link,
     ImNodesClickInteractionType_LinkCreation,
+    ImNodesClickInteractionType_LinkDeformation,
     ImNodesClickInteractionType_Panning,
     ImNodesClickInteractionType_BoxSelection,
     ImNodesClickInteractionType_ImGuiItem,
@@ -66,6 +69,12 @@ enum ImNodesLinkCreationType_
 {
     ImNodesLinkCreationType_Standard,
     ImNodesLinkCreationType_FromDetach
+};
+
+enum ImNodesLinkControlType_
+{
+    ImNodesLinkControlType_Point,
+    ImNodesLinkControlType_Segment
 };
 
 // [SECTION] internal data structures
@@ -198,9 +207,23 @@ struct ImLinkData
     ImNodesLinkType LinkType;
 
     //user inputed deformation for each control point of the curve
-    ImVec2 Deformations[MAX_CONTROL_PT_PER_CURVE];
+    //ImVec2 Deformations[MAX_CONTROL_PT_PER_CURVE];
+    ImNodesLinkDeformations Deformations;
 
     ImLinkData(const int link_id) : Id(link_id), StartPinIdx(), EndPinIdx(), ColorStyle(), LinkType(ImNodesLinkType_::ImNodesLinkType_Bezier) {}
+};
+
+struct ImLinkControlData {
+    int Id;
+    int LinkIdx;
+
+    struct
+    {
+        ImU32 Base, Hovered, Selected;
+    } ColorStyle;
+
+
+    ImLinkControlData(const int control_primitive_id) : Id(control_primitive_id), LinkIdx(), ColorStyle() {}
 };
 
 struct ImClickInteractionState
@@ -218,6 +241,11 @@ struct ImClickInteractionState
     {
         ImRect Rect; // Coordinates in grid space
     } BoxSelector;
+
+    struct
+    {
+        int ControlPrimitiveId; // control primitive Id to give to a curve to generate the correct control primitive (control primitive are not stored, theire always generated on the fly. The same id will lead to the same generated primitive
+    } LinkDeformation;
 
     ImClickInteractionState() : Type(ImNodesClickInteractionType_None) {}
 };

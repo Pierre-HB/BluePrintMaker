@@ -81,7 +81,7 @@ public:
 
         ImNodes::BeginNodeEditor();
 
-
+        
         ImNodes::BeginNode(1);
 
         ImNodes::BeginNodeTitleBar();
@@ -326,6 +326,9 @@ static HelloWorldNodeEditor editor;
 
 void NodeEditorInitialize() {
     //ImNodes::SetNodeGridSpacePos(1, ImVec2(200.0f, 200.0f)); 
+    ImNodes::SetNodeGridSpacePos(1, ImVec2(200.0f, 200.0f));
+    ImNodes::SetNodeGridSpacePos(7, ImVec2(400.0f, 400.0f));
+    ImNodes::SetNodeGridSpacePos(4, ImVec2(600.0f, 600.0f));
 
     //Set up the modifier key.
     //When press the user can click a link, it will:

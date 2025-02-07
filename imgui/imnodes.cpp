@@ -110,10 +110,11 @@ inline ImRect GetContainingRectForCubicBezier(const CubicBezier& cb)
 }
 
 inline CubicBezier GetCubicBezier(
-    ImVec2                     start,
-    ImVec2                     end,
-    const ImNodesAttributeType start_type,
-    const float                line_segments_per_length)
+    ImVec2                          start,
+    ImVec2                          end,
+    const ImNodesAttributeType      start_type,
+    const float                     line_segments_per_length,
+    const ImNodesLinkDeformations   deformation)
 {
     IM_ASSERT(
         (start_type == ImNodesAttributeType_Input) || (start_type == ImNodesAttributeType_Output));
@@ -125,20 +126,21 @@ inline CubicBezier GetCubicBezier(
     const float  link_length = ImSqrt(ImLengthSqr(end - start));
     const ImVec2 offset = ImVec2(0.25f * link_length, 0.f);
     CubicBezier  cubic_bezier;
-    cubic_bezier.P0 = start;
-    cubic_bezier.P1 = start + offset;
-    cubic_bezier.P2 = end - offset;
-    cubic_bezier.P3 = end;
+    cubic_bezier.P0 = start + deformation[0];
+    cubic_bezier.P1 = start + offset + deformation[1];
+    cubic_bezier.P2 = end - offset + deformation[4];
+    cubic_bezier.P3 = end + deformation[5];
     cubic_bezier.NumSegments = ImMax(static_cast<int>(link_length * line_segments_per_length), 1);
     return cubic_bezier;
 }
 
 inline CubicBezier GetCubicBezier(
-    ImVec2                     start,
-    ImVec2                     end,
-    const ImNodesAttributeType start_type,
-    const ImNodesAttributeType end_type,
-    const float                line_segments_per_length)
+    ImVec2                          start,
+    ImVec2                          end,
+    const ImNodesAttributeType      start_type,
+    const ImNodesAttributeType      end_type,
+    const float                     line_segments_per_length,
+    const ImNodesLinkDeformations   deformation)
 {
     IM_ASSERT(
         (start_type == ImNodesAttributeType_Input) || (start_type == ImNodesAttributeType_Output));
@@ -150,16 +152,16 @@ inline CubicBezier GetCubicBezier(
     const float  link_length = ImSqrt(ImLengthSqr(end - start));
     const ImVec2 offset = ImVec2(0.25f * link_length, 0.f);
     CubicBezier  cubic_bezier;
-    cubic_bezier.P0 = start;
+    cubic_bezier.P0 = start + deformation[0];
     if(start_type == ImNodesAttributeType_Output)
-        cubic_bezier.P1 = start + offset;
+        cubic_bezier.P1 = start + offset + deformation[1];
     else
-        cubic_bezier.P1 = start - offset;
+        cubic_bezier.P1 = start - offset + deformation[1];
     if (end_type == ImNodesAttributeType_Input)
-        cubic_bezier.P2 = end - offset;
+        cubic_bezier.P2 = end - offset + deformation[4];
     else
-        cubic_bezier.P2 = end + offset;
-    cubic_bezier.P3 = end;
+        cubic_bezier.P2 = end + offset + deformation[4];
+    cubic_bezier.P3 = end + deformation[5];
     cubic_bezier.NumSegments = ImMax(static_cast<int>(link_length * line_segments_per_length), 1);
     return cubic_bezier;
 }
@@ -251,9 +253,10 @@ inline ImRect GetContainingRectForSlopedCurve(const SlopedCurve& sc)
 }
 
 inline SlopedCurve GetSlopedCurve(
-    ImVec2                     start,
-    ImVec2                     end,
-    const ImNodesAttributeType start_type)
+    ImVec2                          start,
+    ImVec2                          end,
+    const ImNodesAttributeType      start_type,
+    const ImNodesLinkDeformations   deformation)
 {
     IM_ASSERT(
         (start_type == ImNodesAttributeType_Input) || (start_type == ImNodesAttributeType_Output));
@@ -268,38 +271,39 @@ inline SlopedCurve GetSlopedCurve(
 
     ImVec2 offset = ImVec2(min_offset, 0.0f);
     SlopedCurve sloped_curve;
-    sloped_curve.P[0] = start;
-    sloped_curve.P[1] = start + offset;
+    sloped_curve.P[0] = start + deformation[0];
+    sloped_curve.P[1] = start + offset + deformation[1];
 
     if (end.x >= start.x + 2*min_offset) {
         //standart sloped curve
         float h = end.y - start.y;
         float d = abs(h) / min_slope;//distance traveld with the min slope
         if (min_slope > 0.001f && d < end.x - start.x - 2 * min_offset)
-            sloped_curve.P[2] = sloped_curve.P[1] + ImVec2(d, h);
+            sloped_curve.P[2] = start + offset + ImVec2(d, h) + deformation[4];
         else
-            sloped_curve.P[2] = end - offset;
-        sloped_curve.P[3] = end;
+            sloped_curve.P[2] = end - offset + deformation[4];
+        sloped_curve.P[3] = end + deformation[5];
         sloped_curve.NumSegments = 3;
     }
     else {
         float mid_y = (end.y + start.y) / 2;
-        sloped_curve.P[2] = ImVec2(sloped_curve.P[1].x, mid_y);
-        sloped_curve.P[3] = ImVec2(end.x - min_offset, mid_y);
-        sloped_curve.P[4] = end - offset;
-        sloped_curve.P[5] = end;
+        sloped_curve.P[2] = ImVec2(start.x + min_offset, mid_y) + deformation[2];
+        sloped_curve.P[3] = ImVec2(end.x - min_offset, mid_y) + deformation[3];
+        sloped_curve.P[4] = end - offset + deformation[4];
+        sloped_curve.P[5] = end + deformation[5];
         sloped_curve.NumSegments = 5;
     }
     return sloped_curve;
 }
 
 inline SlopedCurve GetSlopedCurve(
-    ImVec2                     start,
-    ImVec2                     end,
-    const ImNodesAttributeType start_type,
-    const ImNodesAttributeType end_type)
+    ImVec2                          start,
+    ImVec2                          end,
+    const ImNodesAttributeType      start_type,
+    const ImNodesAttributeType      end_type,
+    const ImNodesLinkDeformations   deformation)
 {
-    return GetSlopedCurve(start, end, start_type);
+    return GetSlopedCurve(start, end, start_type, deformation);
 }
 
 inline float EvalImplicitLineEq(const ImVec2& p1, const ImVec2& p2, const ImVec2& p)
@@ -432,41 +436,43 @@ inline ImRect GetContainingRectForCurve(const Curve& c)
 }
 
 inline Curve GetCurve(
-    ImVec2                     start,
-    ImVec2                     end,
-    const ImNodesAttributeType start_type,
-    const float                line_segments_per_length,
-    const ImNodesLinkType      type)
+    ImVec2                          start,
+    ImVec2                          end,
+    const ImNodesAttributeType      start_type,
+    const float                     line_segments_per_length,
+    const ImNodesLinkType           type,
+    const ImNodesLinkDeformations   deformation)
 {
     Curve curve{NULL, NULL, type};
     switch (curve.type)
     {
     case ImNodesLinkType_::ImNodesLinkType_Bezier:
-        curve.cubic_bezier = new CubicBezier(GetCubicBezier(start, end, start_type, line_segments_per_length));
+        curve.cubic_bezier = new CubicBezier(GetCubicBezier(start, end, start_type, line_segments_per_length, deformation));
         break;
     case ImNodesLinkType_::ImNodesLinkType_Sloped:
-        curve.sloped_curve = new SlopedCurve(GetSlopedCurve(start, end, start_type));
+        curve.sloped_curve = new SlopedCurve(GetSlopedCurve(start, end, start_type, deformation));
         break;
     }
     return curve;
 }
 
 inline Curve GetCurve(
-    ImVec2                     start,
-    ImVec2                     end,
-    const ImNodesAttributeType start_type,
-    const ImNodesAttributeType end_type,
-    const float                line_segments_per_length,
-    const ImNodesLinkType      type)
+    ImVec2                          start,
+    ImVec2                          end,
+    const ImNodesAttributeType      start_type,
+    const ImNodesAttributeType      end_type,
+    const float                     line_segments_per_length,
+    const ImNodesLinkType           type,
+    const ImNodesLinkDeformations   deformation)
 {
     Curve curve{ NULL, NULL, type };
     switch (curve.type)
     {
     case ImNodesLinkType_::ImNodesLinkType_Bezier:
-        curve.cubic_bezier = new CubicBezier(GetCubicBezier(start, end, start_type, end_type, line_segments_per_length));
+        curve.cubic_bezier = new CubicBezier(GetCubicBezier(start, end, start_type, end_type, line_segments_per_length, deformation));
         break;
     case ImNodesLinkType_::ImNodesLinkType_Sloped:
-        curve.sloped_curve = new SlopedCurve(GetSlopedCurve(start, end, start_type, end_type));
+        curve.sloped_curve = new SlopedCurve(GetSlopedCurve(start, end, start_type, end_type, deformation));
         break;
     }
     return curve;
@@ -523,11 +529,12 @@ inline bool RectangleOverlapsCurve(const ImRect& rectangle, const Curve& curve)
 }
 
 inline bool RectangleOverlapsLink(
-    const ImRect&              rectangle,
-    const ImVec2&              start,
-    const ImVec2&              end,
-    const ImNodesAttributeType start_type,
-    const ImNodesLinkType      linkType)
+    const ImRect&                   rectangle,
+    const ImVec2&                   start,
+    const ImVec2&                   end,
+    const ImNodesAttributeType      start_type,
+    const ImNodesLinkType           linkType,
+    const ImNodesLinkDeformations   deformation)
 {
     // First level: simple rejection test via rectangle overlap:
 
@@ -555,11 +562,127 @@ inline bool RectangleOverlapsLink(
         // Second level of refinement: do a more expensive test against the
         // link
         
-        const Curve curve = GetCurve(start, end, start_type, GImNodes->Style.LinkLineSegmentsPerLength, linkType);
+        const Curve curve = GetCurve(start, end, start_type, GImNodes->Style.LinkLineSegmentsPerLength, linkType, deformation);
         return RectangleOverlapsCurve(rectangle, curve);
     }
 
     return false;
+}
+
+struct ControlPrimitive {
+    ImVec2 P0;
+    ImVec2 P1;
+    ImNodesLinkControlType Type;
+};
+
+ControlPrimitive GetControlPrimitiveBezier(
+    int                Id, 
+    const CubicBezier& cb) {
+    IM_ASSERT(Id == 0 || Id == 1 || Id == 4 || Id == 5);
+    ControlPrimitive cp;
+    cp.Type = ImNodesLinkControlType_Point;
+    switch (Id)
+    {
+    case 0:
+        cp.P0 = cb.P0;
+        break;
+    case 1:
+        cp.P0 = cb.P1;
+        break;
+    case 4:
+        cp.P0 = cb.P2;
+        break;
+    case 5:
+        cp.P0 = cb.P3;
+        break;
+    }
+    return cp;
+}
+
+ControlPrimitive GetControlPrimitiveSlopedCurve(
+    int                Id, 
+    const SlopedCurve& curve) {
+    IM_ASSERT(Id >= 0 && Id < 11);
+    ControlPrimitive cp;
+    if (curve.NumSegments == 3) {
+        IM_ASSERT((Id != 2) && (Id != 3) && (Id != 7) && (Id != 9)); //Id used for curve with 5 segment
+        if (Id < 6) {// point
+            cp.Type = ImNodesLinkControlType_Point;
+            cp.P0 = curve.P[Id < 2 ? Id : Id - 2];
+        }
+        else {// segment
+            cp.Type = ImNodesLinkControlType_Segment;
+            Id = Id / 2 - 3; //convert [6, 8, 10] into [0, 1, 2]
+            cp.P0 = curve.P[Id];
+            cp.P1 = curve.P[Id+1];
+        }
+    }
+    else 
+    {
+        if (Id < 6) {//point
+            cp.Type = ImNodesLinkControlType_Point;
+            cp.P0 = curve.P[Id];
+        }
+        else 
+        {
+            cp.Type = ImNodesLinkControlType_Segment;
+            Id = Id - 6; //convert[6, 7, 8, 9, 10] -> [0, 1, 2, 3, 4]
+            cp.P0 = curve.P[Id];
+            cp.P1 = curve.P[Id + 1];
+        }
+    }
+    return cp;    
+}
+
+const ControlPrimitive GetControlPrimitive(
+    int          Id,
+    const Curve& curve) {
+    switch (curve.type)
+    {
+    case ImNodesLinkType_::ImNodesLinkType_Bezier:
+        return GetControlPrimitiveBezier(Id, *curve.cubic_bezier);
+    case ImNodesLinkType_::ImNodesLinkType_Sloped:
+        return GetControlPrimitiveSlopedCurve(Id, *curve.sloped_curve);
+    default:
+        IM_ASSERT(!"Unreachable code!");
+        break;
+    }
+}
+
+const float GetDistanceToControlPrimitive(
+    const ImVec2&           pos,
+    const ControlPrimitive& cp) {
+    ImVec2 closest_point;
+
+    switch (cp.Type) {
+    case ImNodesLinkControlType_Point:
+        closest_point = cp.P0;
+        break;
+    case ImNodesLinkControlType_Segment:
+        closest_point = ImLineClosestPoint(cp.P0, cp.P1, pos);
+        break;
+    default:
+        IM_ASSERT(!"Unreachable code!");
+        break;
+    }
+
+    const ImVec2 to_curve = closest_point - pos;
+    return ImSqrt(ImLengthSqr(to_curve));
+}
+
+void DrawControlPrimitive(const ControlPrimitive& cp, ImU32 col, float thick) {
+    
+    switch (cp.Type) {
+    case ImNodesLinkControlType_Point:
+        GImNodes->CanvasDrawList->AddCircleFilled(cp.P0, thick*1.5f, col);
+        break;
+    case ImNodesLinkControlType_Segment:
+        GImNodes->CanvasDrawList->AddLine(cp.P0, cp.P1, col, thick);
+        break;
+    default:
+        IM_ASSERT(!"Unreachable code!");
+        break;
+    }
 }
 
 // [SECTION] coordinate space conversion helpers
@@ -1105,7 +1228,7 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
                 GetScreenSpacePinCoordinates(node_end_rect, pin_end.AttributeRect, pin_end.Type);
 
             // Test
-            if (RectangleOverlapsLink(box_rect, start, end, pin_start.Type, link.LinkType))
+            if (RectangleOverlapsLink(box_rect, start, end, pin_start.Type, link.LinkType, link.Deformations))
             {
                 editor.SelectedLinkIndices.push_back(link_idx);
             }
@@ -1349,11 +1472,12 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
                                          editor, editor.Pins.Pool[GImNodes->HoveredPinIdx.Value()])
                                    : GImNodes->MousePos;
         //editor.Pins.Pool[editor.ClickInteraction.LinkCreation.EndPinIdx.Value()]
+        ImNodesLinkDeformations no_deformation;
         Curve curve = GetCurve(
-            start_pos, end_pos, start_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, GImNodes->Style.LinkCreationType);
+            start_pos, end_pos, start_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, GImNodes->Style.LinkCreationType, no_deformation);
         if (GImNodes->HoveredPinIdx.HasValue()) {
             curve = GetCurve(
-                start_pos, end_pos, start_pin.Type, editor.Pins.Pool[GImNodes->HoveredPinIdx.Value()].Type, GImNodes->Style.LinkLineSegmentsPerLength, GImNodes->Style.LinkCreationType);
+                start_pos, end_pos, start_pin.Type, editor.Pins.Pool[GImNodes->HoveredPinIdx.Value()].Type, GImNodes->Style.LinkLineSegmentsPerLength, GImNodes->Style.LinkCreationType, no_deformation);
         }
 
         DrawCurve(curve, GImNodes->Style.Colors[ImNodesCol_Link], GImNodes->Style.LinkThickness);
@@ -1572,7 +1696,7 @@ ImOptionalIndex ResolveHoveredLink(
         // rendering the links
 
         const Curve curve = GetCurve(
-            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType);
+            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
 
         // The distance test
         {
@@ -1599,6 +1723,55 @@ ImOptionalIndex ResolveHoveredLink(
     }
 
     return link_idx_with_smallest_distance;
+}
+
+ImOptionalIndex ResolveHoveredControlPrimitive(
+    const ImObjectPool<ImLinkControlData>& controlPrimitives,
+    const ImObjectPool<ImLinkData>& links,
+    const ImObjectPool<ImPinData>& pins)
+{
+    float           smallest_distance = FLT_MAX;
+    ImOptionalIndex control_primitive_idx_with_smallest_distance;
+    ImNodesLinkControlType control_primitive_type = ImNodesLinkControlType_Segment;
+
+    for (int idx = 0; idx < controlPrimitives.Pool.Size; ++idx)
+    {
+        if (!controlPrimitives.InUse[idx])
+        {
+            continue;
+        }
+
+        const ImLinkControlData control_primitive = controlPrimitives.Pool[idx];
+        const ImLinkData& link = links.Pool[control_primitive.LinkIdx];
+        const ImPinData& start_pin = pins.Pool[link.StartPinIdx];
+        const ImPinData& end_pin = pins.Pool[link.EndPinIdx];
+
+        const Curve curve = GetCurve(
+            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+
+        const ControlPrimitive cp = GetControlPrimitive(control_primitive.Id, curve);
+
+        // The distance test
+        {
+            const float distance = GetDistanceToControlPrimitive(
+                GImNodes->MousePos, cp);
+
+
+            if (distance < GImNodes->Style.LinkHoverDistance) {
+                if (control_primitive_type == cp.Type && distance < smallest_distance) {
+                    smallest_distance = distance;
+                    control_primitive_idx_with_smallest_distance = idx;
+                }
+                else if (control_primitive_type == ImNodesLinkControlType_Segment && cp.Type == ImNodesLinkControlType_Point) { //Prioritize points
+                    smallest_distance = distance;
+                    control_primitive_idx_with_smallest_distance = idx;
+                    control_primitive_type = cp.Type;
+                }
+            }
+        }
+    }
+
+    return control_primitive_idx_with_smallest_distance;
 }
 
 // [SECTION] render helpers
@@ -1888,7 +2061,7 @@ void DrawLink(ImNodesEditorContext& editor, const int link_idx)
     const ImPinData&  end_pin = editor.Pins.Pool[link.EndPinIdx];
 
     const Curve curve = GetCurve(
-        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, link.LinkType);
+        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, link.LinkType, link.Deformations);
 
     const bool link_hovered =
         GImNodes->HoveredLinkIdx == link_idx &&
@@ -2155,7 +2328,7 @@ static void MiniMapDrawLink(ImNodesEditorContext& editor, const int link_idx)
         start_pin.Type,
         end_pin.Type,
         GImNodes->Style.LinkLineSegmentsPerLength / editor.MiniMapScaling,
-        link.LinkType);
+        link.LinkType, link.Deformations);
 
     // It's possible for a link to be deleted in begin_link_interaction. A user
     // may detach a link, resulting in the link wire snapping to the mouse
@@ -2659,6 +2832,40 @@ void EndNodeEditor()
         if (editor.Links.InUse[link_idx])
         {
             DrawLink(editor, link_idx);
+            if(editor.SelectedLinkIndices.contains(link_idx))
+            {
+                const ImLinkData& link = editor.Links.Pool[link_idx];
+                const ImPinData& start_pin = editor.Pins.Pool[link.StartPinIdx];
+                const ImPinData& end_pin = editor.Pins.Pool[link.EndPinIdx];
+
+                const Curve curve = GetCurve(
+                    start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, link.LinkType, link.Deformations);
+
+                if (curve.type == ImNodesLinkType_Bezier) {
+                    //DrawControlPrimitive(GetControlPrimitive(0, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                    DrawControlPrimitive(GetControlPrimitive(1, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                    DrawControlPrimitive(GetControlPrimitive(4, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                    //DrawControlPrimitive(GetControlPrimitive(5, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                }
+                if (curve.type == ImNodesLinkType_Sloped) {
+                    if(curve.sloped_curve->NumSegments == 3){
+                        //DrawControlPrimitive(GetControlPrimitive(0, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                        DrawControlPrimitive(GetControlPrimitive(1, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                        DrawControlPrimitive(GetControlPrimitive(4, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                        //DrawControlPrimitive(GetControlPrimitive(5, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                        DrawControlPrimitive(GetControlPrimitive(6, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                        DrawControlPrimitive(GetControlPrimitive(8, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                        DrawControlPrimitive(GetControlPrimitive(10, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                    }
+                    else {
+                        for (int i = 0; i < 11; i++) {
+                            if (i == 0 || i == 5)
+                                continue;
+                            DrawControlPrimitive(GetControlPrimitive(i, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+                        }
+                    }
+                }
+            }
         }
     }
 
