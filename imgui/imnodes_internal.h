@@ -57,6 +57,7 @@ enum ImNodesClickInteractionType_
 {
     ImNodesClickInteractionType_Node,
     ImNodesClickInteractionType_Link,
+    ImNodesClickInteractionType_LinkControl,
     ImNodesClickInteractionType_LinkCreation,
     ImNodesClickInteractionType_LinkDeformation,
     ImNodesClickInteractionType_Panning,
@@ -214,8 +215,9 @@ struct ImLinkData
 };
 
 struct ImLinkControlData {
-    int Id;
-    int LinkIdx;
+    int Id;      // global if of the control data, should be = 2*LinkIdx + 3*LocalId to ensure uniqueness
+    int LinkIdx; //pointer to the link
+    int LocalId; //Id of the primitive inside the curve
 
     struct
     {
@@ -225,6 +227,10 @@ struct ImLinkControlData {
 
     ImLinkControlData(const int control_primitive_id) : Id(control_primitive_id), LinkIdx(), ColorStyle() {}
 };
+
+inline int GetLinkControlId(int localId, int link_idx) {
+    return 2 * link_idx + 3 * localId;
+}
 
 struct ImClickInteractionState
 {
@@ -291,6 +297,7 @@ struct ImNodesEditorContext
     ImObjectPool<ImNodeData> Nodes;
     ImObjectPool<ImPinData>  Pins;
     ImObjectPool<ImLinkData> Links;
+    ImObjectPool<ImLinkControlData> LinkControls;
 
     ImVector<int> NodeDepthOrder;
 
@@ -303,11 +310,17 @@ struct ImNodesEditorContext
 
     ImVector<int> SelectedNodeIndices;
     ImVector<int> SelectedLinkIndices;
+    ImVector<int> SelectedLinkControlIndices;
 
     // Relative origins of selected nodes for snapping of dragged nodes
     ImVector<ImVec2> SelectedNodeOffsets;
     // Offset of the primary node origin relative to the mouse cursor.
     ImVec2 PrimaryNodeOffset;
+
+    // Relative origins of selected control primitive for snapping of dragging
+    ImVector<ImVec2> SelectedLinkControlOffsets;
+    // Offset of the primary control primitive origin relative to the mouse cursor.
+    ImVec2 PrimaryLinkControlOffset;
 
     ImClickInteractionState ClickInteraction;
 
@@ -370,6 +383,7 @@ struct ImNodesContext
 
     ImOptionalIndex HoveredNodeIdx;
     ImOptionalIndex HoveredLinkIdx;
+    ImOptionalIndex HoveredLinkControlIdx;
     ImOptionalIndex HoveredPinIdx;
 
     ImOptionalIndex DeletedLinkIdx;

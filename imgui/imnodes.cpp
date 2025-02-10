@@ -685,6 +685,11 @@ void DrawControlPrimitive(const ControlPrimitive& cp, ImU32 col, float thick) {
     }
 }
 
+ImVec2 GetLinkControlOrigin(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
+    //TODO
+    return ImVec2(0, 0);
+}
+
 // [SECTION] coordinate space conversion helpers
 
 inline ImVec2 ScreenSpaceToGridSpace(const ImNodesEditorContext& editor, const ImVec2& v)
@@ -1063,6 +1068,103 @@ void BeginNodeSelection(ImNodesEditorContext& editor, const int node_idx)
     }
 }
 
+void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_control_idx) {
+    
+    if (editor.ClickInteraction.Type != ImNodesClickInteractionType_None)
+    {
+        return;
+    }
+
+    editor.ClickInteraction.Type = ImNodesClickInteractionType_LinkControl;
+
+    //If link control not already selected, clear all selection and select only this link control
+    if (!editor.SelectedLinkControlIndices.contains(link_control_idx))
+    {
+        editor.SelectedLinkIndices.clear();
+        editor.SelectedNodeIndices.clear();
+        if (!GImNodes->MultipleSelectModifier)
+        {
+            editor.SelectedLinkControlIndices.clear();
+        }
+        editor.SelectedLinkControlIndices.push_back(link_control_idx);
+    }
+    // Deselect a previously-selected node
+    else if (GImNodes->MultipleSelectModifier)
+    {
+        const int* const link_control_ptr = editor.SelectedNodeIndices.find(link_control_idx);
+        editor.SelectedNodeIndices.erase(link_control_ptr);
+
+        // Don't allow dragging after deselecting
+        editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
+    }
+
+    // To support snapping of multiple nodes, we need to store the offset of
+    // each node in the selection to the origin of the dragged node.
+    const ImVec2 ref_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[link_control_idx]);
+    editor.PrimaryLinkControlOffset =
+        ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+
+    editor.SelectedLinkControlOffsets.clear();
+    for (int idx = 0; idx < editor.SelectedLinkControlIndices.Size; idx++)
+    {
+        const int    link_control = editor.SelectedLinkControlIndices[idx];
+        const ImVec2 link_control_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[link_control]) - ref_origin;
+        editor.SelectedLinkControlOffsets.push_back(link_control_origin);
+    }
+}
+
+ImVector<int> GetAllowedLinkControlLocalId(ImNodesEditorContext& editor, const int link_idx) {
+    const ImLinkData link = editor.Links.Pool[link_idx];
+    const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+    const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+    const Curve curve = GetCurve(
+        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+
+    ImVector<int> local_Ids;
+    if (link.LinkType == ImNodesLinkType_Bezier) {
+        local_Ids.push_back(1);
+        local_Ids.push_back(2);
+    }
+    else if (link.LinkType == ImNodesLinkType_Sloped) {
+        if (curve.sloped_curve->NumSegments == 3) {
+            local_Ids.push_back(1);
+            local_Ids.push_back(4);
+            local_Ids.push_back(6);
+            local_Ids.push_back(8);
+            local_Ids.push_back(10);
+        }
+        else {
+            local_Ids.push_back(1);
+            local_Ids.push_back(2);
+            local_Ids.push_back(3);
+            local_Ids.push_back(4);
+            local_Ids.push_back(5);
+            local_Ids.push_back(6);
+            local_Ids.push_back(7);
+            local_Ids.push_back(8);
+            local_Ids.push_back(9);
+            local_Ids.push_back(10);
+        }
+    }
+    return local_Ids;
+}
+
+//enable the use of all control link of a given link
+void UseLinkControls(ImNodesEditorContext& editor, const int link_idx) {
+
+    
+    ImVector<int> local_Ids = GetAllowedLinkControlLocalId(editor, link_idx);
+
+    //loacal_Ids.
+
+    for (int link_control_idx = 0; link_control_idx < editor.LinkControls.Pool.size(); ++link_control_idx)
+    {
+        const ImLinkControlData link_control = editor.LinkControls.Pool[link_control_idx];
+        if (link_control.LinkIdx == link_idx && local_Ids.contains(link_control.LocalId))
+            editor.LinkControls.InUse[link_control_idx] = true;
+    }
+}
+
 void BeginLinkSelection(ImNodesEditorContext& editor, const int link_idx)
 {
     editor.ClickInteraction.Type = ImNodesClickInteractionType_Link;
@@ -1071,6 +1173,7 @@ void BeginLinkSelection(ImNodesEditorContext& editor, const int link_idx)
     editor.SelectedNodeIndices.clear();
     editor.SelectedLinkIndices.clear();
     editor.SelectedLinkIndices.push_back(link_idx);
+    UseLinkControls(editor, link_idx);
 }
 
 void BeginLinkDetach(ImNodesEditorContext& editor, const int link_idx, const int detach_pin_idx)
@@ -2699,9 +2802,11 @@ void BeginNodeEditor()
     ObjectPoolReset(editor.Nodes);
     ObjectPoolReset(editor.Pins);
     ObjectPoolReset(editor.Links);
+    ObjectPoolReset(editor.LinkControls);
 
     GImNodes->HoveredNodeIdx.Reset();
     GImNodes->HoveredLinkIdx.Reset();
+    GImNodes->HoveredLinkControlIdx.Reset();
     GImNodes->HoveredPinIdx.Reset();
     GImNodes->DeletedLinkIdx.Reset();
     GImNodes->SnapLinkIdx.Reset();
@@ -2832,40 +2937,59 @@ void EndNodeEditor()
         if (editor.Links.InUse[link_idx])
         {
             DrawLink(editor, link_idx);
-            if(editor.SelectedLinkIndices.contains(link_idx))
-            {
-                const ImLinkData& link = editor.Links.Pool[link_idx];
-                const ImPinData& start_pin = editor.Pins.Pool[link.StartPinIdx];
-                const ImPinData& end_pin = editor.Pins.Pool[link.EndPinIdx];
+            //if(editor.SelectedLinkIndices.contains(link_idx))
+            //{
+            //    const ImLinkData& link = editor.Links.Pool[link_idx];
+            //    const ImPinData& start_pin = editor.Pins.Pool[link.StartPinIdx];
+            //    const ImPinData& end_pin = editor.Pins.Pool[link.EndPinIdx];
 
-                const Curve curve = GetCurve(
-                    start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, link.LinkType, link.Deformations);
+            //    const Curve curve = GetCurve(
+            //        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, link.LinkType, link.Deformations);
 
-                if (curve.type == ImNodesLinkType_Bezier) {
-                    //DrawControlPrimitive(GetControlPrimitive(0, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                    DrawControlPrimitive(GetControlPrimitive(1, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                    DrawControlPrimitive(GetControlPrimitive(4, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                    //DrawControlPrimitive(GetControlPrimitive(5, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                }
-                if (curve.type == ImNodesLinkType_Sloped) {
-                    if(curve.sloped_curve->NumSegments == 3){
-                        //DrawControlPrimitive(GetControlPrimitive(0, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                        DrawControlPrimitive(GetControlPrimitive(1, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                        DrawControlPrimitive(GetControlPrimitive(4, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                        //DrawControlPrimitive(GetControlPrimitive(5, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                        DrawControlPrimitive(GetControlPrimitive(6, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                        DrawControlPrimitive(GetControlPrimitive(8, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                        DrawControlPrimitive(GetControlPrimitive(10, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                    }
-                    else {
-                        for (int i = 0; i < 11; i++) {
-                            if (i == 0 || i == 5)
-                                continue;
-                            DrawControlPrimitive(GetControlPrimitive(i, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
-                        }
-                    }
-                }
-            }
+            //    if (curve.type == ImNodesLinkType_Bezier) {
+            //        //DrawControlPrimitive(GetControlPrimitive(0, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //        DrawControlPrimitive(GetControlPrimitive(1, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //        DrawControlPrimitive(GetControlPrimitive(4, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //        //DrawControlPrimitive(GetControlPrimitive(5, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //    }
+            //    if (curve.type == ImNodesLinkType_Sloped) {
+            //        if(curve.sloped_curve->NumSegments == 3){
+            //            //DrawControlPrimitive(GetControlPrimitive(0, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //            DrawControlPrimitive(GetControlPrimitive(1, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //            DrawControlPrimitive(GetControlPrimitive(4, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //            //DrawControlPrimitive(GetControlPrimitive(5, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //            DrawControlPrimitive(GetControlPrimitive(6, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //            DrawControlPrimitive(GetControlPrimitive(8, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //            DrawControlPrimitive(GetControlPrimitive(10, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //        }
+            //        else {
+            //            for (int i = 0; i < 11; i++) {
+            //                if (i == 0 || i == 5)
+            //                    continue;
+            //                DrawControlPrimitive(GetControlPrimitive(i, curve), IM_COL32(200, 10, 5, 255), GImNodes->Style.LinkThickness);
+            //            }
+            //        }
+            //    }
+            //}
+        }
+    }
+
+    for (int link_control_idx = 0; link_control_idx < editor.LinkControls.Pool.size(); ++link_control_idx)
+    {
+        if (editor.LinkControls.InUse[link_control_idx])
+        {
+
+            const ImLinkControlData& link_control = editor.LinkControls.Pool[link_control_idx];
+            const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+            const ImPinData& start_pin = editor.Pins.Pool[link.StartPinIdx];
+            const ImPinData& end_pin = editor.Pins.Pool[link.EndPinIdx];
+
+            const Curve curve = GetCurve(
+                start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, link.LinkType, link.Deformations);
+
+            ImU32 col = IM_COL32(200, 10, 5, 255);
+
+            DrawControlPrimitive(GetControlPrimitive(link_control.LocalId, curve), col, GImNodes->Style.LinkThickness);
         }
     }
 
@@ -2898,6 +3022,10 @@ void EndNodeEditor()
         else if (GImNodes->LeftMouseClicked && GImNodes->HoveredNodeIdx.HasValue())
         {
             BeginNodeSelection(editor, GImNodes->HoveredNodeIdx.Value());
+        }
+        else if (GImNodes->LeftMouseClicked && GImNodes->HoveredLinkControlIdx.HasValue())
+        {
+            BeginLinkControlSelection(editor, GImNodes->HoveredLinkControlIdx.Value());
         }
 
         else if (
@@ -3124,6 +3252,17 @@ void PopAttributeFlag()
     GImNodes->CurrentAttributeFlags = GImNodes->AttributeFlagStack.back();
 }
 
+void LinkControl(ImNodesEditorContext& editor, int link_idx) {
+
+    ImVector<int> local_Ids = GetAllowedLinkControlLocalId(editor, link_idx);
+    for (int i = 0; i < local_Ids.size(); i++) {
+        int Id = GetLinkControlId(local_Ids[i], link_idx);
+        ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
+        link_control.LinkIdx = link_idx;
+        link_control.LocalId = local_Ids[i];
+    }
+}
+
 void Link(const int id, const int start_attr_id, const int end_attr_id, ImNodesLinkType linkType)
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Editor);
@@ -3148,6 +3287,10 @@ void Link(const int id, const int start_attr_id, const int end_attr_id, ImNodesL
     {
         GImNodes->SnapLinkIdx = ObjectPoolFindOrCreateIndex(editor.Links, id);
     }
+
+    int link_idx = ObjectPoolFindOrCreateIndex(editor.Links, id);
+    if(editor.SelectedLinkIndices.contains(link_idx))
+        LinkControl(editor, link_idx);
 }
 
 void PushColorStyle(const ImNodesCol item, unsigned int color)
