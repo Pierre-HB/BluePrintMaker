@@ -687,6 +687,36 @@ void DrawControlPrimitive(const ControlPrimitive& cp, ImU32 col, float thick) {
 
 ImVec2 GetLinkControlOrigin(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
     //TODO
+    if (linkControl.LocalId == 1 || linkControl.LocalId == 4 || linkControl.LocalId == 2 || linkControl.LocalId == 3) {
+        const ImLinkData link = editor.Links.Pool[linkControl.LinkIdx];
+        const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+        const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+        const Curve curve = GetCurve(
+            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+        if (curve.type == ImNodesLinkType_Sloped) {
+            ImVec2 origin;
+            if (curve.sloped_curve->NumSegments == 3)
+                origin = curve.sloped_curve->P[linkControl.LocalId < 2 ? linkControl.LocalId : linkControl.LocalId - 2];
+            else
+                origin = curve.sloped_curve->P[linkControl.LocalId];
+            return origin;
+        }
+    }
+    return ImVec2(0, 0);
+}
+
+ImVec2 MooveLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& linkControl, ImVec2 origin) {
+    //TODO
+    if (linkControl.LocalId == 1 || linkControl.LocalId == 4 || linkControl.LocalId == 2 || linkControl.LocalId == 3) {
+        ImLinkData& link = editor.Links.Pool[linkControl.LinkIdx];
+        const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+        const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+        const Curve curve = GetCurve(
+            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+        if (curve.type == ImNodesLinkType_Sloped) {
+            link.Deformations[linkControl.LocalId] += origin - GetLinkControlOrigin(editor, linkControl);
+        }
+    }
     return ImVec2(0, 0);
 }
 
@@ -1076,23 +1106,24 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
     }
 
     editor.ClickInteraction.Type = ImNodesClickInteractionType_LinkControl;
-
+    ImLinkControlData& link_control = editor.LinkControls.Pool[link_control_idx];
     //If link control not already selected, clear all selection and select only this link control
     if (!editor.SelectedLinkControlIndices.contains(link_control_idx))
     {
-        editor.SelectedLinkIndices.clear();
         editor.SelectedNodeIndices.clear();
         if (!GImNodes->MultipleSelectModifier)
         {
             editor.SelectedLinkControlIndices.clear();
+            editor.SelectedLinkIndices.clear();
         }
         editor.SelectedLinkControlIndices.push_back(link_control_idx);
+        editor.SelectedLinkIndices.push_back(link_control.LinkIdx);
     }
     // Deselect a previously-selected node
     else if (GImNodes->MultipleSelectModifier)
     {
-        const int* const link_control_ptr = editor.SelectedNodeIndices.find(link_control_idx);
-        editor.SelectedNodeIndices.erase(link_control_ptr);
+        const int* const link_control_ptr = editor.SelectedLinkControlIndices.find(link_control_idx);
+        editor.SelectedLinkControlIndices.erase(link_control_ptr);
 
         // Don't allow dragging after deselecting
         editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
@@ -1123,7 +1154,7 @@ ImVector<int> GetAllowedLinkControlLocalId(ImNodesEditorContext& editor, const i
     ImVector<int> local_Ids;
     if (link.LinkType == ImNodesLinkType_Bezier) {
         local_Ids.push_back(1);
-        local_Ids.push_back(2);
+        local_Ids.push_back(4);
     }
     else if (link.LinkType == ImNodesLinkType_Sloped) {
         if (curve.sloped_curve->NumSegments == 3) {
@@ -1138,7 +1169,6 @@ ImVector<int> GetAllowedLinkControlLocalId(ImNodesEditorContext& editor, const i
             local_Ids.push_back(2);
             local_Ids.push_back(3);
             local_Ids.push_back(4);
-            local_Ids.push_back(5);
             local_Ids.push_back(6);
             local_Ids.push_back(7);
             local_Ids.push_back(8);
@@ -1149,21 +1179,6 @@ ImVector<int> GetAllowedLinkControlLocalId(ImNodesEditorContext& editor, const i
     return local_Ids;
 }
 
-//enable the use of all control link of a given link
-void UseLinkControls(ImNodesEditorContext& editor, const int link_idx) {
-
-    
-    ImVector<int> local_Ids = GetAllowedLinkControlLocalId(editor, link_idx);
-
-    //loacal_Ids.
-
-    for (int link_control_idx = 0; link_control_idx < editor.LinkControls.Pool.size(); ++link_control_idx)
-    {
-        const ImLinkControlData link_control = editor.LinkControls.Pool[link_control_idx];
-        if (link_control.LinkIdx == link_idx && local_Ids.contains(link_control.LocalId))
-            editor.LinkControls.InUse[link_control_idx] = true;
-    }
-}
 
 void BeginLinkSelection(ImNodesEditorContext& editor, const int link_idx)
 {
@@ -1172,8 +1187,8 @@ void BeginLinkSelection(ImNodesEditorContext& editor, const int link_idx)
     // as the sole selection.
     editor.SelectedNodeIndices.clear();
     editor.SelectedLinkIndices.clear();
+    editor.SelectedLinkControlIndices.clear();
     editor.SelectedLinkIndices.push_back(link_idx);
-    UseLinkControls(editor, link_idx);
 }
 
 void BeginLinkDetach(ImNodesEditorContext& editor, const int link_idx, const int detach_pin_idx)
@@ -1252,7 +1267,7 @@ void BeginCanvasInteraction(ImNodesEditorContext& editor)
 {
     const bool any_ui_element_hovered =
         GImNodes->HoveredNodeIdx.HasValue() || GImNodes->HoveredLinkIdx.HasValue() ||
-        GImNodes->HoveredPinIdx.HasValue() || ImGui::IsAnyItemHovered();
+        GImNodes->HoveredPinIdx.HasValue() || GImNodes->HoveredLinkControlIdx.HasValue() || ImGui::IsAnyItemHovered();
 
     const bool mouse_not_in_canvas = !MouseInCanvas();
 
@@ -1311,6 +1326,7 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
     // Update link selection
 
     editor.SelectedLinkIndices.clear();
+    editor.SelectedLinkControlIndices.clear();
 
     // Test for overlap against links
 
@@ -1377,6 +1393,32 @@ void TranslateSelectedNodes(ImNodesEditorContext& editor)
             if (node.Draggable && shouldTranslate)
             {
                 node.Origin = origin + node_rel + editor.AutoPanningDelta;
+            }
+        }
+    }
+}
+
+void TranslateSelectedLinkControl(ImNodesEditorContext& editor)
+{
+    if (GImNodes->LeftMouseDragging)
+    {
+        // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
+        // slightly
+        const bool shouldTranslate = (GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
+            ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
+            : true;
+
+        const ImVec2 origin = SnapOriginToGrid(
+            GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+            editor.PrimaryLinkControlOffset);
+        for (int i = 0; i < editor.SelectedLinkControlIndices.size(); ++i)
+        {
+            const ImVec2 link_control_rel = editor.SelectedLinkControlOffsets[i];
+            const int    link_control_idx = editor.SelectedLinkControlIndices[i];
+            ImLinkControlData& link_control = editor.LinkControls.Pool[link_control_idx];
+            if (shouldTranslate)
+            {
+                MooveLinkControl(editor, link_control, origin + link_control_rel + editor.AutoPanningDelta);
             }
         }
     }
@@ -1518,6 +1560,16 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
     case ImNodesClickInteractionType_Node:
     {
         TranslateSelectedNodes(editor);
+
+        if (GImNodes->LeftMouseReleased)
+        {
+            editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
+        }
+    }
+    break;
+    case ImNodesClickInteractionType_LinkControl:
+    {
+        TranslateSelectedLinkControl(editor);
 
         if (GImNodes->LeftMouseReleased)
         {
@@ -1828,8 +1880,8 @@ ImOptionalIndex ResolveHoveredLink(
     return link_idx_with_smallest_distance;
 }
 
-ImOptionalIndex ResolveHoveredControlPrimitive(
-    const ImObjectPool<ImLinkControlData>& controlPrimitives,
+ImOptionalIndex ResolveHoveredLinkControl(
+    const ImObjectPool<ImLinkControlData>& linkControls,
     const ImObjectPool<ImLinkData>& links,
     const ImObjectPool<ImPinData>& pins)
 {
@@ -1837,14 +1889,14 @@ ImOptionalIndex ResolveHoveredControlPrimitive(
     ImOptionalIndex control_primitive_idx_with_smallest_distance;
     ImNodesLinkControlType control_primitive_type = ImNodesLinkControlType_Segment;
 
-    for (int idx = 0; idx < controlPrimitives.Pool.Size; ++idx)
+    for (int idx = 0; idx < linkControls.Pool.Size; ++idx)
     {
-        if (!controlPrimitives.InUse[idx])
+        if (!linkControls.InUse[idx])
         {
             continue;
         }
 
-        const ImLinkControlData control_primitive = controlPrimitives.Pool[idx];
+        const ImLinkControlData control_primitive = linkControls.Pool[idx];
         const ImLinkData& link = links.Pool[control_primitive.LinkIdx];
         const ImPinData& start_pin = pins.Pool[link.StartPinIdx];
         const ImPinData& end_pin = pins.Pool[link.EndPinIdx];
@@ -1852,7 +1904,7 @@ ImOptionalIndex ResolveHoveredControlPrimitive(
         const Curve curve = GetCurve(
             start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
 
-        const ControlPrimitive cp = GetControlPrimitive(control_primitive.Id, curve);
+        const ControlPrimitive cp = GetControlPrimitive(control_primitive.LocalId, curve);
 
         // The distance test
         {
@@ -2867,13 +2919,18 @@ void BeginNodeEditor()
         }
     }
 }
-
+//descriptor of a function delcared after, might change some stuff to avoid it...
+void LinkControl(ImNodesEditorContext& editor, int link_idx);
 void EndNodeEditor()
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Editor);
     GImNodes->CurrentScope = ImNodesScope_None;
 
     ImNodesEditorContext& editor = EditorContextGet();
+
+    //resolve visible control primitive
+    for(int link_idx : editor.SelectedLinkIndices) 
+        LinkControl(editor, link_idx);
 
     bool no_grid_content = editor.GridContentBounds.IsInverted();
     if (no_grid_content)
@@ -2911,9 +2968,15 @@ void EndNodeEditor()
             GImNodes->HoveredNodeIdx = ResolveHoveredNode(editor.NodeDepthOrder);
         }
 
+        if (!GImNodes->HoveredPinIdx.HasValue())
+        {
+            // Resolve which node is actually on top and being hovered using the depth stack.
+            GImNodes->HoveredLinkControlIdx = ResolveHoveredLinkControl(editor.LinkControls, editor.Links, editor.Pins);
+        }
+
         // We don't check for hovered pins here, because if we want to detach a link by clicking and
         // dragging, we need to have both a link and pin hovered.
-        if (!GImNodes->HoveredNodeIdx.HasValue())
+        if (!GImNodes->HoveredNodeIdx.HasValue() && !GImNodes->HoveredLinkControlIdx.HasValue())
         {
             GImNodes->HoveredLinkIdx = ResolveHoveredLink(editor.Links, editor.Pins);
         }
@@ -2989,7 +3052,20 @@ void EndNodeEditor()
 
             ImU32 col = IM_COL32(200, 10, 5, 255);
 
-            DrawControlPrimitive(GetControlPrimitive(link_control.LocalId, curve), col, GImNodes->Style.LinkThickness);
+            ImVector<int> local_ids = GetAllowedLinkControlLocalId(editor, link_control.LinkIdx);
+            ImU32 link_control_color = IM_COL32(200, 10, 5, 255);
+            if (editor.SelectedLinkControlIndices.contains(link_control_idx))
+            {
+                link_control_color = IM_COL32(10, 200, 5, 255);
+            }
+            else if (GImNodes->HoveredLinkControlIdx == link_control_idx)
+            {
+                link_control_color = IM_COL32(200, 200, 5, 255);
+            }
+
+
+            if(local_ids.contains(link_control.LocalId))
+                DrawControlPrimitive(GetControlPrimitive(link_control.LocalId, curve), link_control_color, GImNodes->Style.LinkThickness);
         }
     }
 
