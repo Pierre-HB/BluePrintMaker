@@ -1564,16 +1564,16 @@ bool ShouldLinkSnapToPin(
     const ImPinData& end_pin = editor.Pins.Pool[hovered_pin_idx];
 
     // The end pin must be in a different node
-    if (start_pin.ParentNodeIdx == end_pin.ParentNodeIdx)
-    {
-        return false;
-    }
-
-    // The end pin must be of a different type
-    /*if (start_pin.Type == end_pin.Type)
+    /*if (start_pin.ParentNodeIdx == end_pin.ParentNodeIdx)
     {
         return false;
     }*/
+
+    // The end pin must be of a different type
+    if (start_pin.Type == end_pin.Type)
+    {
+        return false;
+    }
 
     // The link to be created must not be a duplicate, unless it is the link which was created on
     // snap. In that case we want to snap, since we want it to appear visually as if the created
@@ -3137,17 +3137,16 @@ void EndNodeEditor()
             const Curve curve = GetCurve(
                 start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, link.LinkType, link.Deformations);
 
-            ImU32 col = IM_COL32(200, 10, 5, 255);
 
             ImVector<int> local_ids = GetAllowedLinkControlLocalId(editor, link_control.LinkIdx);
-            ImU32 link_control_color = IM_COL32(200, 10, 5, 255);
+            ImU32 link_control_color = link.ColorStyle.Base;
             if (editor.SelectedLinkControlIndices.contains(link_control_idx))
             {
-                link_control_color = IM_COL32(10, 200, 5, 255);
+                link_control_color = link.ColorStyle.Selected;
             }
             else if (GImNodes->HoveredLinkControlIdx == link_control_idx)
             {
-                link_control_color = IM_COL32(200, 200, 5, 255);
+                link_control_color = link.ColorStyle.Hovered;
             }
 
 

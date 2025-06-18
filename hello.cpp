@@ -265,7 +265,7 @@ public:
             const std::pair<int, int> p = links[i];
             // in this case, we just use the array index of the link
             // as the unique identifier
-            ImNodes::Link(i+10, p.first, p.second);
+            ImNodes::Link(i+10, p.first, p.second, ImNodesLinkType_::ImNodesLinkType_Sloped);
         }
         ImNodes::Link(15, 3, 5, ImNodesLinkType_::ImNodesLinkType_Sloped);
         //ImNodes::Link(16, 6, 3);
@@ -294,6 +294,15 @@ public:
             std::cout << "SWAP ATTRIBUTE " << src_attr << ", " << dest_attr << std::endl;
         }
 
+        int node_ids[50];
+        ImNodes::GetSelectedNodes(node_ids);
+        for (int i = 0; i < ImNodes::NumSelectedNodes(); i++)
+            std::cout << "selecte node " << node_ids[i] << std::endl;
+
+        ImNodes::GetSelectedLinks(node_ids);
+        for (int i = 0; i < ImNodes::NumSelectedLinks(); i++)
+            std::cout << "selecte link " << node_ids[i] << std::endl;
+        //if suppr is press, delet the nodes and link in my app and stop calling BeginNode on them to delet them from ImNode
 
 
         
