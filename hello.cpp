@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <iostream>
 #include <vector>
+#include "smatrix.h"
 
 namespace example
 {
@@ -12,6 +13,7 @@ class HelloWorldNodeEditor
 {
     std::vector<std::pair<int, int>> links;
     bool swap = false;
+    SMatrix<float>* m;
 public:
     void show()
     {
@@ -246,6 +248,43 @@ public:
 
         ImNodes::EndNode();
 
+        {
+            
+            ImNodes::BeginNode(845);
+
+            ImNodes::BeginNodeTitleBar();
+            ImGui::TextUnformatted("Sparse matrix");
+            ImNodes::EndNodeTitleBar();
+            ImNodes::BeginStaticAttribute(84359);
+            ImGui::Text("test");
+            if (ImGui::Button("create matrix"))
+                init_m(4);
+
+            if (m != nullptr) {
+                int n = m->Get_n();
+                //ImGui::Table
+                //ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_SizingStretchSame,
+
+                if (ImGui::BeginTable("table1", n, ImGuiTableFlags_SizingFixedFit))
+                {
+                    for (int row = 0; row < n; row++)
+                    {
+                        ImGui::TableNextRow();
+                        for (int column = 0; column < n; column++)
+                        {
+                            ImGui::TableSetColumnIndex(column);
+                            ImGui::Text("%d", m->at(row, column));
+                        }
+                    }
+                    ImGui::EndTable();
+                }
+            }
+            
+
+            ImNodes::EndStaticAttribute();
+            ImNodes::EndNode();
+        }
+
 //======================= END SELECTABLE attribute =============================
 
 
@@ -294,15 +333,17 @@ public:
             std::cout << "SWAP ATTRIBUTE " << src_attr << ", " << dest_attr << std::endl;
         }
 
-        int node_ids[50];
+        /*int node_ids[50];
         ImNodes::GetSelectedNodes(node_ids);
         for (int i = 0; i < ImNodes::NumSelectedNodes(); i++)
             std::cout << "selecte node " << node_ids[i] << std::endl;
 
         ImNodes::GetSelectedLinks(node_ids);
         for (int i = 0; i < ImNodes::NumSelectedLinks(); i++)
-            std::cout << "selecte link " << node_ids[i] << std::endl;
+            std::cout << "selecte link " << node_ids[i] << std::endl;*/
         //if suppr is press, delet the nodes and link in my app and stop calling BeginNode on them to delet them from ImNode
+
+        //ImNode already allow to detect deleted link with ImNodes::IsLinkDestroyed() when pressing CTRL (can be changed)
 
 
         
@@ -329,6 +370,16 @@ public:
 
         ImGui::End();
     }
+
+    void clear() {
+        if(m != nullptr)
+            delete m;
+    }
+
+    void init_m(int n) {
+        m = new SMatrix<float>(n);
+        std::cout << "init m" << std::endl;
+    }
 };
 
 static HelloWorldNodeEditor editor;
@@ -339,6 +390,7 @@ void NodeEditorInitialize() {
     ImNodes::SetNodeGridSpacePos(1, ImVec2(200.0f, 200.0f));
     ImNodes::SetNodeGridSpacePos(7, ImVec2(400.0f, 400.0f));
     ImNodes::SetNodeGridSpacePos(4, ImVec2(600.0f, 600.0f));
+    ImNodes::SetNodeGridSpacePos(845, ImVec2(1000.0f, 600.0f));
 
     //Set up the modifier key.
     //When press the user can click a link, it will:
@@ -349,6 +401,8 @@ void NodeEditorInitialize() {
 
 void NodeEditorShow() { editor.show(); }
 
-void NodeEditorShutdown() {}
+void NodeEditorShutdown() {
+    editor.clear();
+}
 
 } // namespace example

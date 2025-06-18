@@ -69,6 +69,9 @@
     <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="smatrix.h">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natvis">

@@ -181,6 +181,7 @@
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h" />
     <ClInclude Include="node_editor.h" />
+    <ClInclude Include="smatrix.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natstepfilter" />
