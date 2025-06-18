@@ -686,38 +686,121 @@ void DrawControlPrimitive(const ControlPrimitive& cp, ImU32 col, float thick) {
 }
 
 ImVec2 GetLinkControlOrigin(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
-    //TODO
+    const ImLinkData link = editor.Links.Pool[linkControl.LinkIdx];
+    const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+    const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+    const Curve curve = GetCurve(
+        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+    ImVec2 origin = ImVec2(0, 0);
     if (linkControl.LocalId == 1 || linkControl.LocalId == 4 || linkControl.LocalId == 2 || linkControl.LocalId == 3) {
-        const ImLinkData link = editor.Links.Pool[linkControl.LinkIdx];
-        const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
-        const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
-        const Curve curve = GetCurve(
-            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
         if (curve.type == ImNodesLinkType_Sloped) {
-            ImVec2 origin;
             if (curve.sloped_curve->NumSegments == 3)
                 origin = curve.sloped_curve->P[linkControl.LocalId < 2 ? linkControl.LocalId : linkControl.LocalId - 2];
             else
                 origin = curve.sloped_curve->P[linkControl.LocalId];
-            return origin;
+        }
+    }
+    else if (linkControl.LocalId == 7 || linkControl.LocalId == 8 || linkControl.LocalId == 9) {
+        if (curve.sloped_curve->NumSegments == 3)
+            origin = curve.sloped_curve->P[linkControl.LocalId - 6];//can only be locaIl 8
+        else
+            origin = curve.sloped_curve->P[linkControl.LocalId-6+1];
+    }
+    return origin;
+}
+
+ImVec2 MooveLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& linkControl, ImVec2 origin) {
+    ImLinkData& link = editor.Links.Pool[linkControl.LinkIdx];
+    const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+    const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+    const Curve curve = GetCurve(
+        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+    ImVec2 linkOrigin = GetLinkControlOrigin(editor, linkControl);
+    if (linkControl.LocalId == 1 || linkControl.LocalId == 4 || linkControl.LocalId == 2 || linkControl.LocalId == 3) {
+        if (curve.type == ImNodesLinkType_Sloped) {
+            link.Deformations[linkControl.LocalId] += origin - linkOrigin;
+        }
+    }
+    else if (linkControl.LocalId == 7 || linkControl.LocalId == 8 || linkControl.LocalId == 9) {
+        if (curve.type == ImNodesLinkType_Sloped) {
+            if (curve.sloped_curve->NumSegments != 3) {
+                link.Deformations[linkControl.LocalId - 6] += origin - linkOrigin;
+                link.Deformations[linkControl.LocalId - 6 + 1] += origin - linkOrigin;
+            }
+            else if (linkControl.LocalId == 8) {
+                link.Deformations[1] += origin - linkOrigin;
+                link.Deformations[4] += origin - linkOrigin;
+            }
         }
     }
     return ImVec2(0, 0);
 }
 
-ImVec2 MooveLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& linkControl, ImVec2 origin) {
-    //TODO
-    if (linkControl.LocalId == 1 || linkControl.LocalId == 4 || linkControl.LocalId == 2 || linkControl.LocalId == 3) {
-        ImLinkData& link = editor.Links.Pool[linkControl.LinkIdx];
-        const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
-        const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
-        const Curve curve = GetCurve(
-            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
-        if (curve.type == ImNodesLinkType_Sloped) {
-            link.Deformations[linkControl.LocalId] += origin - GetLinkControlOrigin(editor, linkControl);
-        }
+void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
+    //TODO constraint the selected control primitive
+    std::cout << "double clicked on " << linkControl.LocalId << std::endl;
+    ImLinkData& link = editor.Links.Pool[linkControl.LinkIdx];
+    const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+    const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+    const Curve curve = GetCurve(
+        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+
+    //link.Deformations[4]; //vector of 6 deformation, offset of point from the base curve
+    if (linkControl.LocalId == 1 || linkControl.LocalId == 6) {
+        link.Deformations[1].y = 0;
+        if (start_pin.Type == ImNodesAttributeType_Output && link.Deformations[1].x < 0)
+            link.Deformations[1].x = 0;
+        if (start_pin.Type == ImNodesAttributeType_Input && link.Deformations[1].x > 0)
+            link.Deformations[1].x = 0;
     }
-    return ImVec2(0, 0);
+    if (linkControl.LocalId == 4 || linkControl.LocalId == 10) {
+        link.Deformations[4].y = 0;
+        if (end_pin.Type == ImNodesAttributeType_Output && link.Deformations[4].x < 0)
+            link.Deformations[4].x = 0;
+        if (end_pin.Type == ImNodesAttributeType_Input && link.Deformations[4].x > 0)
+            link.Deformations[4].x = 0;
+    }
+    if (linkControl.LocalId == 2) {
+        link.Deformations[2].y = link.Deformations[3].y;
+        link.Deformations[2].x = link.Deformations[1].x;
+    }
+    if (linkControl.LocalId == 3) {
+        link.Deformations[3].y = link.Deformations[2].y;
+        link.Deformations[3].x = link.Deformations[4].x;
+    }
+
+    if (linkControl.LocalId == 7) {
+        float avg_x = (link.Deformations[1].x + link.Deformations[2].x)/2.0f;
+        link.Deformations[1].x = avg_x;
+        link.Deformations[2].x = avg_x;
+    }
+    if (linkControl.LocalId == 8) {
+        if (curve.sloped_curve->NumSegments == 3) {
+            float avg_x = (link.Deformations[1].x + link.Deformations[4].x) / 2.0f;
+            float min_slope = ImNodes::GetStyle().LinkSlopedMinSlope;
+            if (min_slope > 0.001f) {
+                float h = abs(link.Deformations[1].y - link.Deformations[4].y);
+                float x = h/min_slope;
+                link.Deformations[1].x = avg_x + x/2;
+                link.Deformations[4].x = avg_x - x/2;
+            }
+            else {
+                link.Deformations[1].x = avg_x;
+                link.Deformations[4].x = avg_x;
+            }
+        }
+        else {
+            float avg_y = (link.Deformations[2].y + link.Deformations[3].y) / 2.0f;
+            link.Deformations[2].y = avg_y;
+            link.Deformations[3].y = avg_y;
+        }
+        
+    }
+    if (linkControl.LocalId == 9) {
+        float avg_x = (link.Deformations[3].x + link.Deformations[4].x) / 2.0f;
+        link.Deformations[3].x = avg_x;
+        link.Deformations[4].x = avg_x;
+    }
 }
 
 // [SECTION] coordinate space conversion helpers
@@ -2981,6 +3064,9 @@ void EndNodeEditor()
             GImNodes->HoveredLinkIdx = ResolveHoveredLink(editor.Links, editor.Pins);
         }
     }
+    if (GImNodes->HoveredLinkControlIdx.HasValue() && ImGui::IsMouseDoubleClicked(0)) {
+        ContraintLinkControl(editor, editor.LinkControls.Pool[GImNodes->HoveredLinkControlIdx.Value()]);
+    }
 
     for (int node_idx = 0; node_idx < editor.Nodes.Pool.size(); ++node_idx)
     {
@@ -2999,7 +3085,9 @@ void EndNodeEditor()
     {
         if (editor.Links.InUse[link_idx])
         {
-            DrawLink(editor, link_idx);
+            //don't draw selected link as there control primitives are drawn instead
+            if (!editor.SelectedLinkIndices.contains(link_idx))
+                DrawLink(editor, link_idx);
             //if(editor.SelectedLinkIndices.contains(link_idx))
             //{
             //    const ImLinkData& link = editor.Links.Pool[link_idx];

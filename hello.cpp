@@ -251,7 +251,8 @@ public:
 
         //ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
 
-        
+        //detect double ckick
+        //std::cout << "double click" << ImGui::IsMouseDoubleClicked(0) << std::endl;
 
         if (ImNodes::IsAnyAttributeActive())
             std::cout << "any atribute active" << std::endl;
