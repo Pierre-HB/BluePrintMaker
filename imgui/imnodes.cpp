@@ -738,7 +738,6 @@ ImVec2 MooveLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& l
 
 void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
     //TODO constraint the selected control primitive
-    std::cout << "double clicked on " << linkControl.LocalId << std::endl;
     ImLinkData& link = editor.Links.Pool[linkControl.LinkIdx];
     const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
     const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
