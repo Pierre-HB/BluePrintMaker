@@ -778,7 +778,7 @@ void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData&
             float avg_x = (link.Deformations[1].x + link.Deformations[4].x) / 2.0f;
             float min_slope = ImNodes::GetStyle().LinkSlopedMinSlope;
             if (min_slope > 0.001f) {
-                float h = abs(link.Deformations[1].y - link.Deformations[4].y);
+                float h = (link.Deformations[1].y - link.Deformations[4].y);
                 float x = h/min_slope;
                 link.Deformations[1].x = avg_x + x/2;
                 link.Deformations[4].x = avg_x - x/2;
