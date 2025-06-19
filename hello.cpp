@@ -256,12 +256,94 @@ public:
             ImGui::TextUnformatted("Sparse matrix");
             ImNodes::EndNodeTitleBar();
             ImNodes::BeginStaticAttribute(84359);
-            ImGui::Text("test");
+            ImGui::Text("Cr %d, Co %d, M %d, D %d", nb_creation, nb_copie, nb_move, nb_destroy);
             if (ImGui::Button("create matrix"))
                 init_m(4);
 
+            if (ImGui::Button("reset")) {
+                nb_creation = 0;
+                nb_copie = 0;
+                nb_move = 0;
+                nb_destroy = 0;
+            }
+
             if (m != nullptr) {
-                int n = m->Get_n();
+                if (ImGui::Button("Identity")) {
+                    for (int i = 0; i < 4; i++)
+                        m->insert(1, i, i);
+                }
+
+                if (ImGui::Button("Attila")) {
+                    for (int i = 0; i < 4; i++)
+                        for (int j = 0; j < 4; j++)
+                        m->insert(1, i, j);
+                }
+
+                if (ImGui::Button("insert")) {
+                        m->insert(42, 2, 3);
+                }
+
+                if (ImGui::Button("pAdd")) {
+                    m->operator+=(*m);
+                }
+                if (ImGui::Button("Add")) {
+                    SMatrix<float> m1 = SMatrix<float>(*m);
+                    SMatrix<float> m2 = SMatrix<float>(*m);
+
+                    m = new SMatrix<float>(m1 + m2); //need new to use the heap
+                }
+
+                if (ImGui::Button("pMinus")) {
+                    m->operator-=(*m);
+                }
+                if (ImGui::Button("Minus")) {
+                    SMatrix<float> m1 = SMatrix<float>(*m);
+                    SMatrix<float> m2 = SMatrix<float>(*m);
+
+                    m = new SMatrix<float>(m1 - m2); //need new to use the heap
+                }
+
+                if (ImGui::Button("pT")) {
+                    m->transpose();
+                }
+                if (ImGui::Button("T")) {
+                    m = new SMatrix<float>(m->transposed()); //need new to use the heap
+                }
+
+                if (ImGui::Button("pNeg")) {
+                    m = new SMatrix<float>(- (*m));
+                }
+                if (ImGui::Button("Neg")) {
+                    SMatrix<float> tmp = SMatrix<float>(*m);
+                    m = new SMatrix<float>(-tmp);
+                }
+                if (ImGui::Button("test Neg")) {
+                    SMatrix<float> a = SMatrix<float>(4);
+                    //SMatrix<float> b = SMatrix<float>(4);
+                    a.insert(2, 2, 3);
+                    //b.insert(3, 0, 3);
+
+                    //b = -(const SMatrix<float>)(a);
+                    //b = -a;
+                    //b = -std::move(a);
+
+
+                    //SMatrix<float> tmp = SMatrix<float>(*m);
+                    m = new SMatrix<float>(-std::move(a));
+                }
+
+                if (ImGui::Button("Mult")) {
+                    SMatrix<float> tmp = SMatrix<float>(*m);
+                    std::cout << "\n\n start mult\n\n" << std::endl;
+                    nb_creation = 0;
+                    nb_copie = 0;
+                    nb_move = 0;
+                    nb_destroy = 0;
+                    m = new SMatrix<float>(m->operator*(tmp)); //need new to use the heap
+                }
+
+
+                int n = m->get_n();
                 //ImGui::Table
                 //ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_SizingStretchSame,
 
@@ -273,7 +355,7 @@ public:
                         for (int column = 0; column < n; column++)
                         {
                             ImGui::TableSetColumnIndex(column);
-                            ImGui::Text("%d", m->at(row, column));
+                            ImGui::Text("%d", (int)m->at(row, column));
                         }
                     }
                     ImGui::EndTable();
@@ -293,8 +375,8 @@ public:
         //detect double ckick
         //std::cout << "double click" << ImGui::IsMouseDoubleClicked(0) << std::endl;
 
-        if (ImNodes::IsAnyAttributeActive())
-            std::cout << "any atribute active" << std::endl;
+        /*if (ImNodes::IsAnyAttributeActive())
+            std::cout << "any atribute active" << std::endl;*/
 
         //ImNodes::Link(7, 3, 5);
 
