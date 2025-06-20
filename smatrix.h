@@ -1,10 +1,6 @@
 #pragma once
 
 #include <exception>
-static int nb_creation = 0;
-static int nb_copie = 0;
-static int nb_move = 0;
-static int nb_destroy = 0;
 
 template<typename T>
 class SMatrix {
@@ -37,9 +33,11 @@ public:
 
 	SMatrix<T>& operator-=(const SMatrix<T>& other);
 	SMatrix<T> operator-(const SMatrix<T>& other) const;
-	//SMatrix<T>&& operator-(SMatrix<T>&& other) const;
+	SMatrix<T>&& operator-(SMatrix<T>&& other) const;
 
-	SMatrix<T> operator-() const;
+	SMatrix<T> operator-() const&;
+	SMatrix<T> operator-() &;
+	SMatrix<T>&& operator-() &&;
 
 	SMatrix<T> operator*(const SMatrix<T>& other) const;
 
@@ -49,39 +47,34 @@ public:
 	bool is_zero() const;
 
 	SMatrix<T> inversed(bool* inverted = nullptr) const;
-	void _inverse();
-	void print() const;
+	
 private:
 	SMatrix<T>* _get_block(int line, int column) const; //return the block containing the cell
 	void _split();
 	void _split(SMatrix<T>* const other[4]);//_split and copy
 	SMatrix<T>&& _add_mult(const SMatrix<T>& other, SMatrix<T>& dest) const;
 	void _clean();//check if childs are 0 and so, delete them
-	SMatrix<T> _self_neg(); //self negation
-	
+	SMatrix<T>& _self_neg(); //self negation
+	void _inverse();
 };
 
-
+//! emtpy constructor
 template<typename T>
 SMatrix<T>::SMatrix(int n) : n_2(n/2), value(T()), blocks{ nullptr, nullptr, nullptr, nullptr } {
 	assert(n == 1 || n % 2 == 0);
-	//std::cout << "created matrix " << n << "x" << n << std::endl;
-	nb_creation++;
 }
 
+//! copy constructor
 template<typename T>
 SMatrix<T>::SMatrix(const SMatrix<T>& m) : n_2(m.n_2), value(T(m.value)), blocks{ nullptr, nullptr, nullptr, nullptr } {
-	//std::cout << "copied matrix " << get_n() << "x" << get_n() << std::endl;
-	nb_copie++;
 	if (m.blocks[0] != nullptr)
 		for(int i = 0; i < 4; i++)
 			blocks[i] = new SMatrix<T>(*(m.blocks[i]));
 }
 
+//! move constructor
 template<typename T>
 SMatrix<T>::SMatrix(SMatrix<T>&& m) noexcept  : n_2(m.n_2), value(T(m.value)) {
-	//std::cout << "mooved matrix " << get_n() << "x" << get_n() << std::endl;
-	nb_move++;
 	for (int i = 0; i < 4; i++) {
 		blocks[i] = m.blocks[i];
 		m.blocks[i] = nullptr;
@@ -91,6 +84,7 @@ SMatrix<T>::SMatrix(SMatrix<T>&& m) noexcept  : n_2(m.n_2), value(T(m.value)) {
 	m.value = T();
 }
 
+//! move assignement
 template<typename T>
 SMatrix<T>& SMatrix<T>::operator=(SMatrix<T>&& other) noexcept {
 	if (this != &other) {
@@ -108,6 +102,7 @@ SMatrix<T>& SMatrix<T>::operator=(SMatrix<T>&& other) noexcept {
 	return *this;
 }
 
+//! copy assignement
 template<typename T>
 SMatrix<T>& SMatrix<T>::operator=(const SMatrix<T>& other) noexcept {
 	if (this != &other) {
@@ -127,27 +122,15 @@ SMatrix<T>& SMatrix<T>::operator=(const SMatrix<T>& other) noexcept {
 	return *this;
 }
 
+//! destructor
 template<typename T>
 SMatrix<T>::~SMatrix() {
-	//std::cout << "destroyed matrix " << get_n() << "x" << get_n() << std::endl;
-	nb_destroy++;
 	if (blocks[0] != nullptr)
 		for(int i = 0; i < 4; i++)
 			delete blocks[i];
 }
 
-template<typename T>
-void SMatrix<T>::print() const {
-	int n = get_n();
-	std::cout << std::endl;
-	for (int col = 0; col < n; col++) {
-		for (int line = 0; line < n; line++) {
-			std::cout << at(line, col) << " ";
-		}
-		std::cout << std::endl;
-	}
-}
-
+//! true if the matrix is full of 0
 template<typename T>
 bool SMatrix<T>::is_zero() const {
 	if (n_2 == 0)
@@ -159,6 +142,7 @@ bool SMatrix<T>::is_zero() const {
 	return true;
 }
 
+//! delete childs if there are all 0
 template<typename T>
 void SMatrix<T>::_clean() {
 	if (n_2 == 0)
@@ -171,11 +155,13 @@ void SMatrix<T>::_clean() {
 	}
 }
 
+//! return the dimension of the matrix
 template<typename T>
 int SMatrix<T>::get_n() const {
 	return n_2 == 0 ? 1 : (n_2 << 1);
 }
 
+//! return a coeficient of the matrix given it's position
 template<typename T>
 T SMatrix<T>::at(int line, int column) const {
 	if (n_2 == 0)
@@ -185,6 +171,7 @@ T SMatrix<T>::at(int line, int column) const {
 	return _get_block(line, column)->at(line % n_2, column % n_2);
 }
 
+//! write a coeficient of the matrix given it's position
 template<typename T>
 void SMatrix<T>::insert(const T& x, int line, int column) {
 	if (n_2 == 0) {
@@ -198,11 +185,13 @@ void SMatrix<T>::insert(const T& x, int line, int column) {
 	}
 }
 
+//! internal function, return the sublock containing the position
 template<typename T>
 SMatrix<T>* SMatrix<T>::_get_block(int line, int column) const {
 	return blocks[(column >= n_2) | ((line >= n_2) << 1)];
 }
 
+//! internal function, split the matrix with empty childs
 template<typename T>
 void SMatrix<T>::_split() {
 	assert(blocks[0] == nullptr);
@@ -210,6 +199,7 @@ void SMatrix<T>::_split() {
 		blocks[i] = new SMatrix<T>(n_2);
 }
 
+//! internal function, split the matrix with copied childs
 template<typename T>
 void SMatrix<T>::_split(SMatrix<T>* const other[4]) {
 	assert(blocks[0] == nullptr);
@@ -217,6 +207,7 @@ void SMatrix<T>::_split(SMatrix<T>* const other[4]) {
 		blocks[i] = new SMatrix<T>(*(other[i]));
 }
 
+//! += operator
 template<typename T>
 SMatrix<T>& SMatrix<T>::operator+=(const SMatrix<T>& other) {
 	assert(n_2 == other.n_2);
@@ -240,17 +231,20 @@ SMatrix<T>& SMatrix<T>::operator+=(const SMatrix<T>& other) {
 	return *this;
 }
 
+//! addition with a constant matrix
 template<typename T>
 SMatrix<T> SMatrix<T>::operator+(const SMatrix<T>& other) const {
 	SMatrix<T> dest = SMatrix<T>(*this);
 	return dest += other;
 }
 
+//! addition with a rvalue matrix, result is writen in the 'other' matrix to save memory space and avoid copy
 template<typename T>
 SMatrix<T>&& SMatrix<T>::operator+(SMatrix<T>&& other) const {
 	return std::move(other+= (*this));
 }
 
+//! operator -=
 template<typename T>
 SMatrix<T>& SMatrix<T>::operator-=(const SMatrix<T>& other) {
 	assert(n_2 == other.n_2);
@@ -274,40 +268,42 @@ SMatrix<T>& SMatrix<T>::operator-=(const SMatrix<T>& other) {
 	return *this;
 }
 
+//! substraction with a constant matrix
 template<typename T>
 SMatrix<T> SMatrix<T>::operator-(const SMatrix<T>& other) const {
 	SMatrix<T> dest = SMatrix<T>(*this);
 	return dest -= other;
 }
 
-//template<typename T>
-//SMatrix<T>&& SMatrix<T>::operator-(SMatrix<T>&& other) const {
-//	assert(n_2 == other.n_2);
-//	if (n_2 == 0) {
-//		other.value = value - other.value;
-//		return std::move(other);
-//	}
-//
-//
-//	if (blocks[0] != nullptr)
-//	{
-//		if (other.blocks[0] == nullptr)
-//		{
-//			//copy
-//			_split(other.blocks);
-//		}
-//		else {
-//			//reccurse
-//			for (int i = 0; i < 4; i++)
-//				blocks[i]->operator-=(*(other.blocks[i]));
-//			_clean();
-//		}
-//	}
-//	return *this;
-//}
-
+//! substraction with a rvalue matrix, result is writen in the 'other' matrix to save memory space and avoid copy
 template<typename T>
-SMatrix<T> SMatrix<T>::_self_neg() {
+SMatrix<T>&& SMatrix<T>::operator-(SMatrix<T>&& other) const {
+	assert(n_2 == other.n_2);
+	if (n_2 == 0) {
+		other.value = value - other.value;
+		return std::move(other);
+	}
+
+	if (blocks[0] == nullptr) {
+		return std::move(other._self_neg());
+	}
+
+	else {
+		if (other.blocks[0] == nullptr) {
+			other._split(blocks);
+		}
+		else {
+			for (int i = 0; i < 4; i++)
+				blocks[i]->operator-(std::move(*(other.blocks[i])));
+			other._clean();
+		}
+	}
+	return std::move(other);
+}
+
+//! internal function, negate the matrix
+template<typename T>
+SMatrix<T>& SMatrix<T>::_self_neg() {
 	if (n_2 == 0)
 		value = -value;
 	else {
@@ -318,12 +314,27 @@ SMatrix<T> SMatrix<T>::_self_neg() {
 	return *this;
 }
 
+//! operator - unary, negate a const matrix
 template<typename T>
-SMatrix<T> SMatrix<T>::operator-() const {
+SMatrix<T> SMatrix<T>::operator-() const& {
 	SMatrix<T> dest = SMatrix<T>(*this);
 	return dest._self_neg();
 }
 
+//! operator - unary, negate a matrix
+template<typename T>
+SMatrix<T> SMatrix<T>::operator-() & {
+	SMatrix<T> dest = SMatrix<T>(*this);
+	return dest._self_neg();
+}
+
+//! operator - unary, negate a rvalue matrix. current matrix is overwriten to avoid copy.
+template<typename T>
+SMatrix<T>&& SMatrix<T>::operator-() && {
+	return std::move(this->_self_neg());
+}
+
+//! transpose the current matrix in place
 template<typename T>
 void SMatrix<T>::transpose() {
 	if (n_2 == 0)
@@ -335,6 +346,7 @@ void SMatrix<T>::transpose() {
 	std::swap(blocks[1], blocks[2]);
 }
 
+//! transpose return the transposed matrix of a const matrix
 template<typename T>
 SMatrix<T> SMatrix<T>::transposed() const {
 	SMatrix<T> dest = SMatrix<T>(*this);
@@ -342,6 +354,7 @@ SMatrix<T> SMatrix<T>::transposed() const {
 	return dest;
 }
 
+//! matrix multiplication
 template<typename T>
 SMatrix<T> SMatrix<T>::operator*(const SMatrix<T>& other) const {
 	assert(n_2 == other.n_2);
@@ -373,6 +386,7 @@ SMatrix<T> SMatrix<T>::operator*(const SMatrix<T>& other) const {
 	return dest;
 }
 
+//! internal function, perform the operation (*this)*other + dest whil using 'dest' memory space to avoid a copy.
 template<typename T>
 SMatrix<T>&& SMatrix<T>::_add_mult(const SMatrix<T>& other, SMatrix<T>& dest) const {
 	assert(n_2 == other.n_2 && n_2 == dest.n_2);
@@ -416,6 +430,7 @@ SMatrix<T>&& SMatrix<T>::_add_mult(const SMatrix<T>& other, SMatrix<T>& dest) co
 	return std::move(dest);
 }
 
+//! return the inverse of a const matrix. The parameter 'inverted' will tell if the operation was succesful. In case of failure, return a copy of the initial matrix
 template<typename T>
 SMatrix<T> SMatrix<T>::inversed(bool* inverted) const {
 	const SMatrix<T> mT = transposed();
@@ -434,6 +449,7 @@ SMatrix<T> SMatrix<T>::inversed(bool* inverted) const {
 	return tmp * mT; // (mT * m)^-1 * mT is the inverse of m
 }
 
+//! internal function, compute the inverse of a matrix. Throw a runtime_error if the matrix cannot be inverted
 template<typename T>
 void SMatrix<T>::_inverse() {
 	if (n_2 == 0) {
@@ -464,8 +480,8 @@ void SMatrix<T>::_inverse() {
 	SMatrix<T> M_CA_ = M_ * CA_;
 
 	*blocks[0] = A_ + A_B * M_CA_;
-	*blocks[1] = (A_B * M_)._self_neg();
-	*blocks[2] = (M_CA_)._self_neg(); // M_CA_ is not used after, can self_neg it
+	*blocks[1] = -(A_B * M_);
+	*blocks[2] = -std::move(M_CA_); // M_CA_ is not used after, can move it
 	*blocks[3] = M_;
 
 	_clean();

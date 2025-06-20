@@ -286,16 +286,8 @@ public:
             ImGui::TextUnformatted("Sparse matrix");
             ImNodes::EndNodeTitleBar();
             ImNodes::BeginStaticAttribute(84359);
-            ImGui::Text("Cr %d, Co %d, M %d, D %d", nb_creation, nb_copie, nb_move, nb_destroy);
             if (ImGui::Button("create matrix"))
                 init_m(4);
-
-            if (ImGui::Button("reset")) {
-                nb_creation = 0;
-                nb_copie = 0;
-                nb_move = 0;
-                nb_destroy = 0;
-            }
 
             if (m != nullptr) {
                 if (ImGui::Button("Identity")) {
@@ -369,36 +361,17 @@ public:
                 if (ImGui::Button("Mult")) {
                     SMatrix<float> tmp = SMatrix<float>(*m);
                     std::cout << "\n\n start mult\n\n" << std::endl;
-                    nb_creation = 0;
-                    nb_copie = 0;
-                    nb_move = 0;
-                    nb_destroy = 0;
                     m = new SMatrix<float>(m->operator*(tmp)); //need new to use the heap
                 }
 
                 if (ImGui::Button("Inverse")) {
-                    nb_creation = 0;
-                    nb_copie = 0;
-                    nb_move = 0;
-                    nb_destroy = 0;
                     std::cout << "\n\n start invert\n\n" << std::endl;
                     SMatrix<float> tmp = m->inversed();
                     
                     m = new SMatrix<float>(tmp); //need new to use the heap
                 }
-                if (ImGui::Button("Self Inverse")) {
-                    std::cout << "\n\n start invert\n\n" << std::endl;
-                    /*SMatrix<float> tmp = m->inversed();*/
-                    m->_inverse();
-
-                    //m = new SMatrix<float>(tmp); //need new to use the heap
-                }
 
                 if (ImGui::Button("Set Pb")) {
-                    nb_creation = 0;
-                    nb_copie = 0;
-                    nb_move = 0;
-                    nb_destroy = 0;
                     delete m;
 
                     //m = new SMatrix<float>(create_PB());
@@ -443,10 +416,6 @@ public:
                 }
 
                 if (ImGui::Button("Set small Pb")) {
-                    nb_creation = 0;
-                    nb_copie = 0;
-                    nb_move = 0;
-                    nb_destroy = 0;
                     delete m;
 
                     m = new SMatrix<float>(2);
