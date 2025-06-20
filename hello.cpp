@@ -5,6 +5,36 @@
 #include <vector>
 #include "smatrix.h"
 
+
+static SMatrix<float> create_PB() {
+
+    SMatrix<float> m = SMatrix<float>(8);
+    m.insert(-1, 0, 2);
+    m.insert(1, 0, 4);
+    m.insert(1, 0, 6);
+
+    m.insert(-1, 1, 3);
+    m.insert(1, 1, 5);
+    m.insert(1, 1, 7);
+
+    m.insert(-1, 2, 0);
+    m.insert(1, 2, 4);
+
+    m.insert(-1, 3, 0);
+    m.insert(1, 3, 5);
+
+    m.insert(-1, 4, 1);
+    m.insert(1, 4, 6);
+
+    m.insert(-1, 5, 1);
+    m.insert(1, 5, 7);
+
+    m.insert(1, 6, 0);
+
+    m.insert(1, 7, 1);
+
+    return m;
+}
 namespace example
 {
 namespace
@@ -284,13 +314,17 @@ public:
                 }
 
                 if (ImGui::Button("pAdd")) {
+                    /*SMatrix<float> m1 = SMatrix<float>(*m);
+                    m = new SMatrix<float>(m1 += m1);*/
                     m->operator+=(*m);
                 }
                 if (ImGui::Button("Add")) {
                     SMatrix<float> m1 = SMatrix<float>(*m);
                     SMatrix<float> m2 = SMatrix<float>(*m);
 
-                    m = new SMatrix<float>(m1 + m2); //need new to use the heap
+                    //m = new SMatrix<float>(m1 + m2); //need new to use the heap
+                    m = new SMatrix<float>(*m + *m); //need new to use the heap
+                    std::cout << "result of add is zero : " << m->is_zero() << std::endl;
                 }
 
                 if (ImGui::Button("pMinus")) {
@@ -342,6 +376,95 @@ public:
                     m = new SMatrix<float>(m->operator*(tmp)); //need new to use the heap
                 }
 
+                if (ImGui::Button("Inverse")) {
+                    nb_creation = 0;
+                    nb_copie = 0;
+                    nb_move = 0;
+                    nb_destroy = 0;
+                    std::cout << "\n\n start invert\n\n" << std::endl;
+                    SMatrix<float> tmp = m->inversed();
+                    
+                    m = new SMatrix<float>(tmp); //need new to use the heap
+                }
+                if (ImGui::Button("Self Inverse")) {
+                    std::cout << "\n\n start invert\n\n" << std::endl;
+                    /*SMatrix<float> tmp = m->inversed();*/
+                    m->_inverse();
+
+                    //m = new SMatrix<float>(tmp); //need new to use the heap
+                }
+
+                if (ImGui::Button("Set Pb")) {
+                    nb_creation = 0;
+                    nb_copie = 0;
+                    nb_move = 0;
+                    nb_destroy = 0;
+                    delete m;
+
+                    //m = new SMatrix<float>(create_PB());
+
+                    m = new SMatrix<float>(8);
+                    m->insert(-1, 0, 2);
+                    m->insert(1, 0, 4);
+                    m->insert(1, 0, 6);
+
+                    m->insert(-1, 1, 3);
+                    m->insert(1, 1, 5);
+                    m->insert(1, 1, 7);
+
+                    m->insert(-1, 2, 0);
+                    m->insert(1, 2, 4);
+
+                    m->insert(-1, 3, 0);
+                    m->insert(1, 3, 5);
+
+                    m->insert(-1, 4, 1);
+                    m->insert(1, 4, 6);
+
+                    m->insert(-1, 5, 1);
+                    m->insert(1, 5, 7);
+
+                    m->insert(1, 6, 0);
+
+                    m->insert(1, 7, 1);
+                }
+                if (ImGui::Button("mutl by pB")) {
+                    m = new SMatrix<float>(*m * create_PB());
+                }
+                if (ImGui::Button("mutl by pBT")) {
+                    m = new SMatrix<float>(*m * create_PB().transposed());
+                }
+                if (ImGui::Button("post mutl by pBT")) {
+                    m = new SMatrix<float>(create_PB().transposed() * (*m));
+                }
+
+                if (ImGui::Button("post mutl by pB")) {
+                    m = new SMatrix<float>(create_PB() * (*m));
+                }
+
+                if (ImGui::Button("Set small Pb")) {
+                    nb_creation = 0;
+                    nb_copie = 0;
+                    nb_move = 0;
+                    nb_destroy = 0;
+                    delete m;
+
+                    m = new SMatrix<float>(2);
+                    //m->insert(1, 0, 0);
+                    m->insert(1, 0, 1);
+                    m->insert(1, 1, 0);
+                    //m->insert(4, 1, 1);
+                }
+
+                if (ImGui::Button("Set positive definite")) {
+
+                    const SMatrix<float> mT = m->transposed();
+                    m = new SMatrix<float>(mT * (*m));
+
+                }
+
+                
+
 
                 int n = m->get_n();
                 //ImGui::Table
@@ -355,7 +478,7 @@ public:
                         for (int column = 0; column < n; column++)
                         {
                             ImGui::TableSetColumnIndex(column);
-                            ImGui::Text("%d", (int)m->at(row, column));
+                            ImGui::Text("%.2f", (float)m->at(row, column));
                         }
                     }
                     ImGui::EndTable();
