@@ -4,11 +4,12 @@
 #include <iostream>
 #include <vector>
 #include "smatrix.h"
+#include "fraction.h"
 
 
-static SMatrix<float> create_PB() {
+static SMatrix<Fraction> create_PB() {
 
-    SMatrix<float> m = SMatrix<float>(8);
+    SMatrix<Fraction> m = SMatrix<Fraction>(8);
     m.insert(-1, 0, 2);
     m.insert(1, 0, 4);
     m.insert(1, 0, 6);
@@ -43,7 +44,7 @@ class HelloWorldNodeEditor
 {
     std::vector<std::pair<int, int>> links;
     bool swap = false;
-    SMatrix<float>* m;
+    SMatrix<Fraction>* m;
 public:
     void show()
     {
@@ -280,6 +281,52 @@ public:
 
         {
             
+            ImNodes::BeginNode(8459);
+
+            ImNodes::BeginNodeTitleBar();
+            ImGui::TextUnformatted("Fraction");
+            ImNodes::EndNodeTitleBar();
+            ImNodes::BeginStaticAttribute(843597);
+
+            if (ImGui::Button("start")) {
+                /*Fraction tmp = Fraction(5, -7);
+                tmp.print();*/
+
+                // 11 -> 3
+                // 1.5
+                //Fraction(1.5f).print();
+                //Fraction(4.5f).print();
+                //Fraction(42.0f).print();
+                //Fraction(42.0f / 64.0f).print();
+                //Fraction(0.75).print();
+                //Fraction(0.5).print();
+                //Fraction(1.5).print();
+
+                //Fraction a = Fraction(1, 42);
+                /*Fraction b = Fraction();
+                for (int i = 0; i < 42; i++) {
+                    b += a;
+                    b.print();
+                }*/
+                Fraction a = Fraction(0.5);
+                Fraction b = 1 / a;
+                a.print();
+                b.print();
+                (a * b).print();
+                (a / b).print();
+                (a + b).print();
+                (a - b).print();
+
+            }
+
+
+            ImNodes::EndStaticAttribute();
+            ImNodes::EndNode();
+        }
+
+
+        {
+
             ImNodes::BeginNode(845);
 
             ImNodes::BeginNodeTitleBar();
@@ -298,11 +345,11 @@ public:
                 if (ImGui::Button("Attila")) {
                     for (int i = 0; i < 4; i++)
                         for (int j = 0; j < 4; j++)
-                        m->insert(1, i, j);
+                            m->insert(1, i, j);
                 }
 
                 if (ImGui::Button("insert")) {
-                        m->insert(42, 2, 3);
+                    m->insert(42, 2, 3);
                 }
 
                 if (ImGui::Button("pAdd")) {
@@ -311,11 +358,11 @@ public:
                     m->operator+=(*m);
                 }
                 if (ImGui::Button("Add")) {
-                    SMatrix<float> m1 = SMatrix<float>(*m);
-                    SMatrix<float> m2 = SMatrix<float>(*m);
+                    SMatrix<Fraction> m1 = SMatrix<Fraction>(*m);
+                    SMatrix<Fraction> m2 = SMatrix<Fraction>(*m);
 
-                    //m = new SMatrix<float>(m1 + m2); //need new to use the heap
-                    m = new SMatrix<float>(*m + *m); //need new to use the heap
+                    //m = new SMatrix<Fraction>(m1 + m2); //need new to use the heap
+                    m = new SMatrix<Fraction>(*m + *m); //need new to use the heap
                     std::cout << "result of add is zero : " << m->is_zero() << std::endl;
                 }
 
@@ -323,28 +370,28 @@ public:
                     m->operator-=(*m);
                 }
                 if (ImGui::Button("Minus")) {
-                    SMatrix<float> m1 = SMatrix<float>(*m);
-                    SMatrix<float> m2 = SMatrix<float>(*m);
+                    SMatrix<Fraction> m1 = SMatrix<Fraction>(*m);
+                    SMatrix<Fraction> m2 = SMatrix<Fraction>(*m);
 
-                    m = new SMatrix<float>(m1 - m2); //need new to use the heap
+                    m = new SMatrix<Fraction>(m1 - m2); //need new to use the heap
                 }
 
                 if (ImGui::Button("pT")) {
                     m->transpose();
                 }
                 if (ImGui::Button("T")) {
-                    m = new SMatrix<float>(m->transposed()); //need new to use the heap
+                    m = new SMatrix<Fraction>(m->transposed()); //need new to use the heap
                 }
 
                 if (ImGui::Button("pNeg")) {
-                    m = new SMatrix<float>(- (*m));
+                    m = new SMatrix<Fraction>(-(*m));
                 }
                 if (ImGui::Button("Neg")) {
-                    SMatrix<float> tmp = SMatrix<float>(*m);
-                    m = new SMatrix<float>(-tmp);
+                    SMatrix<Fraction> tmp = SMatrix<Fraction>(*m);
+                    m = new SMatrix<Fraction>(-tmp);
                 }
                 if (ImGui::Button("test Neg")) {
-                    SMatrix<float> a = SMatrix<float>(4);
+                    SMatrix<Fraction> a = SMatrix<Fraction>(4);
                     //SMatrix<float> b = SMatrix<float>(4);
                     a.insert(2, 2, 3);
                     //b.insert(3, 0, 3);
@@ -355,20 +402,20 @@ public:
 
 
                     //SMatrix<float> tmp = SMatrix<float>(*m);
-                    m = new SMatrix<float>(-std::move(a));
+                    m = new SMatrix<Fraction>(-std::move(a));
                 }
 
                 if (ImGui::Button("Mult")) {
-                    SMatrix<float> tmp = SMatrix<float>(*m);
+                    SMatrix<Fraction> tmp = SMatrix<Fraction>(*m);
                     std::cout << "\n\n start mult\n\n" << std::endl;
-                    m = new SMatrix<float>(m->operator*(tmp)); //need new to use the heap
+                    m = new SMatrix<Fraction>(m->operator*(tmp)); //need new to use the heap
                 }
 
                 if (ImGui::Button("Inverse")) {
                     std::cout << "\n\n start invert\n\n" << std::endl;
-                    SMatrix<float> tmp = m->inversed();
-                    
-                    m = new SMatrix<float>(tmp); //need new to use the heap
+                    SMatrix<Fraction> tmp = m->inversed();
+
+                    m = new SMatrix<Fraction>(tmp); //need new to use the heap
                 }
 
                 if (ImGui::Button("Set Pb")) {
@@ -376,7 +423,7 @@ public:
 
                     //m = new SMatrix<float>(create_PB());
 
-                    m = new SMatrix<float>(8);
+                    m = new SMatrix<Fraction>(8);
                     m->insert(-1, 0, 2);
                     m->insert(1, 0, 4);
                     m->insert(1, 0, 6);
@@ -402,23 +449,23 @@ public:
                     m->insert(1, 7, 1);
                 }
                 if (ImGui::Button("mutl by pB")) {
-                    m = new SMatrix<float>(*m * create_PB());
+                    m = new SMatrix<Fraction>(*m * create_PB());
                 }
                 if (ImGui::Button("mutl by pBT")) {
-                    m = new SMatrix<float>(*m * create_PB().transposed());
+                    m = new SMatrix<Fraction>(*m * create_PB().transposed());
                 }
                 if (ImGui::Button("post mutl by pBT")) {
-                    m = new SMatrix<float>(create_PB().transposed() * (*m));
+                    m = new SMatrix<Fraction>(create_PB().transposed() * (*m));
                 }
 
                 if (ImGui::Button("post mutl by pB")) {
-                    m = new SMatrix<float>(create_PB() * (*m));
+                    m = new SMatrix<Fraction>(create_PB() * (*m));
                 }
 
                 if (ImGui::Button("Set small Pb")) {
                     delete m;
 
-                    m = new SMatrix<float>(2);
+                    m = new SMatrix<Fraction>(2);
                     //m->insert(1, 0, 0);
                     m->insert(1, 0, 1);
                     m->insert(1, 1, 0);
@@ -427,12 +474,12 @@ public:
 
                 if (ImGui::Button("Set positive definite")) {
 
-                    const SMatrix<float> mT = m->transposed();
-                    m = new SMatrix<float>(mT * (*m));
+                    const SMatrix<Fraction> mT = m->transposed();
+                    m = new SMatrix<Fraction>(mT * (*m));
 
                 }
 
-                
+
 
 
                 int n = m->get_n();
@@ -447,13 +494,13 @@ public:
                         for (int column = 0; column < n; column++)
                         {
                             ImGui::TableSetColumnIndex(column);
-                            ImGui::Text("%.2f", (float)m->at(row, column));
+                            ImGui::Text("%.2f", (float)m->at(row, column).toFloat());
                         }
                     }
                     ImGui::EndTable();
                 }
             }
-            
+
 
             ImNodes::EndStaticAttribute();
             ImNodes::EndNode();
@@ -551,7 +598,7 @@ public:
     }
 
     void init_m(int n) {
-        m = new SMatrix<float>(n);
+        m = new SMatrix<Fraction>(n);
         std::cout << "init m" << std::endl;
     }
 };
@@ -565,6 +612,7 @@ void NodeEditorInitialize() {
     ImNodes::SetNodeGridSpacePos(7, ImVec2(400.0f, 400.0f));
     ImNodes::SetNodeGridSpacePos(4, ImVec2(600.0f, 600.0f));
     ImNodes::SetNodeGridSpacePos(845, ImVec2(1000.0f, 600.0f));
+    ImNodes::SetNodeGridSpacePos(8459, ImVec2(100.0f, 200.0f));
 
     //Set up the modifier key.
     //When press the user can click a link, it will:

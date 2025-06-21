@@ -72,6 +72,9 @@
     <ClInclude Include="smatrix.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="fraction.h">
+      <Filter>sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natvis">
