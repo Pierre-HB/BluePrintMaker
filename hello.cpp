@@ -10,7 +10,7 @@
 static SMatrix<Fraction> create_PB() {
 
     SMatrix<Fraction> m = SMatrix<Fraction>(8);
-    m.insert(-1, 0, 2);
+    m.insert(-1.5, 0, 2);
     m.insert(1, 0, 4);
     m.insert(1, 0, 6);
 
@@ -421,32 +421,7 @@ public:
                 if (ImGui::Button("Set Pb")) {
                     delete m;
 
-                    //m = new SMatrix<float>(create_PB());
-
-                    m = new SMatrix<Fraction>(8);
-                    m->insert(-1, 0, 2);
-                    m->insert(1, 0, 4);
-                    m->insert(1, 0, 6);
-
-                    m->insert(-1, 1, 3);
-                    m->insert(1, 1, 5);
-                    m->insert(1, 1, 7);
-
-                    m->insert(-1, 2, 0);
-                    m->insert(1, 2, 4);
-
-                    m->insert(-1, 3, 0);
-                    m->insert(1, 3, 5);
-
-                    m->insert(-1, 4, 1);
-                    m->insert(1, 4, 6);
-
-                    m->insert(-1, 5, 1);
-                    m->insert(1, 5, 7);
-
-                    m->insert(1, 6, 0);
-
-                    m->insert(1, 7, 1);
+                    m = new SMatrix<Fraction>(create_PB());
                 }
                 if (ImGui::Button("mutl by pB")) {
                     m = new SMatrix<Fraction>(*m * create_PB());
