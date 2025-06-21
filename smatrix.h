@@ -47,6 +47,8 @@ public:
 	bool is_zero() const;
 
 	SMatrix<T> inversed(bool* inverted = nullptr) const;
+
+	float sparsity() const;
 	
 private:
 	SMatrix<T>* _get_block(int line, int column) const; //return the block containing the cell
@@ -485,4 +487,21 @@ void SMatrix<T>::_inverse() {
 	*blocks[3] = M_;
 
 	_clean();
+}
+
+template<typename T>
+float SMatrix<T>::sparsity() const {
+	//number between 0 and 1
+	//0 mean not sparse, all childs are full
+	//1 means totaly empty
+	if (n_2 == 0)
+		return 0; //even 0 matrix take space here
+	
+	if (blocks[0] == nullptr)
+		return 1;
+
+	float s = 0;
+	for (int i = 0; i < 4; i++)
+		s += blocks[i]->sparsity();
+	return s / 4;
 }

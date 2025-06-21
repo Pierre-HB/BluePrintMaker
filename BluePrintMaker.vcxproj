@@ -181,7 +181,10 @@
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="int_inf.h" />
     <ClInclude Include="node_editor.h" />
+    <ClInclude Include="num.hpp" />
+    <ClInclude Include="rat.hpp" />
     <ClInclude Include="smatrix.h" />
   </ItemGroup>
   <ItemGroup>
