@@ -21,6 +21,8 @@ typedef int ImNodesAttributeFlags;  // -> enum ImNodesAttributeFlags_
 typedef int ImNodesAttributeSwapFlags;  // -> enum ImNodesAttributeFlags_
 typedef int ImNodesMiniMapLocation; // -> enum ImNodesMiniMapLocation_
 typedef int ImNodesLinkType;        // -> enum ImNodesLinkType_
+typedef int ImNodesEventVar;        // -> enum ImNodesEventVar_
+
 
 enum ImNodesCol_
 {
@@ -128,6 +130,15 @@ enum ImNodesAttributeSwapFlags_
     ImNodesAttributeSwapFlags_SameType = 1 << 0,
     // Restrict the swaping detection to attribute in the same node 
     ImNodesAttributeSwapFlags_SameNode = 1 << 1
+};
+
+enum ImNodesEventVar_
+{
+    ImNodesEventVar_LinkCreation,
+    ImNodesEventVar_LinkDestruction,
+    ImNodesEventVar_LinkDeformation,
+    ImNodesEventVar_UserEvent,
+    ImNodesEventVar_COUNT
 };
 
 

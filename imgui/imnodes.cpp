@@ -3516,11 +3516,31 @@ static const ImNodesStyleVarInfo GStyleVarInfo[] = {
     {ImGuiDataType_Float, 2, (ImU32)offsetof(ImNodesStyle, MiniMapOffset)},
 };
 
+struct ImNodesEventVarInfo
+{
+    ImGuiDataType Type;
+    ImU32         Count;
+    ImU32         Offset;
+    void* GetVarPtr(ImNodesStyle* style) const { return (void*)((unsigned char*)style + Offset); }
+};
+
+static const ImNodesEventVarInfo GEventVarInfo[] = {
+    // ImNodesEventVar_LinkCreation
+    {ImGuiDataType_Float, 1, 42},
+};
+
 static const ImNodesStyleVarInfo* GetStyleVarInfo(ImNodesStyleVar idx)
 {
     IM_ASSERT(idx >= 0 && idx < ImNodesStyleVar_COUNT);
     IM_ASSERT(IM_ARRAYSIZE(GStyleVarInfo) == ImNodesStyleVar_COUNT);
     return &GStyleVarInfo[idx];
+}
+
+static const ImNodesEventVarInfo* GetEventVarInfo(ImNodesEventVar idx)
+{
+    IM_ASSERT(idx >= 0 && idx < ImNodesEventVar_COUNT);
+    IM_ASSERT(IM_ARRAYSIZE(GEventVarInfo) == ImNodesEventVar_COUNT);
+    return &GEventVarInfo[idx];
 }
 
 void PushStyleVar(const ImNodesStyleVar item, const int value)
@@ -3586,6 +3606,21 @@ void PopStyleVar(int count)
         }
         count--;
     }
+}
+
+void PushEventVar(const ImNodesEventVar item, const int value)
+{
+    const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
+    if (var_info->Type == ImGuiDataType_U32 && var_info->Count == 1)
+    {
+        //int& style_var = *(int*)var_info->GetVarPtr(&GImNodes->EventStack);
+        //int& style_var = 0; // = old value for event
+        //GImNodes->EventStack.push_back(ImNodesEventVarElement(item));
+        //GImNodes->EventStack.push_back(ImNodesEventVarElement(item, style_var));
+        //maybe set the new value of the event ?
+        return;
+    }
+    IM_ASSERT(0 && "Called PushEventVar() int variant but variable is not a int!");
 }
 
 void SetNodeScreenSpacePos(const int node_id, const ImVec2& screen_space_pos)

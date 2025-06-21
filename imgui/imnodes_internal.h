@@ -290,6 +290,14 @@ struct ImNodesStyleVarElement
     }
 };
 
+struct ImNodesEventVarElement {
+    ImNodesEventVar event;
+
+    ImNodesEventVarElement(const ImNodesEventVar variable) : event(variable)
+    {
+    }
+};
+
 // [SECTION] global and editor context structs
 
 struct ImNodesEditorContext
@@ -371,6 +379,8 @@ struct ImNodesContext
     ImNodesStyle                     Style;
     ImVector<ImNodesColElement>      ColorModifierStack;
     ImVector<ImNodesStyleVarElement> StyleModifierStack;
+    ImVector<ImNodesEventVarElement> EventStack;
+    ImVector<ImNodesEventVarElement> NextEventStack;
     ImGuiTextBuffer                  TextBuffer;
 
     int           CurrentAttributeFlags;
