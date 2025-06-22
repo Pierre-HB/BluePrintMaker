@@ -3623,6 +3623,10 @@ void PushEventVar(const ImNodesEventVar item, const int value)
     IM_ASSERT(0 && "Called PushEventVar() int variant but variable is not a int!");
 }
 
+void PushEvent(int idx) {
+    PushEventVar(ImNodesEventVar_UserEvent, idx);
+}
+
 void SetNodeScreenSpacePos(const int node_id, const ImVec2& screen_space_pos)
 {
     ImNodesEditorContext& editor = EditorContextGet();

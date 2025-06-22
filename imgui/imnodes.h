@@ -325,6 +325,19 @@ void PushStyleVar(ImNodesStyleVar style_item, float value);
 void PushStyleVar(ImNodesStyleVar style_item, const ImVec2& value);
 void PopStyleVar(int count = 1);
 
+// use PushEvent to add a user event in the event stack. This event will be given back with it's id
+void PushEvent(int idx);
+// use the GetPopedEvent to retrive the id of the poped event during this frame. return true if there was a poped event, false otherwise.
+bool GetPopedEvent(int* idx);
+// use the GetUnpopedEvent to retrive the id of the unpoped event (i.e a previously poped event is push back again) during this frame. return true if there was a poped event, false otherwise.
+bool GetUnpopedEvent(int* idx);
+// return the number of removed event during this frame. return true if there was an unpoped event, false otherwise.
+int NumRemovedEvent();
+// use the GetRemovedEvent to retrive the id of all the removed events during this frame (i.e deleted event without undoing them to save memory).
+void GetRemovedEvent(int idx[]);
+
+
+
 // id can be any positive or negative integer, but INT_MIN is currently reserved for internal use.
 void BeginNode(int id);
 void EndNode();

@@ -510,6 +510,7 @@ public:
             const std::pair<int, int> p = links[i];
             // in this case, we just use the array index of the link
             // as the unique identifier
+            //can push/pop style for changing the color of link (if two ressources does not correspond for instance)
             ImNodes::Link(i+10, p.first, p.second, ImNodesLinkType_::ImNodesLinkType_Sloped);
         }
         ImNodes::Link(15, 3, 5, ImNodesLinkType_::ImNodesLinkType_Sloped);

@@ -75,9 +75,6 @@
     <ClInclude Include="fraction.h">
       <Filter>sources</Filter>
     </ClInclude>
-    <ClInclude Include="int_inf.h">
-      <Filter>sources</Filter>
-    </ClInclude>
     <ClInclude Include="num.hpp">
       <Filter>sources</Filter>
     </ClInclude>
