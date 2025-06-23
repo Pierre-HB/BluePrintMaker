@@ -1181,7 +1181,7 @@ void BeginNodeSelection(ImNodesEditorContext& editor, const int node_idx)
 }
 
 void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_control_idx) {
-    
+
     if (editor.ClickInteraction.Type != ImNodesClickInteractionType_None)
     {
         return;
@@ -1216,7 +1216,17 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
     const ImVec2 ref_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[link_control_idx]);
     editor.PrimaryLinkControlOffset =
         ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
-
+    
+    const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+    if (link_control.LocalId < 6) {
+        //i.e it's a point and not a line
+        editor.current_event = ImNodesEventVarElement(ImNodesEventVar_LinkDeformation, link_control.Id, link.Deformations[link_control.LocalId]);
+    }
+    //else {
+    //    //add event for the point connected to this line
+    //    continue;
+    //}
+    
     editor.SelectedLinkControlOffsets.clear();
     for (int idx = 0; idx < editor.SelectedLinkControlIndices.Size; idx++)
     {
@@ -1586,6 +1596,107 @@ bool ShouldLinkSnapToPin(
     return true;
 }
 
+struct ImNodesEventVarInfo
+{
+    ImGuiDataType Type; // not usefull as we can have a mixe of type...
+    ImU32         IntCount;
+    ImU32         FloatCount;
+
+};
+
+static const ImNodesEventVarInfo GEventVarInfo[] = {
+    // ImNodesEventVar_LinkCreation
+    {ImGuiDataType_Float, 1, 2},
+    // ImNodesEventVar_userEvent
+    {ImGuiDataType_S32, 1, 0},
+};
+
+
+static const ImNodesEventVarInfo* GetEventVarInfo(ImNodesEventVar idx)
+{
+    IM_ASSERT(idx >= 0 && idx < ImNodesEventVar_COUNT);
+    IM_ASSERT(IM_ARRAYSIZE(GEventVarInfo) == ImNodesEventVar_COUNT);
+    return &GEventVarInfo[idx];
+}
+
+void PushEventVar(const ImNodesEventVar item, const int new_value, const int old_value)
+{
+    const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
+    if (var_info->IntCount == 1 && var_info->FloatCount == 0)
+    {
+        GImNodes->EventStack.push(ImNodesEventVarElement(item, new_value, old_value));
+        return;
+    }
+    IM_ASSERT(0 && "Called PushEventVar() int variant but variable is not a int!");
+}
+
+static void PushEventVar(const ImNodesEventVar item, const int new_int_value, const int old_int_value, const ImVec2 new_float_value, const ImVec2 old_float_value)
+{
+    const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
+    if (var_info->IntCount == 1 && var_info->FloatCount == 2)
+    {
+        GImNodes->EventStack.push(ImNodesEventVarElement(item, new_int_value, old_int_value, new_float_value, old_float_value));
+        return;
+    }
+    IM_ASSERT(0 && "Called PushEventVar() (int, float, float) variant but variable is not a (int, float, float)!");
+}
+
+void PopEventVar()
+{
+    /*ImLinkControlData& link_control = editor.LinkControls.Pool[editor.SelectedLinkControlIndices[0]];
+    const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];*/
+
+    ImNodesEventVarElement dest;
+    if (!GImNodes->EventStack.pop(&dest))
+        return;
+    ImNodesEditorContext& editor = EditorContextGet();
+    switch (dest.event)
+    {
+    case ImNodesEventVar_LinkDeformation:
+    {
+        int Id = dest.NewIntValue[0];
+
+        ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
+        ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+
+        link.Deformations[link_control.LocalId] = ImVec2(dest.NewFloatValue[0], dest.NewFloatValue[1]);
+        break;
+    }
+    case ImNodesEventVar_UserEvent:
+        GImNodes->PopedEvent = dest.NewIntValue[0];
+        break;
+    default:
+        break;
+    }
+}
+
+void UnpopEventVar()
+{
+    ImNodesEventVarElement dest;
+    if (!GImNodes->EventStack.unpop(&dest))
+        return;
+
+    ImNodesEditorContext& editor = EditorContextGet();
+    switch (dest.event)
+    {
+    case ImNodesEventVar_LinkDeformation:
+    {
+        int Id = dest.NewIntValue[0];
+        ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
+        ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+
+        link.Deformations[link_control.LocalId] = ImVec2(dest.OldFloatValue[0], dest.OldFloatValue[1]);
+        break;
+    }
+        
+    case ImNodesEventVar_UserEvent:
+        GImNodes->UnpopedEvent = dest.NewIntValue[0];
+        break;
+    default:
+        break;
+    }
+}
+
 void ClickInteractionUpdate(ImNodesEditorContext& editor)
 {
     switch (editor.ClickInteraction.Type)
@@ -1656,6 +1767,21 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
         if (GImNodes->LeftMouseReleased)
         {
             editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
+            
+            {
+                ImLinkControlData& link_control = editor.LinkControls.Pool[editor.SelectedLinkControlIndices[0]];
+                const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+
+                IM_ASSERT(link_control.Id == editor.current_event.OldIntValue[0]);
+
+                if (ImVec2(editor.current_event.OldFloatValue[0], editor.current_event.OldFloatValue[1]) != link.Deformations[link_control.LocalId]) {
+                    editor.current_event.NewFloatValue[0] = link.Deformations[link_control.LocalId].x;
+                    editor.current_event.NewFloatValue[1] = link.Deformations[link_control.LocalId].y;
+                    editor.current_event.NewIntValue[0] = link_control.Id;
+
+                    PushEventVar(ImNodesEventVar_LinkDeformation, editor.current_event.NewIntValue[0], editor.current_event.OldIntValue[0], ImVec2(editor.current_event.OldFloatValue[0], editor.current_event.OldFloatValue[1]), ImVec2(editor.current_event.NewFloatValue[0], editor.current_event.NewFloatValue[1]));
+                }
+            }            
         }
     }
     break;
@@ -3039,8 +3165,6 @@ void BeginNodeEditor()
 }
 //descriptor of a function delcared after, might change some stuff to avoid it...
 void LinkControl(ImNodesEditorContext& editor, int link_idx);
-void PopEventVar();
-void UnpopEventVar();
 void EndNodeEditor()
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Editor);
@@ -3561,33 +3685,11 @@ static const ImNodesStyleVarInfo GStyleVarInfo[] = {
     {ImGuiDataType_Float, 2, (ImU32)offsetof(ImNodesStyle, MiniMapOffset)},
 };
 
-struct ImNodesEventVarInfo
-{
-    ImGuiDataType Type; // not usefull as we can have a mixe of type...
-    ImU32         IntCount;
-    ImU32         FloatCount;
-
-};
-
-static const ImNodesEventVarInfo GEventVarInfo[] = {
-    // ImNodesEventVar_LinkCreation
-    {ImGuiDataType_Float, 1, 2},
-    // ImNodesEventVar_userEvent
-    {ImGuiDataType_S32, 1, 0},
-};
-
 static const ImNodesStyleVarInfo* GetStyleVarInfo(ImNodesStyleVar idx)
 {
     IM_ASSERT(idx >= 0 && idx < ImNodesStyleVar_COUNT);
     IM_ASSERT(IM_ARRAYSIZE(GStyleVarInfo) == ImNodesStyleVar_COUNT);
     return &GStyleVarInfo[idx];
-}
-
-static const ImNodesEventVarInfo* GetEventVarInfo(ImNodesEventVar idx)
-{
-    IM_ASSERT(idx >= 0 && idx < ImNodesEventVar_COUNT);
-    IM_ASSERT(IM_ARRAYSIZE(GEventVarInfo) == ImNodesEventVar_COUNT);
-    return &GEventVarInfo[idx];
 }
 
 void PushStyleVar(const ImNodesStyleVar item, const int value)
@@ -3652,62 +3754,6 @@ void PopStyleVar(int count)
             ((float*)style_var)[1] = style_backup.FloatValue[1];
         }
         count--;
-    }
-}
-
-static void PushEventVar(const ImNodesEventVar item, const int new_value, const int old_value)
-{
-    const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
-    if (var_info->IntCount == 1 && var_info->FloatCount == 0)
-    {
-        GImNodes->EventStack.push(ImNodesEventVarElement(item, new_value, old_value));
-        return;
-    }
-    IM_ASSERT(0 && "Called PushEventVar() int variant but variable is not a int!");
-}
-
-static void PushEventVar(const ImNodesEventVar item, const int new_int_value, const int old_int_value, const ImVec2 new_float_value, const ImVec2 old_float_value)
-{
-    const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
-    if (var_info->IntCount == 1 && var_info->FloatCount == 2)
-    {
-        GImNodes->EventStack.push(ImNodesEventVarElement(item, new_int_value, old_int_value, new_float_value, old_float_value));
-        return;
-    }
-    IM_ASSERT(0 && "Called PushEventVar() (int, float, float) variant but variable is not a (int, float, float)!");
-}
-
-//...
-
-void PopEventVar()
-{
-    ImNodesEventVarElement dest;
-    if (!GImNodes->EventStack.pop(&dest))
-        return;
-
-    switch (dest.event)
-    {
-    case ImNodesEventVar_UserEvent:
-        GImNodes->PopedEvent = dest.NewIntValue[0];
-        break;
-    default:
-        break;
-    }        
-}
-
-void UnpopEventVar()
-{
-    ImNodesEventVarElement dest;
-    if (!GImNodes->EventStack.unpop(&dest))
-        return;
-
-    switch (dest.event)
-    {
-    case ImNodesEventVar_UserEvent:
-        GImNodes->UnpopedEvent = dest.NewIntValue[0];
-        break;
-    default:
-        break;
     }
 }
 

@@ -431,6 +431,19 @@ struct ImNodesEventVarElement {
         OldFloatValue[0] = old_float_value.x;
         OldFloatValue[1] = old_float_value.y;
     }
+
+    ImNodesEventVarElement(const ImNodesEventVar variable, const int old_int_value, const ImVec2 old_float_value) : event(variable)
+    {
+        NewIntValue[0] = 0;
+        NewIntValue[1] = 0;
+        NewFloatValue[0] = 0;
+        NewFloatValue[1] = 0;
+
+        OldIntValue[0] = old_int_value;
+        OldIntValue[1] = 0;
+        OldFloatValue[0] = old_float_value.x;
+        OldFloatValue[1] = old_float_value.y;
+    }
 };
 
 //void PopEventVar();
@@ -484,11 +497,13 @@ struct ImNodesEditorContext
     ImRect MiniMapContentScreenSpace;
     float  MiniMapScaling;
 
+    ImNodesEventVarElement current_event;
+
     ImNodesEditorContext()
         : Nodes(), Pins(), Links(), Panning(0.f, 0.f), SelectedNodeIndices(), SelectedLinkIndices(),
           SelectedNodeOffsets(), PrimaryNodeOffset(0.f, 0.f), ClickInteraction(),
           MiniMapEnabled(false), MiniMapSizeFraction(0.0f), MiniMapNodeHoveringCallback(NULL),
-          MiniMapNodeHoveringCallbackUserData(NULL), MiniMapScaling(0.0f)
+          MiniMapNodeHoveringCallbackUserData(NULL), MiniMapScaling(0.0f), current_event()
     {
     }
 };
