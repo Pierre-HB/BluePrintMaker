@@ -303,6 +303,7 @@ ImNodesStyle& GetStyle();
 void StyleColorsDark(ImNodesStyle* dest = NULL); // on by default
 void StyleColorsClassic(ImNodesStyle* dest = NULL);
 void StyleColorsLight(ImNodesStyle* dest = NULL);
+void StyleColorsBluePrint(ImNodesStyle* dest = NULL);
 
 // The top-level function call. Call this before calling BeginNode/EndNode. Calling this function
 // will result the node editor grid workspace being rendered.
@@ -325,16 +326,13 @@ void PushStyleVar(ImNodesStyleVar style_item, float value);
 void PushStyleVar(ImNodesStyleVar style_item, const ImVec2& value);
 void PopStyleVar(int count = 1);
 
-// use PushEvent to add a user event in the event stack. This event will be given back with it's id
+// use PushEvent to add an event in the event stack (that can be reverse by CTRL Z and unreverse by CTRL Y). use GetPopedEvent and GetUnpopedEvent to get reversed and unreversed events.
+// As long as the user keep track of at least EVENT_STACK_SIZE (in imnodes_internal.h) event, he can remove safely event because internally ImNodes start removeing event past the EVENT_STACK_SIZE. (start forgetting oldest event first).
 void PushEvent(int idx);
-// use the GetPopedEvent to retrive the id of the poped event during this frame. return true if there was a poped event, false otherwise.
 bool GetPopedEvent(int* idx);
-// use the GetUnpopedEvent to retrive the id of the unpoped event (i.e a previously poped event is push back again) during this frame. return true if there was a poped event, false otherwise.
 bool GetUnpopedEvent(int* idx);
-// return the number of removed event during this frame. return true if there was an unpoped event, false otherwise.
-int NumRemovedEvent();
-// use the GetRemovedEvent to retrive the id of all the removed events during this frame (i.e deleted event without undoing them to save memory).
-void GetRemovedEvent(int idx[]);
+
+
 
 
 

@@ -2922,6 +2922,39 @@ void StyleColorsLight(ImNodesStyle* dest)
     dest->Colors[ImNodesCol_MiniMapCanvasOutline] = IM_COL32(200, 200, 200, 200);
 }
 
+void StyleColorsBluePrint(ImNodesStyle* dest)
+{
+    if (dest == nullptr)
+    {
+        dest = &GImNodes->Style;
+    }
+
+    dest->LinkCreationType = ImNodesLinkType_Sloped;
+    dest->NodeBorderThickness = 2.0f;
+    dest->Flags |= ImNodesStyleFlags_AttributeSwappable | ImNodesStyleFlags_GridSnapping;
+
+    dest->Colors[ImNodesCol_GridBackground] = IM_COL32(5, 69, 141, 255);
+    dest->Colors[ImNodesCol_GridLine] = IM_COL32(32, 109, 177, 255);
+    dest->Colors[ImNodesCol_Link] = IM_COL32(200, 200, 200, 255);
+    dest->Colors[ImNodesCol_LinkHovered] = IM_COL32(255, 255, 255, 255);
+    dest->Colors[ImNodesCol_LinkSelected] = IM_COL32(255, 255, 255, 255);
+    dest->Colors[ImNodesCol_NodeOutline] = IM_COL32(200, 200, 200, 255);
+
+    dest->Colors[ImNodesCol_NodeBackground] = IM_COL32(5, 69, 141, 100);
+    dest->Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(25, 89, 161, 150);
+    dest->Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(25, 89, 161, 150);
+
+    dest->Colors[ImNodesCol_TitleBar] = IM_COL32(25, 89, 161, 0);
+    dest->Colors[ImNodesCol_TitleBarHovered] = IM_COL32(45, 109, 181, 0);
+    dest->Colors[ImNodesCol_TitleBarSelected] = IM_COL32(45, 109, 181, 0);
+
+    dest->Colors[ImNodesCol_Pin] = IM_COL32(200, 200, 200, 255);
+    dest->Colors[ImNodesCol_PinHovered] = IM_COL32(255, 255, 255, 255);
+    dest->Colors[ImNodesCol_BoxSelector] = IM_COL32(250, 250, 250, 20);
+    dest->Colors[ImNodesCol_BoxSelectorOutline] = IM_COL32(255, 255, 255, 255);
+
+}
+
 void BeginNodeEditor()
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_None);
@@ -2944,6 +2977,9 @@ void BeginNodeEditor()
     GImNodes->HoveredPinIdx.Reset();
     GImNodes->DeletedLinkIdx.Reset();
     GImNodes->SnapLinkIdx.Reset();
+
+    GImNodes->PopedEvent.Reset();
+    GImNodes->UnpopedEvent.Reset();
 
     GImNodes->NodeIndicesOverlappingWithMouse.clear();
 
@@ -3003,6 +3039,8 @@ void BeginNodeEditor()
 }
 //descriptor of a function delcared after, might change some stuff to avoid it...
 void LinkControl(ImNodesEditorContext& editor, int link_idx);
+void PopEventVar();
+void UnpopEventVar();
 void EndNodeEditor()
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Editor);
@@ -3214,6 +3252,13 @@ void EndNodeEditor()
         }
     }
     ClickInteractionUpdate(editor);
+
+    if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Z)) {
+        PopEventVar();
+    }
+    else if(ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Y)){
+        UnpopEventVar();
+    }
 
     // At this point, draw commands have been issued for all nodes (and pins). Update the node pool
     // to detect unused node slots and remove those indices from the depth stack before sorting the
@@ -3518,15 +3563,17 @@ static const ImNodesStyleVarInfo GStyleVarInfo[] = {
 
 struct ImNodesEventVarInfo
 {
-    ImGuiDataType Type;
-    ImU32         Count;
-    ImU32         Offset;
-    void* GetVarPtr(ImNodesStyle* style) const { return (void*)((unsigned char*)style + Offset); }
+    ImGuiDataType Type; // not usefull as we can have a mixe of type...
+    ImU32         IntCount;
+    ImU32         FloatCount;
+
 };
 
 static const ImNodesEventVarInfo GEventVarInfo[] = {
     // ImNodesEventVar_LinkCreation
-    {ImGuiDataType_Float, 1, 42},
+    {ImGuiDataType_Float, 1, 2},
+    // ImNodesEventVar_userEvent
+    {ImGuiDataType_S32, 1, 0},
 };
 
 static const ImNodesStyleVarInfo* GetStyleVarInfo(ImNodesStyleVar idx)
@@ -3608,23 +3655,80 @@ void PopStyleVar(int count)
     }
 }
 
-void PushEventVar(const ImNodesEventVar item, const int value)
+static void PushEventVar(const ImNodesEventVar item, const int new_value, const int old_value)
 {
     const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
-    if (var_info->Type == ImGuiDataType_U32 && var_info->Count == 1)
+    if (var_info->IntCount == 1 && var_info->FloatCount == 0)
     {
-        //int& style_var = *(int*)var_info->GetVarPtr(&GImNodes->EventStack);
-        //int& style_var = 0; // = old value for event
-        //GImNodes->EventStack.push_back(ImNodesEventVarElement(item));
-        //GImNodes->EventStack.push_back(ImNodesEventVarElement(item, style_var));
-        //maybe set the new value of the event ?
+        GImNodes->EventStack.push(ImNodesEventVarElement(item, new_value, old_value));
         return;
     }
     IM_ASSERT(0 && "Called PushEventVar() int variant but variable is not a int!");
 }
 
+static void PushEventVar(const ImNodesEventVar item, const int new_int_value, const int old_int_value, const ImVec2 new_float_value, const ImVec2 old_float_value)
+{
+    const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
+    if (var_info->IntCount == 1 && var_info->FloatCount == 2)
+    {
+        GImNodes->EventStack.push(ImNodesEventVarElement(item, new_int_value, old_int_value, new_float_value, old_float_value));
+        return;
+    }
+    IM_ASSERT(0 && "Called PushEventVar() (int, float, float) variant but variable is not a (int, float, float)!");
+}
+
+//...
+
+void PopEventVar()
+{
+    ImNodesEventVarElement dest;
+    if (!GImNodes->EventStack.pop(&dest))
+        return;
+
+    switch (dest.event)
+    {
+    case ImNodesEventVar_UserEvent:
+        GImNodes->PopedEvent = dest.NewIntValue[0];
+        break;
+    default:
+        break;
+    }        
+}
+
+void UnpopEventVar()
+{
+    ImNodesEventVarElement dest;
+    if (!GImNodes->EventStack.unpop(&dest))
+        return;
+
+    switch (dest.event)
+    {
+    case ImNodesEventVar_UserEvent:
+        GImNodes->UnpopedEvent = dest.NewIntValue[0];
+        break;
+    default:
+        break;
+    }
+}
+
 void PushEvent(int idx) {
-    PushEventVar(ImNodesEventVar_UserEvent, idx);
+    PushEventVar(ImNodesEventVar_UserEvent, idx, idx);
+}
+
+bool GetPopedEvent(int* idx) {
+    if (GImNodes->PopedEvent.HasValue()) {
+        *idx = GImNodes->PopedEvent.Value();
+        return true;
+    }
+    return false;
+}
+
+bool GetUnpopedEvent(int* idx) {
+    if (GImNodes->UnpopedEvent.HasValue()) {
+        *idx = GImNodes->UnpopedEvent.Value();
+        return true;
+    }
+    return false;
 }
 
 void SetNodeScreenSpacePos(const int node_id, const ImVec2& screen_space_pos)

@@ -15,6 +15,74 @@
 // [SECTION] global and editor context structs
 // [SECTION] object pool implementation
 
+#define EVENT_STACK_SIZE 1024 //max nb of event to save. Start ereasing the first event when stack is full
+
+template<typename T, const unsigned int stack_size>
+struct ImNodesBiFIFO {
+    T data[stack_size];
+    unsigned int start_fifo_1; //oldest element of fifo_1
+    unsigned int start_fifo_2; //oldest element in fifo_2
+    unsigned int end_fifo_1;
+
+    //fifo_1 : [start_fifo_1, end_fifo_1[
+    //fifo_2 : [start_fifo_2, end_fifo_1]
+
+    ImNodesBiFIFO() {
+        clear();
+    };
+
+    unsigned int _add_ptr(int ptr) {
+        if (ptr == stack_size - 1)
+            return 0;
+        return ptr + 1;
+    }
+
+    unsigned int _decr_ptr(int ptr) {
+        if (ptr == 0)
+            return stack_size - 1;
+        return ptr - 1;
+    }
+    
+    //clear fifo_2 and add  an element in fifo1
+    void push(T element){
+        data[end_fifo_1] = element;
+        start_fifo_2 = end_fifo_1;
+        end_fifo_1 = _add_ptr(end_fifo_1);
+    }
+
+    //pop last element of fifo1 and push it into fifo2. return true if succesful
+    bool pop(T* dest) {
+        if (end_fifo_1 == start_fifo_1)
+            return false;
+        end_fifo_1 = _decr_ptr(end_fifo_1); //implicitely push into fifo_2
+        *dest = data[end_fifo_1];
+
+        return true;
+    }
+    
+    //pop last element of fifo2 and push it into fifo1. return true if succesful
+    bool unpop(T* dest) {
+        if (_decr_ptr(end_fifo_1) == start_fifo_2)
+            return false;
+        *dest = data[end_fifo_1];
+        end_fifo_1 = _add_ptr(end_fifo_1); //implicitely push into fifo_1
+
+        return true;
+    }
+
+    void clear_secondFIFO() {
+        start_fifo_2 = _decr_ptr(end_fifo_1);
+    }
+    void clear_firstFIFO() {
+        start_fifo_1 = end_fifo_1;
+    }
+    void clear() {
+        start_fifo_1 = 0;
+        end_fifo_1 = 0;
+        start_fifo_2 = stack_size - 1;
+    }
+};
+
 struct ImNodesContext;
 
 extern ImNodesContext* GImNodes;
@@ -292,11 +360,81 @@ struct ImNodesStyleVarElement
 
 struct ImNodesEventVarElement {
     ImNodesEventVar event;
+    int NewIntValue[2];
+    float NewFloatValue[2];
+    int OldIntValue[2];
+    float OldFloatValue[2];
 
-    ImNodesEventVarElement(const ImNodesEventVar variable) : event(variable)
+    ImNodesEventVarElement() : event(-1) {}
+
+    ImNodesEventVarElement(const ImNodesEventVar variable, int new_value, int old_value) : event(variable)
     {
+        NewIntValue[0] = new_value;
+        NewIntValue[1] = 0;
+        NewFloatValue[0] = 0;
+        NewFloatValue[1] = 0;
+
+        OldIntValue[0] = old_value;
+        OldIntValue[1] = 0;
+        OldFloatValue[0] = 0;
+        OldFloatValue[1] = 0;
+    }
+
+    ImNodesEventVarElement(const ImNodesEventVar variable, int new_value[2], int old_value[2]) : event(variable)
+    {
+        NewIntValue[0] = new_value[0];
+        NewIntValue[1] = new_value[1];
+        NewFloatValue[0] = 0;
+        NewFloatValue[1] = 0;
+
+        OldIntValue[0] = old_value[0];
+        OldIntValue[1] = old_value[1];
+        OldFloatValue[0] = 0;
+        OldFloatValue[1] = 0;
+    }
+
+    ImNodesEventVarElement(const ImNodesEventVar variable, float new_value, float old_value) : event(variable)
+    {
+        NewIntValue[0] = 0;
+        NewIntValue[1] = 0;
+        NewFloatValue[0] = new_value;
+        NewFloatValue[1] = 0;
+
+        OldIntValue[0] = 0;
+        OldIntValue[1] = 0;
+        OldFloatValue[0] = old_value;
+        OldFloatValue[1] = 0;
+    }
+
+    ImNodesEventVarElement(const ImNodesEventVar variable, const ImVec2 new_value, const ImVec2 old_value) : event(variable)
+    {
+        NewIntValue[0] = 0;
+        NewIntValue[1] = 0;
+        NewFloatValue[0] = new_value.x;
+        NewFloatValue[1] = new_value.y;
+
+        OldIntValue[0] = 0;
+        OldIntValue[1] = 0;
+        OldFloatValue[0] = old_value.x;
+        OldFloatValue[1] = old_value.y;
+    }
+
+    ImNodesEventVarElement(const ImNodesEventVar variable, const int new_int_value, const int old_int_value, const ImVec2 new_float_value, const ImVec2 old_float_value) : event(variable)
+    {
+        NewIntValue[0] = new_int_value;
+        NewIntValue[1] = 0;
+        NewFloatValue[0] = new_float_value.x;
+        NewFloatValue[1] = new_float_value.y;
+
+        OldIntValue[0] = old_int_value;
+        OldIntValue[1] = 0;
+        OldFloatValue[0] = old_float_value.x;
+        OldFloatValue[1] = old_float_value.y;
     }
 };
+
+//void PopEventVar();
+//void UnpopEventVar();
 
 // [SECTION] global and editor context structs
 
@@ -379,8 +517,7 @@ struct ImNodesContext
     ImNodesStyle                     Style;
     ImVector<ImNodesColElement>      ColorModifierStack;
     ImVector<ImNodesStyleVarElement> StyleModifierStack;
-    ImVector<ImNodesEventVarElement> EventStack;
-    ImVector<ImNodesEventVarElement> NextEventStack;
+    ImNodesBiFIFO<ImNodesEventVarElement, EVENT_STACK_SIZE> EventStack;
     ImGuiTextBuffer                  TextBuffer;
 
     int           CurrentAttributeFlags;
@@ -398,6 +535,9 @@ struct ImNodesContext
 
     ImOptionalIndex DeletedLinkIdx;
     ImOptionalIndex SnapLinkIdx;
+
+    ImOptionalIndex PopedEvent;
+    ImOptionalIndex UnpopedEvent;
 
     // Event helper state
     // TODO: this should be a part of a state machine, and not a member of the global struct.

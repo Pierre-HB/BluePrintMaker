@@ -37,6 +37,7 @@ static SMatrix<Rat> create_PB() {
 
     return m;
 }
+
 namespace example
 {
 namespace
@@ -49,63 +50,64 @@ class HelloWorldNodeEditor
 public:
     void show()
     {
-        ImNodesStyle& style = ImNodes::GetStyle();
+        ImNodes::StyleColorsBluePrint();
+        //ImNodesStyle& style = ImNodes::GetStyle();
         
-        ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
-        
-        //To change the link type of currently created links
-        ImNodes::PushStyleVar(ImNodesStyleVar_LinkCreationType, ImNodesLinkType_Sloped);
+        //ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
+        //
+        ////To change the link type of currently created links
+        //ImNodes::PushStyleVar(ImNodesStyleVar_LinkCreationType, ImNodesLinkType_Sloped);
+        ////ImNodes::PopStyleVar(1);
+        //
+        ////ImNodesStyleFlags_AttributeSwappable
+        ////ImNodesStyleFlags
+        ////ImNodes::PushStyleVar(ImNodesStyleVar_ImNodesStyleFlags, ImNodesStyleFlags_AttributeSwappable);
+
+        //ImNodes::GetStyle().Flags |= ImNodesStyleFlags_AttributeSwappable;
+        //ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
+        //
+
+        ////ImNodes::PushStyleVar(ImNodesStyleVar_LinkThickness, 10.0f);
+        ///*ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinSlope, 0.0f);
+        //ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinOffset, 50.0f);*/
+
+        ///*std::cout << ImNodes::GetStyle().LinkSlopedMinSlope << std::endl;
         //ImNodes::PopStyleVar(1);
-        
-        //ImNodesStyleFlags_AttributeSwappable
-        //ImNodesStyleFlags
-        //ImNodes::PushStyleVar(ImNodesStyleVar_ImNodesStyleFlags, ImNodesStyleFlags_AttributeSwappable);
+        //std::cout << ImNodes::GetStyle().LinkSlopedMinSlope << std::endl;*/
 
-        ImNodes::GetStyle().Flags |= ImNodesStyleFlags_AttributeSwappable;
-        ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
-        
+        ///*ImNodes::PushStyleVar(ImNodesStyleVar_GridSpacing, 50);
+        //ImNodes::PushStyleVar(ImNodesStyleVar_GridSpacing, 150);
+        //ImNodes::PopStyleVar(3);*/
+        ////ImNodes::GetStyle().GridSpacing = 48; // ?OT SUPPOESED TO BE CHANGE DIRECTLY
+        //style.Colors[ImNodesCol_GridBackground] = IM_COL32(5, 69, 141, 255);
+        //style.Colors[ImNodesCol_GridLine] = IM_COL32(32, 109, 177, 255);
+        //style.Colors[ImNodesCol_Link] = IM_COL32(200, 200, 200, 255);
+        //style.Colors[ImNodesCol_LinkHovered] = IM_COL32(255, 255, 255, 255);
+        //style.Colors[ImNodesCol_LinkSelected] = IM_COL32(255, 255, 255, 255);
+        //style.Colors[ImNodesCol_NodeOutline] = IM_COL32(200, 200, 200, 255);
 
-        //ImNodes::PushStyleVar(ImNodesStyleVar_LinkThickness, 10.0f);
-        /*ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinSlope, 0.0f);
-        ImNodes::PushStyleVar(ImNodesStyleVar_LinkSlopedMinOffset, 50.0f);*/
+        //style.Colors[ImNodesCol_NodeBackground] = IM_COL32(5, 69, 141, 100);
+        //style.Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(25, 89, 161, 150);
+        //style.Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(25, 89, 161, 150);
 
-        /*std::cout << ImNodes::GetStyle().LinkSlopedMinSlope << std::endl;
-        ImNodes::PopStyleVar(1);
-        std::cout << ImNodes::GetStyle().LinkSlopedMinSlope << std::endl;*/
+        //style.Colors[ImNodesCol_TitleBar] = IM_COL32(25, 89, 161, 0);
+        //style.Colors[ImNodesCol_TitleBarHovered] = IM_COL32(45, 109, 181, 0);
+        //style.Colors[ImNodesCol_TitleBarSelected] = IM_COL32(45, 109, 181, 0);
 
-        /*ImNodes::PushStyleVar(ImNodesStyleVar_GridSpacing, 50);
-        ImNodes::PushStyleVar(ImNodesStyleVar_GridSpacing, 150);
-        ImNodes::PopStyleVar(3);*/
-        //ImNodes::GetStyle().GridSpacing = 48; // ?OT SUPPOESED TO BE CHANGE DIRECTLY
-        style.Colors[ImNodesCol_GridBackground] = IM_COL32(5, 69, 141, 255);
-        style.Colors[ImNodesCol_GridLine] = IM_COL32(32, 109, 177, 255);
-        style.Colors[ImNodesCol_Link] = IM_COL32(200, 200, 200, 255);
-        style.Colors[ImNodesCol_LinkHovered] = IM_COL32(255, 255, 255, 255);
-        style.Colors[ImNodesCol_LinkSelected] = IM_COL32(255, 255, 255, 255);
-        style.Colors[ImNodesCol_NodeOutline] = IM_COL32(200, 200, 200, 255);
+        //style.Colors[ImNodesCol_Pin] = IM_COL32(200, 200, 200, 255);
+        //style.Colors[ImNodesCol_PinHovered] = IM_COL32(255, 255, 255, 255);
+        //style.Colors[ImNodesCol_BoxSelector] = IM_COL32(250, 250, 250, 20);
+        //style.Colors[ImNodesCol_BoxSelectorOutline] = IM_COL32(255, 255, 255, 255);
 
-        style.Colors[ImNodesCol_NodeBackground] = IM_COL32(5, 69, 141, 100);
-        style.Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(25, 89, 161, 150);
-        style.Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(25, 89, 161, 150);
+        ///*ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(25 / 255.0, 89 / 255.0, 161 / 255.0, 1);
+        //ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(5 / 255.0, 69 / 255.0, 141 / 255.0, 1);
+        //ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(5/255.0, 69/255.0, 141/255.0, 1);*/
 
-        style.Colors[ImNodesCol_TitleBar] = IM_COL32(25, 89, 161, 0);
-        style.Colors[ImNodesCol_TitleBarHovered] = IM_COL32(45, 109, 181, 0);
-        style.Colors[ImNodesCol_TitleBarSelected] = IM_COL32(45, 109, 181, 0);
+        ////ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(20, 20, 20, 30);
+        ///*ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(20, 20, 20, 30);
+        //ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(20, 20, 20, 30);*/
 
-        style.Colors[ImNodesCol_Pin] = IM_COL32(200, 200, 200, 255);
-        style.Colors[ImNodesCol_PinHovered] = IM_COL32(255, 255, 255, 255);
-        style.Colors[ImNodesCol_BoxSelector] = IM_COL32(250, 250, 250, 20);
-        style.Colors[ImNodesCol_BoxSelectorOutline] = IM_COL32(255, 255, 255, 255);
-
-        /*ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(25 / 255.0, 89 / 255.0, 161 / 255.0, 1);
-        ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(5 / 255.0, 69 / 255.0, 141 / 255.0, 1);
-        ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(5/255.0, 69/255.0, 141/255.0, 1);*/
-
-        //ImGui::GetStyle().Colors[ImGuiCol_ButtonActive] = ImVec4(20, 20, 20, 30);
-        /*ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] = ImVec4(20, 20, 20, 30);
-        ImGui::GetStyle().Colors[ImGuiCol_Button] = ImVec4(20, 20, 20, 30);*/
-
-        ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
+        //ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
          
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
         const ImGuiViewport * viewport = ImGui::GetMainViewport();
@@ -290,25 +292,7 @@ public:
             ImNodes::BeginStaticAttribute(843597);
 
             if (ImGui::Button("start")) {
-                /*Rat tmp = Rat(5, -7);
-                tmp.print();*/
-
-                // 11 -> 3
-                // 1.5
-                //Rat(1.5f).print();
-                //Rat(4.5f).print();
-                //Rat(42.0f).print();
-                //Rat(42.0f / 64.0f).print();
-                //Rat(0.75).print();
-                //Rat(0.5).print();
-                //Rat(1.5).print();
-
-                //Rat a = Rat(1, 42);
-                /*Rat b = Rat();
-                for (int i = 0; i < 42; i++) {
-                    b += a;
-                    b.print();
-                }*/
+                
                 Rat a = Rat(0.5f);
                 Rat b = 1 / a;
                 std::cout << a.to_double() << std::endl;
@@ -318,12 +302,6 @@ public:
                 std::cout << (a + b).to_double() << std::endl;
                 std::cout << (a - b).to_double() << std::endl;
                 std::cout << Num().to_double() << std::endl;
-                //a.print();
-                //b.print();
-                //(a * b).print();
-                //(a / b).print();
-                //(a + b).print();
-                //(a - b).print();
 
             }
 
