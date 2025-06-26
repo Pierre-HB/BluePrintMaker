@@ -788,6 +788,7 @@ void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData&
             link.Deformations[1].x = 0;
         Event.addNewPos(pointId, link.Deformations[1]);
     }
+    //TODO add the addOldPos call to the relevent control primitive
     if (linkControl.LocalId == 4 || linkControl.LocalId == 10) {
         link.Deformations[4].y = 0;
         if (end_pin.Type == ImNodesAttributeType_Output && link.Deformations[4].x < 0)
@@ -1237,7 +1238,6 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
             editor.SelectedLinkControlIndices.clear();
             editor.SelectedLinkIndices.clear();
         }
-        printf("adding link control %d to selected\n", link_control_idx);
         editor.SelectedLinkControlIndices.push_back(link_control_idx);
         editor.SelectedLinkIndices.push_back(link_control.LinkIdx);
     }
@@ -3357,9 +3357,9 @@ void EndNodeEditor()
 
     for (int link_control_idx = 0; link_control_idx < editor.LinkControls.Pool.size(); ++link_control_idx)
     {
+        //if (!editor.SelectedLinkIndices.contains(link_idx))
         if (editor.LinkControls.InUse[link_control_idx])
         {
-            printf("in use %d\n", link_control_idx);
             const ImLinkControlData& link_control = editor.LinkControls.Pool[link_control_idx];
             const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
             const ImPinData& start_pin = editor.Pins.Pool[link.StartPinIdx];
@@ -3668,7 +3668,7 @@ void LinkControl(ImNodesEditorContext& editor, int link_idx) {
         const ImLinkData& link = editor.Links.Pool[link_idx];
 
         //int Id = GetLinkControlId(local_Ids[i], link_idx);
-        int Id = link.Id;
+        int Id = GetLinkControlId(local_Ids[i], link.Id);
         ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
         link_control.LinkIdx = link_idx;
         link_control.LocalId = local_Ids[i];
