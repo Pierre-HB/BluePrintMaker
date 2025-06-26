@@ -359,90 +359,73 @@ struct ImNodesStyleVarElement
 };
 
 struct ImNodesEventVarElement {
-    ImNodesEventVar event;
-    int NewIntValue[2];
-    float NewFloatValue[2];
-    int OldIntValue[2];
-    float OldFloatValue[2];
+    ImNodesEventVar Event;
+    ImVector<int> Ids;
+    ImVector<ImVec2> OldPoss;
+    ImVector<ImVec2> NewPoss;
 
-    ImNodesEventVarElement() : event(-1) {}
-
-    ImNodesEventVarElement(const ImNodesEventVar variable, int new_value, int old_value) : event(variable)
-    {
-        NewIntValue[0] = new_value;
-        NewIntValue[1] = 0;
-        NewFloatValue[0] = 0;
-        NewFloatValue[1] = 0;
-
-        OldIntValue[0] = old_value;
-        OldIntValue[1] = 0;
-        OldFloatValue[0] = 0;
-        OldFloatValue[1] = 0;
+    ImNodesEventVarElement() : Event(-1) {}
+    ImNodesEventVarElement(const ImNodesEventVar& Event) : Event(Event) {}
+    ImNodesEventVarElement(const ImNodesEventVar& Event, int Id, ImVec2 OldPos) : Event(Event) {
+        addOldPos(Id, OldPos);
     }
 
-    ImNodesEventVarElement(const ImNodesEventVar variable, int new_value[2], int old_value[2]) : event(variable)
+    ImNodesEventVarElement(const ImNodesEventVar& Event, const ImVector<int>& Ids, const ImVector<ImVec2>& OldPoss, const ImVector<ImVec2>& NewPoss) : Event(Event), Ids(Ids), OldPoss(OldPoss), NewPoss(NewPoss)
     {
-        NewIntValue[0] = new_value[0];
-        NewIntValue[1] = new_value[1];
-        NewFloatValue[0] = 0;
-        NewFloatValue[1] = 0;
-
-        OldIntValue[0] = old_value[0];
-        OldIntValue[1] = old_value[1];
-        OldFloatValue[0] = 0;
-        OldFloatValue[1] = 0;
     }
 
-    ImNodesEventVarElement(const ImNodesEventVar variable, float new_value, float old_value) : event(variable)
+    ImNodesEventVarElement(ImNodesEventVar Event, const ImVector<int>& Ids, const ImVector<ImVec2>& OldPoss) : Event(Event), Ids(Ids), OldPoss(OldPoss), NewPoss(OldPoss)
     {
-        NewIntValue[0] = 0;
-        NewIntValue[1] = 0;
-        NewFloatValue[0] = new_value;
-        NewFloatValue[1] = 0;
-
-        OldIntValue[0] = 0;
-        OldIntValue[1] = 0;
-        OldFloatValue[0] = old_value;
-        OldFloatValue[1] = 0;
     }
 
-    ImNodesEventVarElement(const ImNodesEventVar variable, const ImVec2 new_value, const ImVec2 old_value) : event(variable)
+    ImNodesEventVarElement(ImNodesEventVar Event, int Id) : Event(Event), Ids()
     {
-        NewIntValue[0] = 0;
-        NewIntValue[1] = 0;
-        NewFloatValue[0] = new_value.x;
-        NewFloatValue[1] = new_value.y;
-
-        OldIntValue[0] = 0;
-        OldIntValue[1] = 0;
-        OldFloatValue[0] = old_value.x;
-        OldFloatValue[1] = old_value.y;
+        Ids.push_back(Id);
     }
 
-    ImNodesEventVarElement(const ImNodesEventVar variable, const int new_int_value, const int old_int_value, const ImVec2 new_float_value, const ImVec2 old_float_value) : event(variable)
-    {
-        NewIntValue[0] = new_int_value;
-        NewIntValue[1] = 0;
-        NewFloatValue[0] = new_float_value.x;
-        NewFloatValue[1] = new_float_value.y;
-
-        OldIntValue[0] = old_int_value;
-        OldIntValue[1] = 0;
-        OldFloatValue[0] = old_float_value.x;
-        OldFloatValue[1] = old_float_value.y;
+    int GetId() const {
+        assert(Event == ImNodesEventVar_UserEvent);
+        assert(Ids.size() == 1);
+        return Ids[0];
     }
 
-    ImNodesEventVarElement(const ImNodesEventVar variable, const int old_int_value, const ImVec2 old_float_value) : event(variable)
-    {
-        NewIntValue[0] = 0;
-        NewIntValue[1] = 0;
-        NewFloatValue[0] = 0;
-        NewFloatValue[1] = 0;
+    void addOldPos(int Id, ImVec2 OldPos) {
+        printf("adding old pose [%d] : (%f, %f)\n", Id, OldPos);
+        Ids.push_back(Id);
+        OldPoss.push_back(OldPos);
+        NewPoss.push_back(OldPos);//add same positon to have a null event that won't be registred right away
+    }
 
-        OldIntValue[0] = old_int_value;
-        OldIntValue[1] = 0;
-        OldFloatValue[0] = old_float_value.x;
-        OldFloatValue[1] = old_float_value.y;
+    void addNewPos(int Id, ImVec2 NewPos) {
+        printf("trying adding new pose [%d] : (%f, %f)\n", Id, NewPos);
+        int i = -1;
+        for (int j = 0; j < Ids.size(); j++) {
+            if (Ids[j] == Id) {
+                i = j;
+                break;
+            }
+        }
+        assert(i != -1);
+        NewPoss[i] = NewPos;
+    }
+
+    bool valid() {
+        if (Event == ImNodesEventVar_UserEvent) {
+            return Ids.size() == 1 && OldPoss.size() == 0 && NewPoss.size() == 0;
+        }
+        if (Ids.size() != NewPoss.size() || NewPoss.size() != OldPoss.size()) {
+            //printf("event size is not consistent (%d, %d, %d)\n", Ids.size(), OldPoss.size(), NewPoss.size());
+            return false;
+        }
+            
+        for (int i = 0; i < Ids.size(); i++) {
+            if (OldPoss[i] != NewPoss[i]) {
+                //printf("found a difference\n");
+                return true;
+            }
+        }
+        //printf("found nothing event (%d)\n", Ids.size());
+        return false;
     }
 };
 

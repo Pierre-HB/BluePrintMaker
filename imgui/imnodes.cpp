@@ -599,9 +599,40 @@ ControlPrimitive GetControlPrimitiveBezier(
     return cp;
 }
 
+int GetControlPrimitivePointsLocalID(int localID, const SlopedCurve& curve, int localID_dest[2]) {
+    IM_ASSERT(localID >= 0 && localID < 11);
+    ControlPrimitive cp;
+    if (curve.NumSegments == 3) {
+        IM_ASSERT((localID != 2) && (localID != 3) && (localID != 7) && (localID != 9)); //localID used for curve with 5 segment
+        if (localID < 6) {// point
+            localID_dest[0] = localID < 2 ? localID : localID - 2;
+            return 1;
+        }
+        else {// segment
+            localID_dest[0] = localID / 2 - 3;
+            localID_dest[1] = localID_dest[0] + 1;
+            return 2;
+        }
+    }
+    else
+    {
+        if (localID < 6) {//point
+            localID_dest[0] = localID;
+            return 1;
+        }
+        else
+        {
+            localID_dest[0] = localID - 6;
+            localID_dest[1] = localID_dest[0] + 1;
+            return 2;
+        }
+    }
+}
+
 ControlPrimitive GetControlPrimitiveSlopedCurve(
     int                Id, 
     const SlopedCurve& curve) {
+    //TODO Rewrite it using GetControlPrimitivePointsLocalID
     IM_ASSERT(Id >= 0 && Id < 11);
     ControlPrimitive cp;
     if (curve.NumSegments == 3) {
@@ -735,7 +766,7 @@ ImVec2 MooveLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& l
     }
     return ImVec2(0, 0);
 }
-
+static void PushEventVar(const ImNodesEventVarElement& Event);
 void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
     //TODO constraint the selected control primitive
     ImLinkData& link = editor.Links.Pool[linkControl.LinkIdx];
@@ -744,13 +775,18 @@ void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData&
     const Curve curve = GetCurve(
         start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
 
+    ImNodesEventVarElement Event = ImNodesEventVarElement(ImNodesEventVar_LinkDeformation);
     //link.Deformations[4]; //vector of 6 deformation, offset of point from the base curve
     if (linkControl.LocalId == 1 || linkControl.LocalId == 6) {
+        int pointId = GetLinkControlId(1, linkControl.LinkIdx);
+        Event.addOldPos(pointId, link.Deformations[1]);
         link.Deformations[1].y = 0;
+
         if (start_pin.Type == ImNodesAttributeType_Output && link.Deformations[1].x < 0)
             link.Deformations[1].x = 0;
         if (start_pin.Type == ImNodesAttributeType_Input && link.Deformations[1].x > 0)
             link.Deformations[1].x = 0;
+        Event.addNewPos(pointId, link.Deformations[1]);
     }
     if (linkControl.LocalId == 4 || linkControl.LocalId == 10) {
         link.Deformations[4].y = 0;
@@ -800,6 +836,9 @@ void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData&
         link.Deformations[3].x = avg_x;
         link.Deformations[4].x = avg_x;
     }
+
+    if (Event.valid()) 
+            PushEventVar(Event);
 }
 
 // [SECTION] coordinate space conversion helpers
@@ -1198,6 +1237,7 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
             editor.SelectedLinkControlIndices.clear();
             editor.SelectedLinkIndices.clear();
         }
+        printf("adding link control %d to selected\n", link_control_idx);
         editor.SelectedLinkControlIndices.push_back(link_control_idx);
         editor.SelectedLinkIndices.push_back(link_control.LinkIdx);
     }
@@ -1218,13 +1258,33 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
         ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
     
     const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
-    if (link_control.LocalId < 6) {
-        //i.e it's a point and not a line
+    int localIDs[2];
+    const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+    const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+    const Curve curve = GetCurve(
+        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+    int n = GetControlPrimitivePointsLocalID(link_control.LocalId, *curve.sloped_curve, localIDs);
+    printf("adding new event, ids : %d, %d, %d", localIDs[0], link.Id, GetLinkControlId(localIDs[0], link.Id));
+    for(int i = 0; i < n; i++)
+        editor.current_event = ImNodesEventVarElement(ImNodesEventVar_LinkDeformation, GetLinkControlId(localIDs[i], link.Id), link.Deformations[localIDs[i]]);
+
+
+    /*if (GetControlPrimitivePointsLocalID(link_control.LocalId, *curve.sloped_curve, localIDs) == 1) {
         editor.current_event = ImNodesEventVarElement(ImNodesEventVar_LinkDeformation, link_control.Id, link.Deformations[link_control.LocalId]);
     }
+    else {
+    
+    }*/
+
+    //if (link_control.LocalId < 6) {
+    //    //i.e it's a point and not a line
+    //    editor.current_event = ImNodesEventVarElement(ImNodesEventVar_LinkDeformation, link_control.Id, link.Deformations[link_control.LocalId]);
+    //}
     //else {
-    //    //add event for the point connected to this line
-    //    continue;
+    //    //i.e it's a point and not a line
+    //    editor.current_event = ImNodesEventVarElement(ImNodesEventVar_LinkDeformation);
+    //    //editor.current_event
+    //    editor.current_event.addOldPos(id1, deformation1);
     //}
     
     editor.SelectedLinkControlOffsets.clear();
@@ -1604,41 +1664,24 @@ struct ImNodesEventVarInfo
 
 };
 
-static const ImNodesEventVarInfo GEventVarInfo[] = {
-    // ImNodesEventVar_LinkCreation
-    {ImGuiDataType_Float, 1, 2},
-    // ImNodesEventVar_userEvent
-    {ImGuiDataType_S32, 1, 0},
-};
+//static const ImNodesEventVarInfo GEventVarInfo[] = {
+//    // ImNodesEventVar_LinkCreation
+//    {ImGuiDataType_Float, 1, 2},
+//    // ImNodesEventVar_userEvent
+//    {ImGuiDataType_S32, 1, 0},
+//};
+//
+//
+//static const ImNodesEventVarInfo* GetEventVarInfo(ImNodesEventVar idx)
+//{
+//    IM_ASSERT(idx >= 0 && idx < ImNodesEventVar_COUNT);
+//    IM_ASSERT(IM_ARRAYSIZE(GEventVarInfo) == ImNodesEventVar_COUNT);
+//    return &GEventVarInfo[idx];
+//}
 
-
-static const ImNodesEventVarInfo* GetEventVarInfo(ImNodesEventVar idx)
+static void PushEventVar(const ImNodesEventVarElement& element)
 {
-    IM_ASSERT(idx >= 0 && idx < ImNodesEventVar_COUNT);
-    IM_ASSERT(IM_ARRAYSIZE(GEventVarInfo) == ImNodesEventVar_COUNT);
-    return &GEventVarInfo[idx];
-}
-
-void PushEventVar(const ImNodesEventVar item, const int new_value, const int old_value)
-{
-    const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
-    if (var_info->IntCount == 1 && var_info->FloatCount == 0)
-    {
-        GImNodes->EventStack.push(ImNodesEventVarElement(item, new_value, old_value));
-        return;
-    }
-    IM_ASSERT(0 && "Called PushEventVar() int variant but variable is not a int!");
-}
-
-static void PushEventVar(const ImNodesEventVar item, const int new_int_value, const int old_int_value, const ImVec2 new_float_value, const ImVec2 old_float_value)
-{
-    const ImNodesEventVarInfo* var_info = GetEventVarInfo(item);
-    if (var_info->IntCount == 1 && var_info->FloatCount == 2)
-    {
-        GImNodes->EventStack.push(ImNodesEventVarElement(item, new_int_value, old_int_value, new_float_value, old_float_value));
-        return;
-    }
-    IM_ASSERT(0 && "Called PushEventVar() (int, float, float) variant but variable is not a (int, float, float)!");
+    GImNodes->EventStack.push(element);
 }
 
 void PopEventVar()
@@ -1650,20 +1693,22 @@ void PopEventVar()
     if (!GImNodes->EventStack.pop(&dest))
         return;
     ImNodesEditorContext& editor = EditorContextGet();
-    switch (dest.event)
+    switch (dest.Event)
     {
     case ImNodesEventVar_LinkDeformation:
     {
-        int Id = dest.NewIntValue[0];
+        for (int i = 0; i < dest.Ids.size(); i++) {
+            int Id = dest.Ids[i];
 
-        ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
-        ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+            ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
+            ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
 
-        link.Deformations[link_control.LocalId] = ImVec2(dest.NewFloatValue[0], dest.NewFloatValue[1]);
+            link.Deformations[link_control.LocalId] = dest.OldPoss[i];
+        }
         break;
     }
     case ImNodesEventVar_UserEvent:
-        GImNodes->PopedEvent = dest.NewIntValue[0];
+        GImNodes->PopedEvent = dest.GetId();
         break;
     default:
         break;
@@ -1677,20 +1722,23 @@ void UnpopEventVar()
         return;
 
     ImNodesEditorContext& editor = EditorContextGet();
-    switch (dest.event)
+    switch (dest.Event)
     {
     case ImNodesEventVar_LinkDeformation:
     {
-        int Id = dest.NewIntValue[0];
-        ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
-        ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+        for (int i = 0; i < dest.Ids.size(); i++) {
+            int Id = dest.Ids[i];
 
-        link.Deformations[link_control.LocalId] = ImVec2(dest.OldFloatValue[0], dest.OldFloatValue[1]);
+            ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
+            ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+
+            link.Deformations[link_control.LocalId] = dest.NewPoss[i];
+        }
         break;
     }
         
     case ImNodesEventVar_UserEvent:
-        GImNodes->UnpopedEvent = dest.NewIntValue[0];
+        GImNodes->UnpopedEvent = dest.GetId();
         break;
     default:
         break;
@@ -1762,17 +1810,40 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
     break;
     case ImNodesClickInteractionType_LinkControl:
     {
+        
+
         TranslateSelectedLinkControl(editor);
 
-        if (GImNodes->LeftMouseReleased)
+        if (ImGui::IsMouseDoubleClicked(0)) {
+            ContraintLinkControl(editor, editor.LinkControls.Pool[GImNodes->HoveredLinkControlIdx.Value()]);
+        }
+        else if (GImNodes->LeftMouseReleased)
         {
             editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
             
             {
-                ImLinkControlData& link_control = editor.LinkControls.Pool[editor.SelectedLinkControlIndices[0]];
-                const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+                /*const int    link_control = editor.SelectedLinkControlIndices[idx];
+                const ImVec2 link_control_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[link_control]);
 
-                IM_ASSERT(link_control.Id == editor.current_event.OldIntValue[0]);
+                const ImLinkData link = editor.Links.Pool[linkControl.LinkIdx];*/
+
+                ImLinkControlData& link_control = editor.LinkControls.Pool[editor.SelectedLinkControlIndices[0]];
+                //editor.SelectedLinkIndices.push_back(link_control.LinkIdx);
+                const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+                printf("adding : %d, %d, %d, from : %d, or %d\n", link_control.LocalId, link_control.LinkIdx, link_control.Id, editor.SelectedLinkControlIndices[0], link.Id);
+                editor.current_event.addNewPos(link_control.Id, link.Deformations[link_control.LocalId]);
+
+
+                /*const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+                int localIDs[2];
+                const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+                const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+                const Curve curve = GetCurve(
+                    start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+                int n = GetControlPrimitivePointsLocalID(link_control.LocalId, *curve.sloped_curve, localIDs);
+                printf("adding new event, ids : %d, %d, %d", localIDs[0], link.Id, GetLinkControlId(localIDs[0], link.Id));*/
+
+                /*IM_ASSERT(link_control.Id == editor.current_event.OldIntValue[0]);
 
                 if (ImVec2(editor.current_event.OldFloatValue[0], editor.current_event.OldFloatValue[1]) != link.Deformations[link_control.LocalId]) {
                     editor.current_event.NewFloatValue[0] = link.Deformations[link_control.LocalId].x;
@@ -1780,7 +1851,7 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
                     editor.current_event.NewIntValue[0] = link_control.Id;
 
                     PushEventVar(ImNodesEventVar_LinkDeformation, editor.current_event.NewIntValue[0], editor.current_event.OldIntValue[0], ImVec2(editor.current_event.OldFloatValue[0], editor.current_event.OldFloatValue[1]), ImVec2(editor.current_event.NewFloatValue[0], editor.current_event.NewFloatValue[1]));
-                }
+                }*/
             }            
         }
     }
@@ -2099,6 +2170,7 @@ ImOptionalIndex ResolveHoveredLinkControl(
 
     for (int idx = 0; idx < linkControls.Pool.Size; ++idx)
     {
+
         if (!linkControls.InUse[idx])
         {
             continue;
@@ -3225,9 +3297,6 @@ void EndNodeEditor()
             GImNodes->HoveredLinkIdx = ResolveHoveredLink(editor.Links, editor.Pins);
         }
     }
-    if (GImNodes->HoveredLinkControlIdx.HasValue() && ImGui::IsMouseDoubleClicked(0)) {
-        ContraintLinkControl(editor, editor.LinkControls.Pool[GImNodes->HoveredLinkControlIdx.Value()]);
-    }
 
     for (int node_idx = 0; node_idx < editor.Nodes.Pool.size(); ++node_idx)
     {
@@ -3290,7 +3359,7 @@ void EndNodeEditor()
     {
         if (editor.LinkControls.InUse[link_control_idx])
         {
-
+            printf("in use %d\n", link_control_idx);
             const ImLinkControlData& link_control = editor.LinkControls.Pool[link_control_idx];
             const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
             const ImPinData& start_pin = editor.Pins.Pool[link.StartPinIdx];
@@ -3301,6 +3370,7 @@ void EndNodeEditor()
 
 
             ImVector<int> local_ids = GetAllowedLinkControlLocalId(editor, link_control.LinkIdx);
+            //TODO use link_control.Id to have coeherent indexation vetween frames!!
             ImU32 link_control_color = link.ColorStyle.Base;
             if (editor.SelectedLinkControlIndices.contains(link_control_idx))
             {
@@ -3376,7 +3446,14 @@ void EndNodeEditor()
         }
     }
     ClickInteractionUpdate(editor);
+    /*if (GImNodes->HoveredLinkControlIdx.HasValue() && ImGui::IsMouseDoubleClicked(0)) {
+        ContraintLinkControl(editor, editor.LinkControls.Pool[GImNodes->HoveredLinkControlIdx.Value()]);
+    }*/
 
+    if (editor.current_event.valid()) {
+        PushEventVar(editor.current_event);
+        editor.current_event = ImNodesEventVarElement();
+    }
     if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Z)) {
         PopEventVar();
     }
@@ -3587,10 +3664,15 @@ void LinkControl(ImNodesEditorContext& editor, int link_idx) {
 
     ImVector<int> local_Ids = GetAllowedLinkControlLocalId(editor, link_idx);
     for (int i = 0; i < local_Ids.size(); i++) {
-        int Id = GetLinkControlId(local_Ids[i], link_idx);
+
+        const ImLinkData& link = editor.Links.Pool[link_idx];
+
+        //int Id = GetLinkControlId(local_Ids[i], link_idx);
+        int Id = link.Id;
         ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
         link_control.LinkIdx = link_idx;
         link_control.LocalId = local_Ids[i];
+        link_control.Id = Id;
     }
 }
 
@@ -3758,7 +3840,7 @@ void PopStyleVar(int count)
 }
 
 void PushEvent(int idx) {
-    PushEventVar(ImNodesEventVar_UserEvent, idx, idx);
+    PushEventVar(ImNodesEventVarElement(ImNodesEventVar_UserEvent, idx));
 }
 
 bool GetPopedEvent(int* idx) {
