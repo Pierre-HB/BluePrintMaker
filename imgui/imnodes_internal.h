@@ -297,7 +297,19 @@ struct ImLinkControlData {
 };
 
 inline int GetLinkControlId(int localId, int linkId) {
-    return 2 * linkId + 3 * localId;
+    IM_ASSERT(localId < (1 << 16));
+    IM_ASSERT(linkId < (1 << 16));
+    return localId << 16 | linkId;
+    //return 2 * linkId + 3 * localId;
+}
+
+inline int GetLinkControlLocalId(int Id) {
+    return Id >> 16;
+}
+
+inline int GetLinkControlLinkId(int Id) {
+    const int mask = ((1 << 16) - 1);
+    return Id & mask;
 }
 
 struct ImClickInteractionState
@@ -390,6 +402,7 @@ struct ImNodesEventVarElement {
     }
 
     void addOldPos(int Id, ImVec2 OldPos) {
+        printf("Add old pos [%d] (%f, %f)\n", Id, OldPos.x, OldPos.y);
         Ids.push_back(Id);
         OldPoss.push_back(OldPos);
         NewPoss.push_back(OldPos);//add same positon to have a null event that won't be registred right away

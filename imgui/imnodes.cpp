@@ -722,6 +722,15 @@ void DrawControlPrimitive(const ControlPrimitive& cp, ImU32 col, float thick) {
     }
 }
 
+inline bool RectangleOverlapsControlPrimitive(const ImRect& rectangle, const ControlPrimitive& cp) {
+    if (cp.Type == ImNodesLinkControlType_Segment) {
+        return RectangleOverlapsLineSegment(rectangle, cp.P0, cp.P1);
+    }
+    else {
+        return rectangle.Contains(cp.P0);
+    }
+}
+
 ImVec2 GetLinkControlOrigin(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
     const ImLinkData link = editor.Links.Pool[linkControl.LinkIdx];
     const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
@@ -1479,13 +1488,28 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
             if (RectangleOverlapsLink(box_rect, start, end, pin_start.Type, link.LinkType, link.Deformations))
             {
                 editor.SelectedLinkIndices.push_back(link_idx);
+            }
+        }
+    }
+    //ImVector<int> local_Ids = GetAllowedLinkControlLocalId(editor, link_idx)
+    if (editor.SelectedNodeIndices.Size == 0) {
+        for (int link_control_idx = 0; link_control_idx < editor.LinkControls.Pool.Size; link_control_idx++) {
+            ImLinkControlData& link_control = editor.LinkControls.Pool[link_control_idx];
 
-                if (editor.SelectedNodeIndices.Size == 0) {
-                    //also select link_controls
-                    //TODO list all link controls of link
-                    //check thoses that intersect the box, add them to selectedLinkControl
-                }
+            const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+            const ImPinData& start_pin = editor.Pins.Pool[link.StartPinIdx];
+            const ImPinData& end_pin = editor.Pins.Pool[link.EndPinIdx];
+            const Curve curve = GetCurve(
+                start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
 
+            ControlPrimitive cp = GetControlPrimitive(link_control.LocalId, curve);
+            //TODO BUG A FIXE!!!
+            //quand on selectionne plusieur control primitive avec la selection par box
+            //puis on deplace l'un des noeud qui change le lien d'une courbe sloped de 5 a 3 segment
+            //puis on click a coté (probablement debut de selection par box) ça crache
+            //TODO Bug, la selection d'un lien ne ce fait qu'en selectionnant sont barycentre... du moins, si la courbe fait un S suffisament prononcé
+            if (RectangleOverlapsControlPrimitive(box_rect, cp)) {
+                editor.SelectedLinkControlIndices.push_back(link_control_idx);
             }
         }
     }
@@ -1557,10 +1581,15 @@ void TranslateSelectedLinkControl(ImNodesEditorContext& editor)
             const Curve curve = GetCurve(
                 start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
             int nb_point = GetControlPrimitivePointsLocalID(link_control.LocalId, *curve.sloped_curve, local_Ids);
+            if (nb_point < 2)
+                IM_ASSERT(local_Ids[0] < 6 && local_Ids[0] >= 0);
+            if (nb_point == 2)
+                IM_ASSERT(local_Ids[1] < 6 && local_Ids[1] >= 0);
 
             for (int j = 0; j < nb_point; j++) {
-                if (!editor.current_event.Ids.contains(link_control.Id)) {
+                if (!editor.current_event.Ids.contains(GetLinkControlId(local_Ids[j], link.Id))) {
                     //need to check if id already in if we add segment and point Id, could get duplicates
+                    printf("add link control: Id : %d, localID : %d, link idx : %d\n", GetLinkControlId(local_Ids[j], link.Id), local_Ids[j], link_control.LinkIdx);
                     editor.current_event.addOldPos(GetLinkControlId(local_Ids[j], link.Id), link.Deformations[local_Ids[j]]);
                 }
             }
@@ -1698,14 +1727,14 @@ void PopEventVar()
         IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
         for (int i = 0; i < dest.Ids.size(); i++) {
             int Id = dest.Ids[i];
+            int linkId = GetLinkControlLinkId(Id);
+            int localId = GetLinkControlLocalId(Id);
 
-            const int link_control_idx = ObjectPoolFind(editor.LinkControls, Id);
-            IM_ASSERT(link_control_idx != -1);
-            const ImLinkControlData& link_control = editor.LinkControls.Pool[link_control_idx];
+            const int link_idx = ObjectPoolFind(editor.Links, linkId);
+            IM_ASSERT(link_idx != -1);
+            ImLinkData& link = editor.Links.Pool[link_idx];
 
-            ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
-
-            link.Deformations[link_control.LocalId] = dest.OldPoss[i];
+            link.Deformations[localId] = dest.OldPoss[i];
         }
         break;
     }
