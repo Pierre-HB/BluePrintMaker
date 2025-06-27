@@ -384,20 +384,18 @@ struct ImNodesEventVarElement {
     }
 
     int GetId() const {
-        assert(Event == ImNodesEventVar_UserEvent);
-        assert(Ids.size() == 1);
+        IM_ASSERT(Event == ImNodesEventVar_UserEvent);
+        IM_ASSERT(Ids.size() == 1);
         return Ids[0];
     }
 
     void addOldPos(int Id, ImVec2 OldPos) {
-        printf("adding old pose [%d] : (%f, %f)\n", Id, OldPos.x, OldPos.y);
         Ids.push_back(Id);
         OldPoss.push_back(OldPos);
         NewPoss.push_back(OldPos);//add same positon to have a null event that won't be registred right away
     }
 
     void addNewPos(int Id, ImVec2 NewPos) {
-        printf("trying adding new pose [%d] : (%f, %f)\n", Id, NewPos.x, NewPos.y);
         int i = -1;
         for (int j = 0; j < Ids.size(); j++) {
             if (Ids[j] == Id) {
@@ -405,7 +403,7 @@ struct ImNodesEventVarElement {
                 break;
             }
         }
-        assert(i != -1);
+        IM_ASSERT(i != -1);
         NewPoss[i] = NewPos;
     }
 
@@ -422,23 +420,17 @@ struct ImNodesEventVarElement {
             return Ids.size() == 1 && OldPoss.size() == 0 && NewPoss.size() == 0;
         }
         if (Ids.size() != NewPoss.size() || NewPoss.size() != OldPoss.size()) {
-            //printf("event size is not consistent (%d, %d, %d)\n", Ids.size(), OldPoss.size(), NewPoss.size());
             return false;
         }
             
         for (int i = 0; i < Ids.size(); i++) {
             if (OldPoss[i] != NewPoss[i]) {
-                //printf("found a difference\n");
                 return true;
             }
         }
-        //printf("found nothing event (%d)\n", Ids.size());
         return false;
     }
 };
-
-//void PopEventVar();
-//void UnpopEventVar();
 
 // [SECTION] global and editor context structs
 
