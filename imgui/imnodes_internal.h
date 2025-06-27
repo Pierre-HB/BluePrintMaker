@@ -292,12 +292,12 @@ struct ImLinkControlData {
         ImU32 Base, Hovered, Selected;
     } ColorStyle;
 
-
+    //empty constructor for Pool initialization
     ImLinkControlData(const int control_primitive_id) : Id(control_primitive_id), LinkIdx(), ColorStyle() {}
 };
 
-inline int GetLinkControlId(int localId, int link_idx) {
-    return 2 * link_idx + 3 * localId;
+inline int GetLinkControlId(int localId, int linkId) {
+    return 2 * linkId + 3 * localId;
 }
 
 struct ImClickInteractionState
@@ -390,14 +390,14 @@ struct ImNodesEventVarElement {
     }
 
     void addOldPos(int Id, ImVec2 OldPos) {
-        printf("adding old pose [%d] : (%f, %f)\n", Id, OldPos);
+        printf("adding old pose [%d] : (%f, %f)\n", Id, OldPos.x, OldPos.y);
         Ids.push_back(Id);
         OldPoss.push_back(OldPos);
         NewPoss.push_back(OldPos);//add same positon to have a null event that won't be registred right away
     }
 
     void addNewPos(int Id, ImVec2 NewPos) {
-        printf("trying adding new pose [%d] : (%f, %f)\n", Id, NewPos);
+        printf("trying adding new pose [%d] : (%f, %f)\n", Id, NewPos.x, NewPos.y);
         int i = -1;
         for (int j = 0; j < Ids.size(); j++) {
             if (Ids[j] == Id) {
@@ -407,6 +407,14 @@ struct ImNodesEventVarElement {
         }
         assert(i != -1);
         NewPoss[i] = NewPos;
+    }
+
+    void popId(int Id) {
+        const int idx = Ids.find_index(Id);
+        IM_ASSERT(idx >= 0 && idx < Ids.Size);
+        OldPoss.erase(OldPoss.Data + idx);
+        NewPoss.erase(NewPoss.Data + idx);
+        Ids.erase(Ids.Data + idx);
     }
 
     bool valid() {

@@ -135,6 +135,7 @@ enum ImNodesAttributeSwapFlags_
 enum ImNodesEventVar_
 {
     ImNodesEventVar_LinkDeformation,
+    ImNodesEventVar_NodeMove,
     ImNodesEventVar_UserEvent,
     ImNodesEventVar_COUNT
 };
