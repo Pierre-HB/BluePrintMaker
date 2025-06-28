@@ -18,8 +18,9 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
  - [ ] Black box creation from other Blue print
  - [ ] Saving of current project
  - [ ] TUTO
- - [ ] CTRL Z
- - [ ] CTRL Y
+ - [x] text on top of links
+ - [x] CTRL Z
+ - [x] CTRL Y
  - [x] BluePrint Style in colors
  - [x] Sloped link
  - [x] Manage several link style
