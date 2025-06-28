@@ -137,6 +137,7 @@ enum ImNodesEventVar_
 {
     ImNodesEventVar_LinkDeformation,
     ImNodesEventVar_NodeMove,
+    ImNodesEventVar_LinkLabelMove,
     ImNodesEventVar_UserEvent,
     ImNodesEventVar_COUNT
 };

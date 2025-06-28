@@ -129,6 +129,7 @@ enum ImNodesClickInteractionType_
     ImNodesClickInteractionType_LinkControl,
     ImNodesClickInteractionType_LinkCreation,
     ImNodesClickInteractionType_LinkDeformation,
+    ImNodesClickInteractionType_LinkLabel,
     ImNodesClickInteractionType_Panning,
     ImNodesClickInteractionType_BoxSelection,
     ImNodesClickInteractionType_ImGuiItem,
@@ -315,16 +316,20 @@ inline int GetLinkControlLinkId(int Id) {
 
 struct ImLinkLabelData {
     int Id;      // global if of the control data, should be = 2*LinkIdx + 3*LocalId to ensure uniqueness
+    bool startLabel;
     ImVec2 Deformation;
     ImRect Rect;
+    ImVec2 _Origin; // origin of the label during this frame. Is recomputed at each frame, MUST NOT BE CHANGE BY THE USER
 
     struct
     {
         ImVec2 Padding;
     } LayoutStyle;
 
+    bool Draggable;
+
     //empty constructor for Pool initialization
-    ImLinkLabelData(const int id) : Id(id), Deformation(), Rect(), LayoutStyle(){}
+    ImLinkLabelData(const int id) : Id(id), startLabel(), Deformation(), Rect(), _Origin(), LayoutStyle(), Draggable(true) {}
 };
 
 inline int GetLinkLabelId(int linkId, bool start_label) {
@@ -492,6 +497,7 @@ struct ImNodesEditorContext
     ImVector<int> SelectedNodeIndices;
     ImVector<int> SelectedLinkIndices;
     ImVector<int> SelectedLinkControlIndices;
+    ImVector<int> SelectedLinkLabelIndices;
 
     // Relative origins of selected nodes for snapping of dragged nodes
     ImVector<ImVec2> SelectedNodeOffsets;
@@ -502,6 +508,11 @@ struct ImNodesEditorContext
     ImVector<ImVec2> SelectedLinkControlOffsets;
     // Offset of the primary control primitive origin relative to the mouse cursor.
     ImVec2 PrimaryLinkControlOffset;
+
+    // Relative origins of selected link label for snapping of dragging
+    ImVector<ImVec2> SelectedLinkLabelOffsets;
+    // Offset of the primary link label origin relative to the mouse cursor.
+    ImVec2 PrimaryLinkLabelOffset;
 
     ImClickInteractionState ClickInteraction;
 
@@ -523,7 +534,7 @@ struct ImNodesEditorContext
 
     ImNodesEditorContext()
         : Nodes(), Pins(), Links(), LinkControls(), LinkLabels(), Panning(0.f, 0.f), SelectedNodeIndices(), SelectedLinkIndices(),
-          SelectedNodeOffsets(), PrimaryNodeOffset(0.f, 0.f), ClickInteraction(),
+          SelectedNodeOffsets(), SelectedLinkLabelIndices(), PrimaryNodeOffset(0.f, 0.f), ClickInteraction(),
           MiniMapEnabled(false), MiniMapSizeFraction(0.0f), MiniMapNodeHoveringCallback(NULL),
           MiniMapNodeHoveringCallbackUserData(NULL), MiniMapScaling(0.0f), current_event()
     {
@@ -570,6 +581,7 @@ struct ImNodesContext
     ImOptionalIndex HoveredLinkIdx;
     ImOptionalIndex HoveredLinkControlIdx;
     ImOptionalIndex HoveredPinIdx;
+    ImOptionalIndex HoveredLinkLabelIdx;
 
     ImOptionalIndex DeletedLinkIdx;
     ImOptionalIndex SnapLinkIdx;

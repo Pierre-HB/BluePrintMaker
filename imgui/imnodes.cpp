@@ -724,7 +724,7 @@ inline bool RectangleOverlapsControlPrimitive(const ImRect& rectangle, const Con
     }
 }
 
-ImVec2 GetLinkControlOrigin(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
+ImVec2 GetLinkControlOrigin(const ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
     const ImLinkData link = editor.Links.Pool[linkControl.LinkIdx];
     const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
     const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
@@ -1160,6 +1160,25 @@ ImVec2 GetScreenSpacePinCoordinates(const ImNodesEditorContext& editor, const Im
     return GetScreenSpacePinCoordinates(parent_node_rect, pin.AttributeRect, pin.Type);
 }
 
+ImVec2 GetLinkLabelOrigin(ImNodesEditorContext& editor, const ImLinkLabelData& linkLabel) {
+
+    const int link_idx = ObjectPoolFind(editor.Links, GetLinkLabelLinkId(linkLabel.Id));
+    IM_ASSERT(link_idx != -1);
+    ImLinkData& link = editor.Links.Pool[link_idx];
+
+    const ImPinData& pin = linkLabel.startLabel ? editor.Pins.Pool[link.StartPinIdx] : editor.Pins.Pool[link.EndPinIdx];
+
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImVec2 correction = window->Pos - window->Scroll; //offset due to windows data
+    ImVec2 origin = GetScreenSpacePinCoordinates(editor.Nodes.Pool[pin.ParentNodeIdx].Rect, pin.AttributeRect, pin.Type) - correction;
+
+    if (linkLabel.startLabel)
+        return origin + ImVec2(linkLabel.LayoutStyle.Padding.x, -linkLabel.Rect.GetHeight());
+
+    else
+        return origin + ImVec2(-linkLabel.Rect.GetWidth(), -linkLabel.Rect.GetHeight());
+}
+
 bool MouseInCanvas()
 {
     // This flag should be true either when hovering or clicking something in the canvas.
@@ -1191,6 +1210,7 @@ void BeginNodeSelection(ImNodesEditorContext& editor, const int node_idx)
     if (!editor.SelectedNodeIndices.contains(node_idx))
     {
         editor.SelectedLinkIndices.clear();
+        editor.SelectedLinkLabelIndices.clear();
         if (!GImNodes->MultipleSelectModifier)
         {
             editor.SelectedNodeIndices.clear();
@@ -1242,6 +1262,7 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
     if (!editor.SelectedLinkControlIndices.contains(link_control_idx))
     {
         editor.SelectedNodeIndices.clear();
+        editor.SelectedLinkLabelIndices.clear();
         if (!GImNodes->MultipleSelectModifier)
         {
             editor.SelectedLinkControlIndices.clear();
@@ -1272,6 +1293,46 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
         const int    link_control = editor.SelectedLinkControlIndices[idx];
         const ImVec2 link_control_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[link_control]) - ref_origin;
         editor.SelectedLinkControlOffsets.push_back(link_control_origin);
+    }
+}
+
+void BeginLinkLabelSelection(ImNodesEditorContext& editor, const int link_label_idx)
+{
+    if (editor.ClickInteraction.Type != ImNodesClickInteractionType_None)
+    {
+        return;
+    }
+
+    editor.ClickInteraction.Type = ImNodesClickInteractionType_LinkLabel;
+
+    if (!editor.SelectedLinkLabelIndices.contains(link_label_idx))
+    {
+        editor.SelectedLinkIndices.clear();
+        editor.SelectedNodeIndices.clear();
+
+        if (!GImNodes->MultipleSelectModifier)
+        {
+            editor.SelectedLinkLabelIndices.clear();
+        }
+        editor.SelectedLinkLabelIndices.push_back(link_label_idx);
+    }
+    else if (GImNodes->MultipleSelectModifier)
+    {
+        const int* const link_label_ptr = editor.SelectedLinkLabelIndices.find(link_label_idx);
+        editor.SelectedLinkLabelIndices.erase(link_label_ptr);
+        editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
+    }
+
+    const ImVec2 ref_origin = GetLinkLabelOrigin(editor, editor.LinkLabels.Pool[link_label_idx]) + editor.LinkLabels.Pool[link_label_idx].Deformation;
+    editor.PrimaryLinkLabelOffset =
+        ref_origin  + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+
+    editor.SelectedLinkLabelOffsets.clear();
+    for (int idx = 0; idx < editor.SelectedLinkLabelIndices.Size; idx++)
+    {
+        const int    link_label = editor.SelectedLinkLabelIndices[idx];
+        const ImVec2 link_label_origin = GetLinkLabelOrigin(editor, editor.LinkLabels.Pool[link_label]) + editor.LinkLabels.Pool[link_label].Deformation - ref_origin;
+        editor.SelectedLinkLabelOffsets.push_back(link_label_origin);
     }
 }
 
@@ -1319,6 +1380,7 @@ void BeginLinkSelection(ImNodesEditorContext& editor, const int link_idx)
     editor.SelectedNodeIndices.clear();
     editor.SelectedLinkIndices.clear();
     editor.SelectedLinkControlIndices.clear();
+    editor.SelectedLinkLabelIndices.clear();
     editor.SelectedLinkIndices.push_back(link_idx);
 }
 
@@ -1458,6 +1520,7 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
 
     editor.SelectedLinkIndices.clear();
     editor.SelectedLinkControlIndices.clear();
+    editor.SelectedLinkLabelIndices.clear();
 
     // Test for overlap against links
 
@@ -1484,7 +1547,7 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
             }
         }
     }
-    //ImVector<int> local_Ids = GetAllowedLinkControlLocalId(editor, link_idx)
+
     if (editor.SelectedNodeIndices.Size == 0) {
         for (int link_control_idx = 0; link_control_idx < editor.LinkControls.Pool.Size; link_control_idx++) {
 
@@ -1503,6 +1566,14 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
             if (RectangleOverlapsControlPrimitive(box_rect, cp)) {
                 editor.SelectedLinkControlIndices.push_back(link_control_idx);
             }
+        }
+
+        for (int link_label_idx = 0; link_label_idx < editor.LinkLabels.Pool.Size; link_label_idx++) {
+            if (!editor.LinkLabels.InUse[link_label_idx])
+                continue;
+
+            if (box_rect.Overlaps(editor.LinkLabels.Pool[link_label_idx].Rect))
+                editor.SelectedLinkLabelIndices.push_back(link_label_idx);
         }
     }
 }
@@ -1606,6 +1677,39 @@ void TranslateSelectedLinkControl(ImNodesEditorContext& editor)
             if (shouldTranslate)
             {
                 MooveLinkControl(editor, link_control, origin + link_control_rel + editor.AutoPanningDelta);
+            }
+        }
+    }
+}
+
+void TranslateSelectedLinkLabels(ImNodesEditorContext& editor)
+{
+    if (editor.current_event.Event == -1) {
+        editor.current_event = ImNodesEventVarElement(ImNodesEventVar_LinkLabelMove);
+        for (int i = 0; i < editor.SelectedLinkLabelIndices.Size; i++) {
+            ImLinkLabelData& link_label = editor.LinkLabels.Pool[editor.SelectedLinkLabelIndices[i]];
+            editor.current_event.addOldPos(link_label.Id, link_label.Deformation);
+        }
+    }
+    if (GImNodes->LeftMouseDragging)
+    {
+        // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
+        // slightly
+        const bool shouldTranslate = (GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
+            ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
+            : true;
+
+        const ImVec2 origin = SnapOriginToGrid(
+            GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+            editor.PrimaryLinkLabelOffset);
+        for (int i = 0; i < editor.SelectedLinkLabelIndices.size(); ++i)
+        {
+            const ImVec2 link_label_rel = editor.SelectedLinkLabelOffsets[i];
+            const int    link_label_idx = editor.SelectedLinkLabelIndices[i];
+            ImLinkLabelData& link_label = editor.LinkLabels.Pool[link_label_idx];
+            if (link_label.Draggable && shouldTranslate)
+            {
+                link_label.Deformation = origin + link_label_rel + editor.AutoPanningDelta - GetLinkLabelOrigin(editor, link_label);
             }
         }
     }
@@ -2019,6 +2123,24 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
         }
     }
     break;
+    case ImNodesClickInteractionType_LinkLabel:
+    {
+        TranslateSelectedLinkLabels(editor);
+
+        if (GImNodes->LeftMouseReleased)
+        {
+            editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
+            for (int i = 0; i < editor.SelectedLinkLabelIndices.size(); i++) {
+                const ImLinkLabelData& data = editor.LinkLabels.Pool[editor.SelectedLinkLabelIndices[i]];
+
+                editor.current_event.addNewPos(data.Id, data.Deformation);
+            }
+            if (editor.current_event.valid())
+                PushEventVar(editor.current_event);
+            editor.current_event = ImNodesEventVarElement();
+        }
+        break;
+    }
     case ImNodesClickInteractionType_ImGuiItem:
     {
         if (GImNodes->LeftMouseReleased)
@@ -2259,6 +2381,21 @@ ImOptionalIndex ResolveHoveredLinkControl(
     }
 
     return control_primitive_idx_with_smallest_distance;
+}
+
+ImOptionalIndex ResolveHoveredLinkLabel(const ImObjectPool<ImLinkLabelData>& link_labels)
+{
+    for (int idx = 0; idx < link_labels.Pool.Size; ++idx)
+    {
+        if (!link_labels.InUse[idx])
+        {
+            continue;
+        }
+
+        if (link_labels.Pool[idx].Rect.Contains(GImNodes->MousePos))
+            return ImOptionalIndex(idx);
+    }
+    return ImOptionalIndex();
 }
 
 // [SECTION] render helpers
@@ -3227,6 +3364,7 @@ void BeginNodeEditor()
     GImNodes->HoveredLinkIdx.Reset();
     GImNodes->HoveredLinkControlIdx.Reset();
     GImNodes->HoveredPinIdx.Reset();
+    GImNodes->HoveredLinkLabelIdx.Reset();
     GImNodes->DeletedLinkIdx.Reset();
     GImNodes->SnapLinkIdx.Reset();
 
@@ -3338,15 +3476,21 @@ void EndNodeEditor()
             GImNodes->HoveredNodeIdx = ResolveHoveredNode(editor.NodeDepthOrder);
         }
 
-        if (!GImNodes->HoveredPinIdx.HasValue())
+        if (!GImNodes->HoveredPinIdx.HasValue() && !GImNodes->HoveredNodeIdx.HasValue())
         {
             // Resolve which node is actually on top and being hovered using the depth stack.
             GImNodes->HoveredLinkControlIdx = ResolveHoveredLinkControl(editor.LinkControls, editor.Links, editor.Pins);
         }
 
+        if (!GImNodes->HoveredPinIdx.HasValue() && !GImNodes->HoveredNodeIdx.HasValue() && !GImNodes->HoveredLinkControlIdx.HasValue())
+        {
+            // Resolve which node is actually on top and being hovered using the depth stack.
+            GImNodes->HoveredLinkLabelIdx = ResolveHoveredLinkLabel(editor.LinkLabels);
+        }
+
         // We don't check for hovered pins here, because if we want to detach a link by clicking and
         // dragging, we need to have both a link and pin hovered.
-        if (!GImNodes->HoveredNodeIdx.HasValue() && !GImNodes->HoveredLinkControlIdx.HasValue())
+        if (!GImNodes->HoveredPinIdx.HasValue() && !GImNodes->HoveredNodeIdx.HasValue() && !GImNodes->HoveredLinkControlIdx.HasValue() && !GImNodes->HoveredLinkLabelIdx.HasValue())
         {
             GImNodes->HoveredLinkIdx = ResolveHoveredLink(editor.Links, editor.Pins);
         }
@@ -3437,6 +3581,10 @@ void EndNodeEditor()
         else if (GImNodes->LeftMouseClicked && GImNodes->HoveredLinkControlIdx.HasValue())
         {
             BeginLinkControlSelection(editor, GImNodes->HoveredLinkControlIdx.Value());
+        }
+        else if (GImNodes->LeftMouseClicked && GImNodes->HoveredLinkLabelIdx.HasValue())
+        {
+            BeginLinkLabelSelection(editor, GImNodes->HoveredLinkLabelIdx.Value());
         }
 
         else if (
@@ -3732,18 +3880,11 @@ void BeginLinkLabel(int linkId, bool startLabel) {
     ImLinkLabelData& link_label = editor.LinkLabels.Pool[link_label_idx];
     
     link_label.LayoutStyle.Padding = GImNodes->Style.LinkLabelPadding;
+    link_label.startLabel = startLabel;
+    link_label.Draggable = true;//TODO Add a Style variable for draggable
+    link_label._Origin = GetLinkLabelOrigin(editor, link_label) + link_label.Deformation;
 
-
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImVec2 correction = window->Pos - window->Scroll; //offset due to windows data
-    ImVec2 origin = GetScreenSpacePinCoordinates(editor.Nodes.Pool[pin.ParentNodeIdx].Rect, pin.AttributeRect, pin.Type) - correction;
-    if (startLabel) {
-        ImGui::SetCursorPos(origin + link_label.Deformation + ImVec2(link_label.LayoutStyle.Padding.x, -link_label.Rect.GetHeight()));
-    }
-    else {
-        //set le cursor at p + (-label_rect_x, label_rect_y)
-        ImGui::SetCursorPos(origin + link_label.Deformation + ImVec2(-link_label.Rect.GetWidth(), -link_label.Rect.GetHeight()));
-    }
+    ImGui::SetCursorPos(link_label._Origin);
 
     ImGui::PushID(ImGui::GetID(link_label.Id));
     ImGui::BeginGroup();
