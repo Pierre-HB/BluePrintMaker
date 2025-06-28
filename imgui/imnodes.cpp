@@ -4313,6 +4313,30 @@ bool IsPinHovered(int* const attr)
     return is_hovered;
 }
 
+bool IsLinkLabelHovered(int* const link_id, bool start_label)
+{
+
+    IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_None);
+    IM_ASSERT(link_id != NULL);
+    const bool is_hovered = GImNodes->HoveredLinkLabelIdx.HasValue() && (start_label == IsLinkLabelStart(GImNodes->HoveredLinkLabelIdx.Value()));
+    if (is_hovered)
+    {
+        const ImNodesEditorContext& editor = EditorContextGet();
+        *link_id = GetLinkLabelLinkId(editor.Pins.Pool[GImNodes->HoveredPinIdx.Value()].Id);
+    }
+    return is_hovered;
+}
+
+bool IsLinkLabelStartHovered(int* const link_id)
+{
+    return IsLinkLabelHovered(link_id, true);
+}
+
+bool IsLinkLabelEndHovered(int* const link_id)
+{
+    return IsLinkLabelHovered(link_id, false);
+}
+
 int NumSelectedNodes()
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_None);
@@ -4325,6 +4349,28 @@ int NumSelectedLinks()
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_None);
     const ImNodesEditorContext& editor = EditorContextGet();
     return editor.SelectedLinkIndices.size();
+}
+
+int NumSelectedLinkLabels(bool start_label)
+{
+    IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_None);
+    const ImNodesEditorContext& editor = EditorContextGet();
+    int n = 0;
+    for (int i = 0; i < editor.SelectedLinkLabelIndices.Size; i++) {
+        if (IsLinkLabelStart(editor.LinkLabels.Pool[editor.SelectedLinkLabelIndices[i]].Id) == start_label)
+            n++;
+    }
+    return n;
+}
+
+int NumSelectedLinkLabelsStart()
+{
+    return NumSelectedLinkLabels(true);
+}
+
+int NumSelectedLinkLabelsEnd()
+{
+    return NumSelectedLinkLabels(false);
 }
 
 void GetSelectedNodes(int* node_ids)
@@ -4351,6 +4397,43 @@ void GetSelectedLinks(int* link_ids)
     }
 }
 
+void GetSelectedLinkLabels(int* link_ids, bool start_label)
+{
+    IM_ASSERT(link_ids != NULL);
+
+    const ImNodesEditorContext& editor = EditorContextGet();
+    int n = 0;
+    for (int i = 0; i < editor.SelectedLinkLabelIndices.Size; i++) {
+        const int link_label_id = editor.LinkLabels.Pool[editor.SelectedLinkLabelIndices[i]].Id;
+        if (IsLinkLabelStart(link_label_id) == start_label) {
+            link_ids[n] = GetLinkLabelLinkId(link_label_id);
+            n++;
+        }
+    }
+}
+
+void GetSelectedLinkLabelsStart(int* link_ids)
+{
+    return GetSelectedLinkLabels(link_ids, true);
+}
+
+void GetSelectedLinkLabelsEnd(int* link_ids)
+{
+    return GetSelectedLinkLabels(link_ids, false);
+}
+
+void GetSelectedLinkLabels(int* link_label_ids)
+{
+    IM_ASSERT(link_label_ids != NULL);
+
+    const ImNodesEditorContext& editor = EditorContextGet();
+    for (int i = 0; i < editor.SelectedLinkLabelIndices.size(); ++i)
+    {
+        const int link_label_idx = editor.SelectedLinkLabelIndices[i];
+        link_label_ids[i] = editor.LinkLabels.Pool[link_label_idx].Id;
+    }
+}
+
 void ClearNodeSelection()
 {
     ImNodesEditorContext& editor = EditorContextGet();
@@ -4369,10 +4452,32 @@ void ClearLinkSelection()
     editor.SelectedLinkIndices.clear();
 }
 
+void ClearLinkLabelSelection()
+{
+    ImNodesEditorContext& editor = EditorContextGet();
+    editor.SelectedLinkLabelIndices.clear();
+}
+
 void ClearLinkSelection(int link_id)
 {
     ImNodesEditorContext& editor = EditorContextGet();
     ClearObjectSelection(editor.Links, editor.SelectedLinkIndices, link_id);
+}
+
+void ClearLinkLabelSelection(int link_label_id)
+{
+    ImNodesEditorContext& editor = EditorContextGet();
+    ClearObjectSelection(editor.LinkLabels, editor.SelectedLinkLabelIndices, link_label_id);
+}
+
+void ClearLinkLabelStartSelection(int link_id)
+{
+    return ClearLinkLabelSelection(GetLinkLabelId(link_id, true));
+}
+
+void ClearLinkLabelEndSelection(int link_id)
+{
+    return ClearLinkLabelSelection(GetLinkLabelId(link_id, false));
 }
 
 void SelectNode(int node_id)
@@ -4387,6 +4492,22 @@ void SelectLink(int link_id)
     SelectObject(editor.Links, editor.SelectedLinkIndices, link_id);
 }
 
+void SelectLinkLabel(int link_label_id)
+{
+    ImNodesEditorContext& editor = EditorContextGet();
+    SelectObject(editor.LinkLabels, editor.SelectedLinkLabelIndices, link_label_id);
+}
+
+void SelectLinkLabelStart(int link_id)
+{
+    return SelectLinkLabel(GetLinkLabelId(link_id, true));
+}
+
+void SelectLinkLabelEnd(int link_id)
+{
+    return SelectLinkLabel(GetLinkLabelId(link_id, false));
+}
+
 bool IsNodeSelected(int node_id)
 {
     ImNodesEditorContext& editor = EditorContextGet();
@@ -4394,6 +4515,28 @@ bool IsNodeSelected(int node_id)
 }
 
 bool IsLinkSelected(int link_id)
+{
+    ImNodesEditorContext& editor = EditorContextGet();
+    return IsObjectSelected(editor.Links, editor.SelectedLinkIndices, link_id);
+}
+
+bool IsLinkLabelSelected(int link_label_id)
+{
+    ImNodesEditorContext& editor = EditorContextGet();
+    return IsObjectSelected(editor.LinkLabels, editor.SelectedLinkLabelIndices, link_label_id);
+}
+
+bool IsLinkLabelStartSelected(int link_id)
+{
+    return IsLinkLabelSelected(GetLinkLabelId(link_id, true));
+}
+
+bool IsLinkLabelEndSelected(int link_id)
+{
+    return IsLinkLabelSelected(GetLinkLabelId(link_id, false));
+}
+
+bool IsLinkLabelStartSelected(int link_id)
 {
     ImNodesEditorContext& editor = EditorContextGet();
     return IsObjectSelected(editor.Links, editor.SelectedLinkIndices, link_id);

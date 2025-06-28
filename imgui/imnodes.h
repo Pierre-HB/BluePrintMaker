@@ -424,19 +424,26 @@ bool IsEditorHovered();
 bool IsNodeHovered(int* node_id);
 bool IsLinkHovered(int* link_id);
 bool IsPinHovered(int* attribute_id);
+bool IsLinkLabelStartHovered(int* link_id);
+bool IsLinkLabelEndHovered(int* link_id);
 
 // Use The following two functions to query the number of selected nodes or links in the current
 // editor. Use after calling EndNodeEditor().
 int NumSelectedNodes();
 int NumSelectedLinks();
+int NumSelectedLinkLabelsStart();
+int NumSelectedLinkLabelsEnd();
 // Get the selected node/link ids. The pointer argument should point to an integer array with at
 // least as many elements as the respective NumSelectedNodes/NumSelectedLinks function call
 // returned.
 void GetSelectedNodes(int* node_ids);
 void GetSelectedLinks(int* link_ids);
+void GetSelectedLinkLabelsStart(int* link_ids);
+void GetSelectedLinkLabelsEnd(int* link_ids);
 // Clears the list of selected nodes/links. Useful if you want to delete a selected node or link.
 void ClearNodeSelection();
 void ClearLinkSelection();
+void ClearLinkLabelSelection();
 // Use the following functions to add or remove individual nodes or links from the current editors
 // selection. Note that all functions require the id to be an existing valid id for this editor.
 // Select-functions has the precondition that the object is currently considered unselected.
@@ -449,6 +456,12 @@ bool IsNodeSelected(int node_id);
 void SelectLink(int link_id);
 void ClearLinkSelection(int link_id);
 bool IsLinkSelected(int link_id);
+void SelectLinkLabelStart(int link_id);
+void SelectLinkLabelEnd(int link_id);
+void ClearLinkLabelStartSelection(int link_id);
+void ClearLinkLabelEndSelection(int link_id);
+bool IsLinkLabelStartSelected(int link_id);
+bool IsLinkLabelEndSelected(int link_id);
 
 // Was the previous attribute active? This will continuously return true while the left mouse button
 // is being pressed over the UI content of the attribute.

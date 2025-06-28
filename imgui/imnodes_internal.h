@@ -349,6 +349,10 @@ inline int GetLinkLabelLinkId(int linkLabelId) {
     return linkLabelId/2;
 }
 
+inline int IsLinkLabelStart(int linkLabelId) {
+    return (linkLabelId + 1) % 2;
+}
+
 struct ImClickInteractionState
 {
     ImNodesClickInteractionType Type;
