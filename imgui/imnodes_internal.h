@@ -323,13 +323,19 @@ struct ImLinkLabelData {
 
     struct
     {
+        ImU32 BorderHovered, BorderSelected;
+    } ColorStyle;
+
+    struct
+    {
+        float CornerRounding;
         ImVec2 Padding;
     } LayoutStyle;
 
     bool Draggable;
 
     //empty constructor for Pool initialization
-    ImLinkLabelData(const int id) : Id(id), startLabel(), Deformation(), Rect(), _Origin(), LayoutStyle(), Draggable(true) {}
+    ImLinkLabelData(const int id) : Id(id), startLabel(), Deformation(), Rect(), _Origin(), ColorStyle(), LayoutStyle(), Draggable(true) {}
 };
 
 inline int GetLinkLabelId(int linkId, bool start_label) {

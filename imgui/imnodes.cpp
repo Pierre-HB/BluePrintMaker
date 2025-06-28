@@ -2678,6 +2678,35 @@ void DrawNode(ImNodesEditorContext& editor, const int node_idx)
     }
 }
 
+void DrawLinkLabel(ImNodesEditorContext& editor, const int link_label_idx)
+{
+    const ImLinkLabelData& link_label = editor.LinkLabels.Pool[link_label_idx];
+    ImGui::SetCursorPos(link_label._Origin + editor.Panning);
+
+    const bool link_label_hovered =
+        GImNodes->HoveredLinkLabelIdx == link_label_idx &&
+        editor.ClickInteraction.Type != ImNodesClickInteractionType_BoxSelection;
+
+    ImU32 border_color;
+
+    bool show_border = false;
+
+    if (editor.SelectedLinkLabelIndices.contains(link_label_idx))
+    {
+        show_border = true;
+        border_color = link_label.ColorStyle.BorderSelected;
+    }
+    else if (link_label_hovered)
+    {
+        show_border = true;
+        border_color = link_label.ColorStyle.BorderHovered;
+    }
+
+    if(show_border)
+        GImNodes->CanvasDrawList->AddRect(
+            link_label.Rect.Min, link_label.Rect.Max, border_color, link_label.LayoutStyle.CornerRounding);
+}
+
 void DrawLink(ImNodesEditorContext& editor, const int link_idx)
 {
     const ImLinkData& link = editor.Links.Pool[link_idx];
@@ -3104,7 +3133,7 @@ ImNodesIO::ImNodesIO()
 
 ImNodesStyle::ImNodesStyle()
     : GridSpacing(24.f), NodeCornerRounding(4.f), NodePadding(8.f, 16.f), NodeBorderThickness(1.f),
-      LinkThickness(3.f), LinkLineSegmentsPerLength(0.1f), LinkHoverDistance(10.f), LinkSlopedMinSlope(5.0f), LinkSlopedMinOffset(50.0f), LinkCreationType(ImNodesLinkType_::ImNodesLinkType_Bezier), LinkLabelPadding(3.f, 3.f),
+      LinkThickness(3.f), LinkLineSegmentsPerLength(0.1f), LinkHoverDistance(10.f), LinkSlopedMinSlope(5.0f), LinkSlopedMinOffset(50.0f), LinkCreationType(ImNodesLinkType_::ImNodesLinkType_Bezier), LinkLabelPadding(3.f, 3.f), LinkLabelCornerRounding(3.f), LinkLabelDraggable(true),
       PinCircleRadius(4.f), PinQuadSideLength(7.f), PinTriangleSideLength(9.5),
       PinLineThickness(1.f), PinHoverRadius(10.f), PinOffset(0.f), MiniMapPadding(8.0f, 8.0f),
       MiniMapOffset(4.0f, 4.0f), Flags(ImNodesStyleFlags_NodeOutline | ImNodesStyleFlags_GridLines),
@@ -3198,6 +3227,8 @@ void StyleColorsDark(ImNodesStyle* dest)
     dest->Colors[ImNodesCol_Link] = IM_COL32(61, 133, 224, 200);
     dest->Colors[ImNodesCol_LinkHovered] = IM_COL32(66, 150, 250, 255);
     dest->Colors[ImNodesCol_LinkSelected] = IM_COL32(66, 150, 250, 255);
+    dest->Colors[ImNodesCol_LinkLabelHovered] = dest->Colors[ImNodesCol_LinkHovered];
+    dest->Colors[ImNodesCol_LinkLabelSelected] = dest->Colors[ImNodesCol_LinkSelected];
     // pin colors match ImGui's button colors
     dest->Colors[ImNodesCol_Pin] = IM_COL32(53, 150, 250, 180);
     dest->Colors[ImNodesCol_PinHovered] = IM_COL32(53, 150, 250, 255);
@@ -3242,6 +3273,8 @@ void StyleColorsClassic(ImNodesStyle* dest)
     dest->Colors[ImNodesCol_Link] = IM_COL32(255, 255, 255, 100);
     dest->Colors[ImNodesCol_LinkHovered] = IM_COL32(105, 99, 204, 153);
     dest->Colors[ImNodesCol_LinkSelected] = IM_COL32(105, 99, 204, 153);
+    dest->Colors[ImNodesCol_LinkLabelHovered] = dest->Colors[ImNodesCol_LinkHovered];
+    dest->Colors[ImNodesCol_LinkLabelSelected] = dest->Colors[ImNodesCol_LinkSelected];
     dest->Colors[ImNodesCol_Pin] = IM_COL32(89, 102, 156, 170);
     dest->Colors[ImNodesCol_PinHovered] = IM_COL32(102, 122, 179, 200);
     dest->Colors[ImNodesCol_BoxSelector] = IM_COL32(82, 82, 161, 100);
@@ -3285,6 +3318,8 @@ void StyleColorsLight(ImNodesStyle* dest)
     // original imgui values: 117, 138, 204
     dest->Colors[ImNodesCol_LinkHovered] = IM_COL32(66, 150, 250, 242);
     dest->Colors[ImNodesCol_LinkSelected] = IM_COL32(66, 150, 250, 242);
+    dest->Colors[ImNodesCol_LinkLabelHovered] = dest->Colors[ImNodesCol_LinkHovered];
+    dest->Colors[ImNodesCol_LinkLabelSelected] = dest->Colors[ImNodesCol_LinkSelected];
     // original imgui values: 66, 150, 250
     dest->Colors[ImNodesCol_Pin] = IM_COL32(66, 150, 250, 160);
     dest->Colors[ImNodesCol_PinHovered] = IM_COL32(66, 150, 250, 255);
@@ -3326,6 +3361,8 @@ void StyleColorsBluePrint(ImNodesStyle* dest)
     dest->Colors[ImNodesCol_Link] = IM_COL32(200, 200, 200, 255);
     dest->Colors[ImNodesCol_LinkHovered] = IM_COL32(255, 255, 255, 255);
     dest->Colors[ImNodesCol_LinkSelected] = IM_COL32(255, 255, 255, 255);
+    dest->Colors[ImNodesCol_LinkLabelHovered] = dest->Colors[ImNodesCol_LinkHovered];
+    dest->Colors[ImNodesCol_LinkLabelSelected] = dest->Colors[ImNodesCol_LinkSelected];
     dest->Colors[ImNodesCol_NodeOutline] = IM_COL32(200, 200, 200, 255);
 
     dest->Colors[ImNodesCol_NodeBackground] = IM_COL32(5, 69, 141, 100);
@@ -3516,6 +3553,14 @@ void EndNodeEditor()
             //don't draw selected link as there control primitives are drawn instead
             if (!editor.SelectedLinkIndices.contains(link_idx))
                 DrawLink(editor, link_idx);
+        }
+    }
+
+    for (int link_label_idx = 0; link_label_idx < editor.LinkLabels.Pool.size(); ++link_label_idx)
+    {
+        if (editor.LinkLabels.InUse[link_label_idx])
+        {
+            DrawLinkLabel(editor, link_label_idx);
         }
     }
 
@@ -3880,8 +3925,11 @@ void BeginLinkLabel(int linkId, bool startLabel) {
     ImLinkLabelData& link_label = editor.LinkLabels.Pool[link_label_idx];
     
     link_label.LayoutStyle.Padding = GImNodes->Style.LinkLabelPadding;
+    link_label.LayoutStyle.CornerRounding = GImNodes->Style.LinkLabelCornerRounding;
+    link_label.ColorStyle.BorderHovered = GImNodes->Style.Colors[ImNodesCol_LinkLabelHovered];
+    link_label.ColorStyle.BorderSelected = GImNodes->Style.Colors[ImNodesCol_LinkLabelSelected];
     link_label.startLabel = startLabel;
-    link_label.Draggable = true;//TODO Add a Style variable for draggable
+    link_label.Draggable = GImNodes->Style.LinkLabelDraggable;
     link_label._Origin = GetLinkLabelOrigin(editor, link_label) + link_label.Deformation;
 
     ImGui::SetCursorPos(link_label._Origin);
@@ -3987,6 +4035,10 @@ static const ImNodesStyleVarInfo GStyleVarInfo[] = {
     {ImGuiDataType_U32, 1, (ImU32)offsetof(ImNodesStyle, LinkCreationType)},
     // ImNodesStyleVar_LinkLabelPadding
     {ImGuiDataType_Float, 2, (ImU32)offsetof(ImNodesStyle, LinkLabelPadding)},
+    // ImNodesStyleVar_LinkLabelCornerRounding
+    {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, LinkLabelCornerRounding)},
+    // ImNodesStyleVar_LinkLabelPadding
+    {ImGuiDataType_Bool, 1, (ImU32)offsetof(ImNodesStyle, LinkLabelDraggable)},
     // ImNodesStyleVar_PinCircleRadius
     {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, PinCircleRadius)},
     // ImNodesStyleVar_PinQuadSideLength
@@ -4051,6 +4103,19 @@ void PushStyleVar(const ImNodesStyleVar item, const ImVec2& value)
     IM_ASSERT(0 && "Called PushStyleVar() ImVec2 variant but variable is not a ImVec2!");
 }
 
+void PushStyleVar(const ImNodesStyleVar item, const bool& value)
+{
+    const ImNodesStyleVarInfo* var_info = GetStyleVarInfo(item);
+    if (var_info->Type == ImGuiDataType_Bool && var_info->Count == 1)
+    {
+        int& style_var = *(int*)var_info->GetVarPtr(&GImNodes->Style);
+        GImNodes->StyleModifierStack.push_back(ImNodesStyleVarElement(item, style_var));
+        style_var = value ? 1 : 0;
+        return;
+    }
+    IM_ASSERT(0 && "Called PushStyleVar() bool variant but variable is not a bool!");
+}
+
 void PopStyleVar(int count)
 {
     while (count > 0)
@@ -4072,6 +4137,10 @@ void PopStyleVar(int count)
         {
             ((float*)style_var)[0] = style_backup.FloatValue[0];
             ((float*)style_var)[1] = style_backup.FloatValue[1];
+        }
+        else if (var_info->Type == ImGuiDataType_Bool && var_info->Count == 1)
+        {
+            ((bool*)style_var)[0] = style_backup.IntValue == 1;
         }
         count--;
     }

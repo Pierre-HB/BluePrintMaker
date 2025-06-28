@@ -36,6 +36,8 @@ enum ImNodesCol_
     ImNodesCol_Link,
     ImNodesCol_LinkHovered,
     ImNodesCol_LinkSelected,
+    ImNodesCol_LinkLabelHovered,
+    ImNodesCol_LinkLabelSelected,
     ImNodesCol_Pin,
     ImNodesCol_PinHovered,
     ImNodesCol_BoxSelector,
@@ -71,6 +73,8 @@ enum ImNodesStyleVar_
     ImNodesStyleVar_LinkSlopedMinOffset,
     ImNodesStyleVar_LinkCreationType,
     ImNodesStyleVar_LinkLabelPadding,
+    ImNodesStyleVar_LinkLabelCornerRounding,
+    ImNodesStyleVar_LinkLabelDraggable,
     ImNodesStyleVar_PinCircleRadius,
     ImNodesStyleVar_PinQuadSideLength,
     ImNodesStyleVar_PinTriangleSideLength,
@@ -215,6 +219,8 @@ struct ImNodesStyle
     ImNodesLinkType LinkCreationType;
 
     ImVec2 LinkLabelPadding;
+    float LinkLabelCornerRounding;
+    bool LinkLabelDraggable;
 
     // The following variables control the look and behavior of the pins. The default size of each
     // pin shape is balanced to occupy approximately the same surface area on the screen.
