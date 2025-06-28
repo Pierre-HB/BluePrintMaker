@@ -51,6 +51,7 @@ public:
     void show()
     {
         ImNodes::StyleColorsBluePrint();
+        ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
         //ImNodesStyle& style = ImNodes::GetStyle();
         
         //ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
@@ -492,6 +493,12 @@ public:
             ImNodes::Link(i+10, p.first, p.second, ImNodesLinkType_::ImNodesLinkType_Sloped);
         }
         ImNodes::Link(15, 3, 5, ImNodesLinkType_::ImNodesLinkType_Sloped);
+        ImNodes::BeginLinkLabelStart(15);
+        ImGui::Text("link label");
+        ImNodes::EndLinkLabelStart();
+        ImNodes::BeginLinkLabelEnd(15);
+        ImGui::Text("end label");
+        ImNodes::EndLinkLabelEnd();
         //ImNodes::Link(16, 6, 3);
 
         //ImNodes::MiniMap();

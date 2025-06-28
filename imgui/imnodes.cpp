@@ -2594,7 +2594,7 @@ void EndSwappableAttribute() {
         ImGui::Indent(-0.1);
         ImGui::PushID(ImGui::GetID(GImNodes->CurrentAttributeId));
         ImGui::Selectable("##SwappableAttribute", false, 0, ImGui::GetItemRectSize());
-
+        
         if (ImGui::IsItemActive()) {
             GImNodes->ActiveSwappableAttribute = true;
             GImNodes->ActiveSwappableAttributeId = GImNodes->CurrentAttributeId;
@@ -2672,6 +2672,7 @@ void Initialize(ImNodesContext* context)
 
     context->CurrentPinIdx = INT_MAX;
     context->CurrentNodeIdx = INT_MAX;
+    context->CurrentLinkLabelIdx = INT_MAX;
 
     context->DefaultEditorCtx = EditorContextCreate();
     context->EditorCtx = context->DefaultEditorCtx;
@@ -2965,8 +2966,8 @@ ImNodesIO::ImNodesIO()
 }
 
 ImNodesStyle::ImNodesStyle()
-    : GridSpacing(24.f), NodeCornerRounding(4.f), NodePadding(8.f, 8.f), NodeBorderThickness(1.f),
-      LinkThickness(3.f), LinkLineSegmentsPerLength(0.1f), LinkHoverDistance(10.f), LinkSlopedMinSlope(5.0f), LinkSlopedMinOffset(50.0f), LinkCreationType(ImNodesLinkType_::ImNodesLinkType_Bezier),
+    : GridSpacing(24.f), NodeCornerRounding(4.f), NodePadding(8.f, 16.f), NodeBorderThickness(1.f),
+      LinkThickness(3.f), LinkLineSegmentsPerLength(0.1f), LinkHoverDistance(10.f), LinkSlopedMinSlope(5.0f), LinkSlopedMinOffset(50.0f), LinkCreationType(ImNodesLinkType_::ImNodesLinkType_Bezier), LinkLabelPadding(3.f, 3.f),
       PinCircleRadius(4.f), PinQuadSideLength(7.f), PinTriangleSideLength(9.5),
       PinLineThickness(1.f), PinHoverRadius(10.f), PinOffset(0.f), MiniMapPadding(8.0f, 8.0f),
       MiniMapOffset(4.0f, 4.0f), Flags(ImNodesStyleFlags_NodeOutline | ImNodesStyleFlags_GridLines),
@@ -3220,6 +3221,7 @@ void BeginNodeEditor()
     ObjectPoolReset(editor.Pins);
     ObjectPoolReset(editor.Links);
     ObjectPoolReset(editor.LinkControls);
+    ObjectPoolReset(editor.LinkLabels);
 
     GImNodes->HoveredNodeIdx.Reset();
     GImNodes->HoveredLinkIdx.Reset();
@@ -3713,6 +3715,92 @@ void Link(const int id, const int start_attr_id, const int end_attr_id, ImNodesL
         LinkControl(editor, link_idx);
 }
 
+void BeginLinkLabel(int linkId, bool startLabel) {
+    IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Editor);
+    GImNodes->CurrentScope = ImNodesScope_LinkLabel;
+
+    ImNodesEditorContext& editor = EditorContextGet();
+    const int link_idx = ObjectPoolFind(editor.Links, linkId);
+    IM_ASSERT(link_idx != -1);
+    ImLinkData& link = editor.Links.Pool[link_idx];
+
+    const ImPinData& pin = startLabel ? editor.Pins.Pool[link.StartPinIdx] : editor.Pins.Pool[link.EndPinIdx];
+
+    const int link_label_idx = ObjectPoolFindOrCreateIndex(editor.LinkLabels, GetLinkLabelId(linkId, startLabel));
+    GImNodes->CurrentLinkLabelIdx = link_label_idx;
+
+    ImLinkLabelData& link_label = editor.LinkLabels.Pool[link_label_idx];
+    
+    link_label.LayoutStyle.Padding = GImNodes->Style.LinkLabelPadding;
+
+
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImVec2 correction = window->Pos - window->Scroll; //offset due to windows data
+    ImVec2 origin = GetScreenSpacePinCoordinates(editor.Nodes.Pool[pin.ParentNodeIdx].Rect, pin.AttributeRect, pin.Type) - correction;
+    if (startLabel) {
+        ImGui::SetCursorPos(origin + link_label.Deformation + ImVec2(link_label.LayoutStyle.Padding.x, -link_label.Rect.GetHeight()));
+    }
+    else {
+        //set le cursor at p + (-label_rect_x, label_rect_y)
+        ImGui::SetCursorPos(origin + link_label.Deformation + ImVec2(-link_label.Rect.GetWidth(), -link_label.Rect.GetHeight()));
+    }
+
+    ImGui::PushID(ImGui::GetID(link_label.Id));
+    ImGui::BeginGroup();
+}
+
+void EndLinkLabel(bool startLabel) {
+    IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_LinkLabel);
+    GImNodes->CurrentScope = ImNodesScope_Editor;
+
+    ImNodesEditorContext& editor = EditorContextGet();
+    
+
+    //{
+    //    ImGui::SameLine();
+    //    ImGui::Indent(-0.1);
+    //    ImGui::PushID(ImGui::GetID(42));
+    //    ImGui::Selectable("##SwappableLabel", false, 0, ImGui::GetItemRectSize());
+    //    ImGui::PopID();
+    //    //TODO just change the text color to the selected or hovered color
+    //}
+    
+
+
+    ImLinkLabelData& link_label = editor.LinkLabels.Pool[GImNodes->CurrentLinkLabelIdx];
+    
+    link_label.Rect = GetItemRect();
+
+    ImGui::EndGroup();
+    ImGui::PopID();
+
+    link_label.Rect.Expand(link_label.LayoutStyle.Padding);
+
+    editor.GridContentBounds.Add(link_label.Rect.Min);
+    editor.GridContentBounds.Add(link_label.Rect.Max);
+    if (link_label.Rect.Contains(GImNodes->MousePos))
+    {
+        //manage overlap ?
+        //GImNodes->NodeIndicesOverlappingWithMouse.push_back(GImNodes->CurrentNodeIdx);
+    }
+}
+
+void BeginLinkLabelStart(int id) {
+    return BeginLinkLabel(id, true);
+}
+
+void EndLinkLabelStart() {
+    return EndLinkLabel(true);
+}
+
+void BeginLinkLabelEnd(int id) {
+    return BeginLinkLabel(id, false);
+}
+
+void EndLinkLabelEnd() {
+    return EndLinkLabel(false);
+}
+
 void PushColorStyle(const ImNodesCol item, unsigned int color)
 {
     GImNodes->ColorModifierStack.push_back(ImNodesColElement(GImNodes->Style.Colors[item], item));
@@ -3756,6 +3844,8 @@ static const ImNodesStyleVarInfo GStyleVarInfo[] = {
     {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, LinkSlopedMinOffset)},
     // ImNodesStyleVar_LinkCreationType
     {ImGuiDataType_U32, 1, (ImU32)offsetof(ImNodesStyle, LinkCreationType)},
+    // ImNodesStyleVar_LinkLabelPadding
+    {ImGuiDataType_Float, 2, (ImU32)offsetof(ImNodesStyle, LinkLabelPadding)},
     // ImNodesStyleVar_PinCircleRadius
     {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, PinCircleRadius)},
     // ImNodesStyleVar_PinQuadSideLength

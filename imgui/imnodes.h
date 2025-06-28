@@ -70,6 +70,7 @@ enum ImNodesStyleVar_
     ImNodesStyleVar_LinkSlopedMinSlope,
     ImNodesStyleVar_LinkSlopedMinOffset,
     ImNodesStyleVar_LinkCreationType,
+    ImNodesStyleVar_LinkLabelPadding,
     ImNodesStyleVar_PinCircleRadius,
     ImNodesStyleVar_PinQuadSideLength,
     ImNodesStyleVar_PinTriangleSideLength,
@@ -211,6 +212,8 @@ struct ImNodesStyle
     float LinkSlopedMinOffset;
     //Type of link being drag by the user
     ImNodesLinkType LinkCreationType;
+
+    ImVec2 LinkLabelPadding;
 
     // The following variables control the look and behavior of the pins. The default size of each
     // pin shape is balanced to occupy approximately the same surface area on the screen.
@@ -376,6 +379,11 @@ void PopAttributeFlag();
 // The attributes ids used here must match the ids used in Begin(Input|Output)Attribute function
 // calls. The order of start_attr and end_attr doesn't make a difference for rendering the link.
 void Link(int id, int start_attribute_id, int end_attribute_id, ImNodesLinkType linkType=ImNodesLinkType_::ImNodesLinkType_Bezier);
+
+void BeginLinkLabelStart(int id);
+void EndLinkLabelStart();
+void BeginLinkLabelEnd(int id);
+void EndLinkLabelEnd();
 
 // Enable or disable the ability to click and drag a specific node.
 void SetNodeDraggable(int node_id, const bool draggable);

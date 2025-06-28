@@ -103,7 +103,8 @@ enum ImNodesScope_
     ImNodesScope_None = 1,
     ImNodesScope_Editor = 1 << 1,
     ImNodesScope_Node = 1 << 2,
-    ImNodesScope_Attribute = 1 << 3
+    ImNodesScope_Attribute = 1 << 3,
+    ImNodesScope_LinkLabel = 1 << 4
 };
 
 enum ImNodesAttributeType_
@@ -311,6 +312,32 @@ inline int GetLinkControlLinkId(int Id) {
     return Id >> 4;
 }
 
+
+struct ImLinkLabelData {
+    int Id;      // global if of the control data, should be = 2*LinkIdx + 3*LocalId to ensure uniqueness
+    ImVec2 Deformation;
+    ImRect Rect;
+
+    struct
+    {
+        ImVec2 Padding;
+    } LayoutStyle;
+
+    //empty constructor for Pool initialization
+    ImLinkLabelData(const int id) : Id(id), Deformation(), Rect(), LayoutStyle(){}
+};
+
+inline int GetLinkLabelId(int linkId, bool start_label) {
+    if (start_label)
+        return 2 * linkId;
+    else
+        return 2 * linkId + 1;
+}
+
+inline int GetLinkLabelLinkId(int linkLabelId) {
+    return linkLabelId/2;
+}
+
 struct ImClickInteractionState
 {
     ImNodesClickInteractionType Type;
@@ -451,6 +478,7 @@ struct ImNodesEditorContext
     ImObjectPool<ImPinData>  Pins;
     ImObjectPool<ImLinkData> Links;
     ImObjectPool<ImLinkControlData> LinkControls;
+    ImObjectPool<ImLinkLabelData> LinkLabels;
 
     ImVector<int> NodeDepthOrder;
 
@@ -494,7 +522,7 @@ struct ImNodesEditorContext
     ImNodesEventVarElement current_event;
 
     ImNodesEditorContext()
-        : Nodes(), Pins(), Links(), Panning(0.f, 0.f), SelectedNodeIndices(), SelectedLinkIndices(),
+        : Nodes(), Pins(), Links(), LinkControls(), LinkLabels(), Panning(0.f, 0.f), SelectedNodeIndices(), SelectedLinkIndices(),
           SelectedNodeOffsets(), PrimaryNodeOffset(0.f, 0.f), ClickInteraction(),
           MiniMapEnabled(false), MiniMapSizeFraction(0.0f), MiniMapNodeHoveringCallback(NULL),
           MiniMapNodeHoveringCallbackUserData(NULL), MiniMapScaling(0.0f), current_event()
@@ -536,6 +564,7 @@ struct ImNodesContext
     int CurrentNodeIdx;
     int CurrentPinIdx;
     int CurrentAttributeId;
+    int CurrentLinkLabelIdx;
 
     ImOptionalIndex HoveredNodeIdx;
     ImOptionalIndex HoveredLinkIdx;
