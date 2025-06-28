@@ -4536,12 +4536,6 @@ bool IsLinkLabelEndSelected(int link_id)
     return IsLinkLabelSelected(GetLinkLabelId(link_id, false));
 }
 
-bool IsLinkLabelStartSelected(int link_id)
-{
-    ImNodesEditorContext& editor = EditorContextGet();
-    return IsObjectSelected(editor.Links, editor.SelectedLinkIndices, link_id);
-}
-
 bool IsAttributeActive()
 {
     IM_ASSERT((GImNodes->CurrentScope & ImNodesScope_Node) != 0);
