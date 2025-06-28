@@ -851,6 +851,18 @@ void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData&
     editor.current_event = ImNodesEventVarElement();
 }
 
+
+void ContraintLinkLabel(ImNodesEditorContext& editor, ImLinkLabelData& linkLabel) {
+    ImNodesEventVarElement Event = ImNodesEventVarElement(ImNodesEventVar_LinkLabelMove);
+    Event.addOldPos(linkLabel.Id, linkLabel.Deformation);
+    linkLabel.Deformation = ImVec2(0, 0);
+    Event.addNewPos(linkLabel.Id, linkLabel.Deformation);
+
+    if (Event.valid())
+        PushEventVar(Event);
+    editor.current_event = ImNodesEventVarElement();
+}
+
 // [SECTION] coordinate space conversion helpers
 
 inline ImVec2 ScreenSpaceToGridSpace(const ImNodesEditorContext& editor, const ImVec2& v)
@@ -1846,6 +1858,19 @@ void PopEventVar()
         }
         break;
     }
+    case ImNodesEventVar_LinkLabelMove:
+    {
+        IM_ASSERT(dest.Ids.size() == dest.OldPoss.size());
+        IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
+        for (int i = 0; i < dest.Ids.size(); i++) {
+            int Id = dest.Ids[i];
+            const int link_label_idx = ObjectPoolFind(editor.LinkLabels, Id);
+            IM_ASSERT(link_label_idx != -1);
+            ImLinkLabelData& data = editor.LinkLabels.Pool[link_label_idx];
+            data.Deformation = dest.OldPoss[i];
+        }
+        break;
+    }
     case ImNodesEventVar_UserEvent:
         GImNodes->PopedEvent = dest.GetId();
         break;
@@ -1891,6 +1916,19 @@ void UnpopEventVar()
             IM_ASSERT(node_idx != -1);
             ImNodeData& data = editor.Nodes.Pool[node_idx];
             data.Origin = dest.NewPoss[i];
+        }
+        break;
+    }
+    case ImNodesEventVar_LinkLabelMove:
+    {
+        IM_ASSERT(dest.Ids.size() == dest.OldPoss.size());
+        IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
+        for (int i = 0; i < dest.Ids.size(); i++) {
+            int Id = dest.Ids[i];
+            const int link_label_idx = ObjectPoolFind(editor.LinkLabels, Id);
+            IM_ASSERT(link_label_idx != -1);
+            ImLinkLabelData& data = editor.LinkLabels.Pool[link_label_idx];
+            data.Deformation = dest.NewPoss[i];
         }
         break;
     }
@@ -2014,6 +2052,27 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
         }
     }
     break;
+    case ImNodesClickInteractionType_LinkLabel:
+    {
+        TranslateSelectedLinkLabels(editor);
+
+        if (ImGui::IsMouseDoubleClicked(0)) {
+            ContraintLinkLabel(editor, editor.LinkLabels.Pool[GImNodes->HoveredLinkLabelIdx.Value()]);
+        }
+        if (GImNodes->LeftMouseReleased)
+        {
+            editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
+            for (int i = 0; i < editor.SelectedLinkLabelIndices.size(); i++) {
+                const ImLinkLabelData& data = editor.LinkLabels.Pool[editor.SelectedLinkLabelIndices[i]];
+
+                editor.current_event.addNewPos(data.Id, data.Deformation);
+            }
+            if (editor.current_event.valid())
+                PushEventVar(editor.current_event);
+            editor.current_event = ImNodesEventVarElement();
+        }
+        break;
+    }
     case ImNodesClickInteractionType_Link:
     {
         if (GImNodes->LeftMouseReleased)
@@ -2123,24 +2182,6 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
         }
     }
     break;
-    case ImNodesClickInteractionType_LinkLabel:
-    {
-        TranslateSelectedLinkLabels(editor);
-
-        if (GImNodes->LeftMouseReleased)
-        {
-            editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
-            for (int i = 0; i < editor.SelectedLinkLabelIndices.size(); i++) {
-                const ImLinkLabelData& data = editor.LinkLabels.Pool[editor.SelectedLinkLabelIndices[i]];
-
-                editor.current_event.addNewPos(data.Id, data.Deformation);
-            }
-            if (editor.current_event.valid())
-                PushEventVar(editor.current_event);
-            editor.current_event = ImNodesEventVarElement();
-        }
-        break;
-    }
     case ImNodesClickInteractionType_ImGuiItem:
     {
         if (GImNodes->LeftMouseReleased)
