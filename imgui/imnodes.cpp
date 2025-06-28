@@ -364,6 +364,15 @@ inline bool RectangleOverlapsLineSegment(const ImRect& rect, const ImVec2& p1, c
 
 inline bool RectangleOverlapsBezier(const ImRect& rectangle, const CubicBezier& cubic_bezier)
 {
+    ImRect bounding_rect = ImRect(cubic_bezier.P0, cubic_bezier.P0);
+    bounding_rect.Add(cubic_bezier.P1);
+    bounding_rect.Add(cubic_bezier.P2);
+    bounding_rect.Add(cubic_bezier.P3);
+    if (!rectangle.Overlaps(bounding_rect))
+        return false;
+    if(rectangle.Contains(cubic_bezier.P0) || rectangle.Contains(cubic_bezier.P3))
+        return true;
+
     ImVec2 current =
         EvalCubicBezier(0.f, cubic_bezier.P0, cubic_bezier.P1, cubic_bezier.P2, cubic_bezier.P3);
     const float dt = 1.0f / cubic_bezier.NumSegments;
@@ -386,6 +395,19 @@ inline bool RectangleOverlapsBezier(const ImRect& rectangle, const CubicBezier& 
 
 inline bool RectangleOverlapsSlopedCurve(const ImRect& rectangle, const SlopedCurve& sloped_curve)
 {
+    ImRect bounding_rect = ImRect(sloped_curve.P[0], sloped_curve.P[0]);
+    bounding_rect.Add(sloped_curve.P[1]);
+    bounding_rect.Add(sloped_curve.P[2]);
+    bounding_rect.Add(sloped_curve.P[3]);
+    if (sloped_curve.NumSegments == 5) {
+        bounding_rect.Add(sloped_curve.P[4]);
+        bounding_rect.Add(sloped_curve.P[5]);
+    }
+
+    if (!rectangle.Overlaps(bounding_rect))
+        return false;
+
+
     for (int i = 0; i < sloped_curve.NumSegments; ++i)
     {
         if (RectangleOverlapsLineSegment(rectangle, sloped_curve.P[i], sloped_curve.P[i+1]))
@@ -535,38 +557,9 @@ inline bool RectangleOverlapsLink(
     const ImNodesAttributeType      start_type,
     const ImNodesLinkType           linkType,
     const ImNodesLinkDeformations   deformation)
-{
-    // First level: simple rejection test via rectangle overlap:
-
-    ImRect lrect = ImRect(start, end);
-    if (lrect.Min.x > lrect.Max.x)
-    {
-        ImSwap(lrect.Min.x, lrect.Max.x);
-    }
-
-    if (lrect.Min.y > lrect.Max.y)
-    {
-        ImSwap(lrect.Min.y, lrect.Max.y);
-    }
-
-    if (rectangle.Overlaps(lrect))
-    {
-        // First, check if either one or both endpoinds are trivially contained
-        // in the rectangle
-
-        if (rectangle.Contains(start) || rectangle.Contains(end))
-        {
-            return true;
-        }
-
-        // Second level of refinement: do a more expensive test against the
-        // link
-        
-        const Curve curve = GetCurve(start, end, start_type, GImNodes->Style.LinkLineSegmentsPerLength, linkType, deformation);
-        return RectangleOverlapsCurve(rectangle, curve);
-    }
-
-    return false;
+{    
+    const Curve curve = GetCurve(start, end, start_type, GImNodes->Style.LinkLineSegmentsPerLength, linkType, deformation);
+    return RectangleOverlapsCurve(rectangle, curve);
 }
 
 struct ControlPrimitive {
@@ -1494,6 +1487,10 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
     //ImVector<int> local_Ids = GetAllowedLinkControlLocalId(editor, link_idx)
     if (editor.SelectedNodeIndices.Size == 0) {
         for (int link_control_idx = 0; link_control_idx < editor.LinkControls.Pool.Size; link_control_idx++) {
+
+            if (!editor.LinkControls.InUse[link_control_idx])
+                continue;
+
             ImLinkControlData& link_control = editor.LinkControls.Pool[link_control_idx];
 
             const ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
@@ -1503,11 +1500,6 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
                 start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
 
             ControlPrimitive cp = GetControlPrimitive(link_control.LocalId, curve);
-            //TODO BUG A FIXE!!!
-            //quand on selectionne plusieur control primitive avec la selection par box
-            //puis on deplace l'un des noeud qui change le lien d'une courbe sloped de 5 a 3 segment
-            //puis on click a coté (probablement debut de selection par box) ça crache
-            //TODO Bug, la selection d'un lien ne ce fait qu'en selectionnant sont barycentre... du moins, si la courbe fait un S suffisament prononcé
             if (RectangleOverlapsControlPrimitive(box_rect, cp)) {
                 editor.SelectedLinkControlIndices.push_back(link_control_idx);
             }
@@ -1589,7 +1581,6 @@ void TranslateSelectedLinkControl(ImNodesEditorContext& editor)
             for (int j = 0; j < nb_point; j++) {
                 if (!editor.current_event.Ids.contains(GetLinkControlId(local_Ids[j], link.Id))) {
                     //need to check if id already in if we add segment and point Id, could get duplicates
-                    printf("add link control: Id : %d, localID : %d, link idx : %d\n", GetLinkControlId(local_Ids[j], link.Id), local_Ids[j], link_control.LinkIdx);
                     editor.current_event.addOldPos(GetLinkControlId(local_Ids[j], link.Id), link.Deformations[local_Ids[j]]);
                 }
             }
@@ -1774,11 +1765,15 @@ void UnpopEventVar()
         IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
         for (int i = 0; i < dest.Ids.size(); i++) {
             int Id = dest.Ids[i];
+            int linkId = GetLinkControlLinkId(Id);
+            int localId = GetLinkControlLocalId(Id);
 
-            ImLinkControlData& link_control = ObjectPoolFindOrCreateObject(editor.LinkControls, Id);
-            ImLinkData& link = editor.Links.Pool[link_control.LinkIdx];
+            const int link_idx = ObjectPoolFind(editor.Links, linkId);
+            IM_ASSERT(link_idx != -1);
+            ImLinkData& link = editor.Links.Pool[link_idx];
 
-            link.Deformations[link_control.LocalId] = dest.NewPoss[i];
+
+            link.Deformations[localId] = dest.NewPoss[i];
         }
         break;
     }
