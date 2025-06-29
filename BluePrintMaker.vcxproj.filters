@@ -40,6 +40,9 @@
     <ClCompile Include="imgui\imnodes.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="blue_print.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">

@@ -25,3 +25,7 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
  - [x] Sloped link
  - [x] Manage several link style
  - [x] Swap of attribute
+ - [ ] add a control to lock moves on X or Y axis (for link control movement and link label movement and node movement)
+
+# Note
+- if I want several windows with independant blueprint, I might take a look at the ImGui::BeginChild call in the ImNodes::BeginNodeEditor(). I may also use several context and switch between them

@@ -50,8 +50,8 @@ class HelloWorldNodeEditor
 public:
     void show()
     {
-        ImNodes::StyleColorsBluePrint();
-        ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
+        /*ImNodes::StyleColorsBluePrint();
+        ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);*/
         //ImNodesStyle& style = ImNodes::GetStyle();
         
         //ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
@@ -110,11 +110,11 @@ public:
 
         //ImNodes::GetStyle().Flags |= ImNodesStyleFlags_::ImNodesStyleFlags_GridSnapping;
          
-        ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-        const ImGuiViewport * viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->Pos);
-        ImGui::SetNextWindowSize(viewport->Size);
-        ImGui::Begin("simple node editor", NULL, flags);
+            ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+            const ImGuiViewport * viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->Pos);
+            ImGui::SetNextWindowSize(viewport->Size);
+            ImGui::Begin("simple node editor", NULL, flags);
 
         ImNodes::BeginNodeEditor();
 
@@ -590,6 +590,8 @@ void NodeEditorInitialize() {
     // -> destroy the link (detectable with ImNodes::IsLinkDestroyed)
     // -> create a pending link from the farthest pin of the destroyed link
     ImNodes::GetIO().LinkDetachWithModifierClick.Modifier = &ImGui::GetIO().KeyCtrl;
+    ImNodes::StyleColorsBluePrint();
+    ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
 }
 
 void NodeEditorShow() { editor.show(); }
