@@ -162,6 +162,10 @@ public:
 
         ImNodes::BeginNode(7);
 
+        ImNodes::BeginInputAttribute(259);
+        ImGui::Text("2");
+        ImNodes::EndInputAttribute();
+
         ImNodes::BeginNodeTitleBar();
         ImGui::TextUnformatted("simple:)");
         ImNodes::EndNodeTitleBar();
@@ -493,6 +497,19 @@ public:
             ImNodes::Link(i+10, p.first, p.second, ImNodesLinkType_::ImNodesLinkType_Sloped);
         }
         ImNodes::Link(15, 3, 5, ImNodesLinkType_::ImNodesLinkType_Sloped);
+
+        //TODO move the LinkLabel as a AttributeLabel.
+        // void BeginAttributeLabel(int attr_id, int label_id);
+        // void BeginLinkLabel(int link_id, int label_id);
+        // void EndAttributeLabel()
+        // assert scope is ImNodesScope_Editor and crate a label_scope
+        // 
+        // allow for several label (stack on top oe each other :/) for one attribute
+        // can do the same for link by adding a label in the middle of the link
+        //
+        // create a general way of creating labels for creating both Link and attrib label. Just need constraint on the label BB depoending on the attrib/link
+        // for link constraint, but the label at center of link, above link (default)
+
         ImNodes::BeginLinkLabelStart(15);
         ImGui::Text("link label");
         ImNodes::EndLinkLabelStart();
