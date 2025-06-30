@@ -36,8 +36,8 @@ enum ImNodesCol_
     ImNodesCol_Link,
     ImNodesCol_LinkHovered,
     ImNodesCol_LinkSelected,
-    ImNodesCol_LinkLabelHovered,
-    ImNodesCol_LinkLabelSelected,
+    ImNodesCol_LabelHovered,
+    ImNodesCol_LabelSelected,
     ImNodesCol_Pin,
     ImNodesCol_PinHovered,
     ImNodesCol_BoxSelector,
@@ -72,9 +72,9 @@ enum ImNodesStyleVar_
     ImNodesStyleVar_LinkSlopedMinSlope,
     ImNodesStyleVar_LinkSlopedMinOffset,
     ImNodesStyleVar_LinkCreationType,
-    ImNodesStyleVar_LinkLabelPadding,
-    ImNodesStyleVar_LinkLabelCornerRounding,
-    ImNodesStyleVar_LinkLabelDraggable,
+    ImNodesStyleVar_LabelPadding,
+    ImNodesStyleVar_LabelCornerRounding,
+    ImNodesStyleVar_LabelDraggable,
     ImNodesStyleVar_PinCircleRadius,
     ImNodesStyleVar_PinQuadSideLength,
     ImNodesStyleVar_PinTriangleSideLength,
@@ -141,7 +141,7 @@ enum ImNodesEventVar_
 {
     ImNodesEventVar_LinkDeformation,
     ImNodesEventVar_NodeMove,
-    ImNodesEventVar_LinkLabelMove,
+    ImNodesEventVar_LabelMove,
     ImNodesEventVar_UserEvent,
     ImNodesEventVar_COUNT
 };
@@ -218,9 +218,9 @@ struct ImNodesStyle
     //Type of link being drag by the user
     ImNodesLinkType LinkCreationType;
 
-    ImVec2 LinkLabelPadding;
-    float LinkLabelCornerRounding;
-    bool LinkLabelDraggable;
+    ImVec2 LabelPadding;
+    float LabelCornerRounding;
+    bool LabelDraggable;
 
     // The following variables control the look and behavior of the pins. The default size of each
     // pin shape is balanced to occupy approximately the same surface area on the screen.
@@ -387,10 +387,10 @@ void PopAttributeFlag();
 // calls. The order of start_attr and end_attr doesn't make a difference for rendering the link.
 void Link(int id, int start_attribute_id, int end_attribute_id, ImNodesLinkType linkType=ImNodesLinkType_::ImNodesLinkType_Bezier);
 
-void BeginLinkLabelStart(int id);
-void EndLinkLabelStart();
-void BeginLinkLabelEnd(int id);
-void EndLinkLabelEnd();
+void BeginPinLabel(int pinId, int labelId);
+void BeginLinkLabel(int linkId, int labelId);
+void EndPinLabel();
+void EndLinkLabel();
 
 // Enable or disable the ability to click and drag a specific node.
 void SetNodeDraggable(int node_id, const bool draggable);
@@ -424,26 +424,23 @@ bool IsEditorHovered();
 bool IsNodeHovered(int* node_id);
 bool IsLinkHovered(int* link_id);
 bool IsPinHovered(int* attribute_id);
-bool IsLinkLabelStartHovered(int* link_id);
-bool IsLinkLabelEndHovered(int* link_id);
+bool IsLabelHovered(int* label_id);
 
 // Use The following two functions to query the number of selected nodes or links in the current
 // editor. Use after calling EndNodeEditor().
 int NumSelectedNodes();
 int NumSelectedLinks();
-int NumSelectedLinkLabelsStart();
-int NumSelectedLinkLabelsEnd();
+int NumSelectedLabels();
 // Get the selected node/link ids. The pointer argument should point to an integer array with at
 // least as many elements as the respective NumSelectedNodes/NumSelectedLinks function call
 // returned.
 void GetSelectedNodes(int* node_ids);
 void GetSelectedLinks(int* link_ids);
-void GetSelectedLinkLabelsStart(int* link_ids);
-void GetSelectedLinkLabelsEnd(int* link_ids);
+void GetSelectedLabels(int* label_ids);
 // Clears the list of selected nodes/links. Useful if you want to delete a selected node or link.
 void ClearNodeSelection();
 void ClearLinkSelection();
-void ClearLinkLabelSelection();
+void ClearLabelSelection();
 // Use the following functions to add or remove individual nodes or links from the current editors
 // selection. Note that all functions require the id to be an existing valid id for this editor.
 // Select-functions has the precondition that the object is currently considered unselected.
@@ -456,12 +453,9 @@ bool IsNodeSelected(int node_id);
 void SelectLink(int link_id);
 void ClearLinkSelection(int link_id);
 bool IsLinkSelected(int link_id);
-void SelectLinkLabelStart(int link_id);
-void SelectLinkLabelEnd(int link_id);
-void ClearLinkLabelStartSelection(int link_id);
-void ClearLinkLabelEndSelection(int link_id);
-bool IsLinkLabelStartSelected(int link_id);
-bool IsLinkLabelEndSelected(int link_id);
+void SelectLabel(int label_id);
+void ClearLabelSelection(int label_id);
+bool IsLabelSelected(int label_id);
 
 // Was the previous attribute active? This will continuously return true while the left mouse button
 // is being pressed over the UI content of the attribute.

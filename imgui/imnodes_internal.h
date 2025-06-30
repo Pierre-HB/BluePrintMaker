@@ -91,6 +91,7 @@ extern ImNodesContext* GImNodes;
 
 typedef int ImNodesScope;
 typedef int ImNodesAttributeType;
+typedef int ImNodesParentLabelType;
 typedef int ImNodesUIState;
 typedef int ImNodesClickInteractionType;
 typedef int ImNodesLinkCreationType;
@@ -104,7 +105,7 @@ enum ImNodesScope_
     ImNodesScope_Editor = 1 << 1,
     ImNodesScope_Node = 1 << 2,
     ImNodesScope_Attribute = 1 << 3,
-    ImNodesScope_LinkLabel = 1 << 4
+    ImNodesScope_Label = 1 << 4
 };
 
 enum ImNodesAttributeType_
@@ -112,6 +113,13 @@ enum ImNodesAttributeType_
     ImNodesAttributeType_None,
     ImNodesAttributeType_Input,
     ImNodesAttributeType_Output
+};
+
+enum ImNodesParentLabelType_
+{
+    ImNodesParentLabelType_None,
+    ImNodesParentLabelType_Pin,
+    ImNodesParentLabelType_Link
 };
 
 enum ImNodesUIState_
@@ -129,7 +137,7 @@ enum ImNodesClickInteractionType_
     ImNodesClickInteractionType_LinkControl,
     ImNodesClickInteractionType_LinkCreation,
     ImNodesClickInteractionType_LinkDeformation,
-    ImNodesClickInteractionType_LinkLabel,
+    ImNodesClickInteractionType_Label,
     ImNodesClickInteractionType_Panning,
     ImNodesClickInteractionType_BoxSelection,
     ImNodesClickInteractionType_ImGuiItem,
@@ -313,14 +321,15 @@ inline int GetLinkControlLinkId(int Id) {
     return Id >> 4;
 }
 
-
-struct ImLinkLabelData {
+struct ImLabelData {
     int Id;      // global if of the control data, should be = 2*LinkIdx + 3*LocalId to ensure uniqueness
-    bool startLabel;
     ImVec2 Deformation;
     ImRect Rect;
-    ImVec2 _Origin; // origin of the label during this frame. Is recomputed at each frame, MUST NOT BE CHANGE BY THE USER
+    
+    int parentId;
+    ImNodesParentLabelType parentType;
 
+    ImVec2 _Origin; // origin of the label during this frame. Is recomputed at each frame, MUST NOT BE CHANGE BY THE USER
     struct
     {
         ImU32 BorderHovered, BorderSelected;
@@ -335,23 +344,8 @@ struct ImLinkLabelData {
     bool Draggable;
 
     //empty constructor for Pool initialization
-    ImLinkLabelData(const int id) : Id(id), startLabel(), Deformation(), Rect(), _Origin(), ColorStyle(), LayoutStyle(), Draggable(true) {}
+    ImLabelData(const int id) : Id(id), Deformation(), Rect(), parentId(), parentType(), _Origin(), ColorStyle(), LayoutStyle(), Draggable(true) {}
 };
-
-inline int GetLinkLabelId(int linkId, bool start_label) {
-    if (start_label)
-        return 2 * linkId;
-    else
-        return 2 * linkId + 1;
-}
-
-inline int GetLinkLabelLinkId(int linkLabelId) {
-    return linkLabelId/2;
-}
-
-inline int IsLinkLabelStart(int linkLabelId) {
-    return (linkLabelId + 1) % 2;
-}
 
 struct ImClickInteractionState
 {
@@ -493,7 +487,7 @@ struct ImNodesEditorContext
     ImObjectPool<ImPinData>  Pins;
     ImObjectPool<ImLinkData> Links;
     ImObjectPool<ImLinkControlData> LinkControls;
-    ImObjectPool<ImLinkLabelData> LinkLabels;
+    ImObjectPool<ImLabelData> Labels;
 
     ImVector<int> NodeDepthOrder;
 
@@ -507,7 +501,7 @@ struct ImNodesEditorContext
     ImVector<int> SelectedNodeIndices;
     ImVector<int> SelectedLinkIndices;
     ImVector<int> SelectedLinkControlIndices;
-    ImVector<int> SelectedLinkLabelIndices;
+    ImVector<int> SelectedLabelIndices;
 
     // Relative origins of selected nodes for snapping of dragged nodes
     ImVector<ImVec2> SelectedNodeOffsets;
@@ -520,9 +514,9 @@ struct ImNodesEditorContext
     ImVec2 PrimaryLinkControlOffset;
 
     // Relative origins of selected link label for snapping of dragging
-    ImVector<ImVec2> SelectedLinkLabelOffsets;
+    ImVector<ImVec2> SelectedLabelOffsets;
     // Offset of the primary link label origin relative to the mouse cursor.
-    ImVec2 PrimaryLinkLabelOffset;
+    ImVec2 PrimaryLabelOffset;
 
     ImClickInteractionState ClickInteraction;
 
@@ -543,8 +537,8 @@ struct ImNodesEditorContext
     ImNodesEventVarElement current_event;
 
     ImNodesEditorContext()
-        : Nodes(), Pins(), Links(), LinkControls(), LinkLabels(), Panning(0.f, 0.f), SelectedNodeIndices(), SelectedLinkIndices(),
-          SelectedNodeOffsets(), SelectedLinkLabelIndices(), PrimaryNodeOffset(0.f, 0.f), ClickInteraction(),
+        : Nodes(), Pins(), Links(), LinkControls(), Labels(), Panning(0.f, 0.f), SelectedNodeIndices(), SelectedLinkIndices(),
+          SelectedNodeOffsets(), SelectedLabelIndices(), PrimaryNodeOffset(0.f, 0.f), ClickInteraction(),
           MiniMapEnabled(false), MiniMapSizeFraction(0.0f), MiniMapNodeHoveringCallback(NULL),
           MiniMapNodeHoveringCallbackUserData(NULL), MiniMapScaling(0.0f), current_event()
     {
@@ -585,13 +579,13 @@ struct ImNodesContext
     int CurrentNodeIdx;
     int CurrentPinIdx;
     int CurrentAttributeId;
-    int CurrentLinkLabelIdx;
+    int CurrentLabelIdx;
 
     ImOptionalIndex HoveredNodeIdx;
     ImOptionalIndex HoveredLinkIdx;
     ImOptionalIndex HoveredLinkControlIdx;
     ImOptionalIndex HoveredPinIdx;
-    ImOptionalIndex HoveredLinkLabelIdx;
+    ImOptionalIndex HoveredLabelIdx;
 
     ImOptionalIndex DeletedLinkIdx;
     ImOptionalIndex SnapLinkIdx;

@@ -493,12 +493,15 @@ public:
             ImNodes::Link(i+10, p.first, p.second, ImNodesLinkType_::ImNodesLinkType_Sloped);
         }
         ImNodes::Link(15, 3, 5, ImNodesLinkType_::ImNodesLinkType_Sloped);
-        ImNodes::BeginLinkLabelStart(15);
+        ImNodes::BeginPinLabel(3, 456523);
         ImGui::Text("link label");
-        ImNodes::EndLinkLabelStart();
-        ImNodes::BeginLinkLabelEnd(15);
+        ImNodes::EndPinLabel();
+        ImNodes::BeginPinLabel(5, 456523+1);
         ImGui::Text("end label");
-        ImNodes::EndLinkLabelEnd();
+        ImNodes::EndPinLabel();
+        ImNodes::BeginLinkLabel(15, 456523 + 2);
+        ImGui::Text("end link label");
+        ImNodes::EndLinkLabel();
         //ImNodes::Link(16, 6, 3);
 
         //ImNodes::MiniMap();
