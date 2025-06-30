@@ -162,6 +162,10 @@ public:
 
         ImNodes::BeginNode(7);
 
+        ImNodes::BeginInputAttribute(259);
+        ImGui::Text("2");
+        ImNodes::EndInputAttribute();
+
         ImNodes::BeginNodeTitleBar();
         ImGui::TextUnformatted("simple:)");
         ImNodes::EndNodeTitleBar();
@@ -493,6 +497,7 @@ public:
             ImNodes::Link(i+10, p.first, p.second, ImNodesLinkType_::ImNodesLinkType_Sloped);
         }
         ImNodes::Link(15, 3, 5, ImNodesLinkType_::ImNodesLinkType_Sloped);
+        
         ImNodes::BeginPinLabel(3, 456523);
         ImGui::Text("link label");
         ImNodes::EndPinLabel();
