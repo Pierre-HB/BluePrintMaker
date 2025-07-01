@@ -6,6 +6,8 @@
 #include "smatrix.h"
 //#include "fraction.h"
 #include "rat.hpp"
+#include "node.h"
+#include "blue_print.h"
 
 
 static SMatrix<Rat> create_PB() {
@@ -47,6 +49,8 @@ class HelloWorldNodeEditor
     std::vector<std::pair<int, int>> links;
     bool swap = false;
     SMatrix<Rat>* m;
+
+    BluePrint* bp;
 public:
     void show()
     {
@@ -583,6 +587,7 @@ public:
 };
 
 static HelloWorldNodeEditor editor;
+static BluePrint bp;
 } // namespace
 
 void NodeEditorInitialize() {
@@ -600,9 +605,19 @@ void NodeEditorInitialize() {
     ImNodes::GetIO().LinkDetachWithModifierClick.Modifier = &ImGui::GetIO().KeyCtrl;
     ImNodes::StyleColorsBluePrint();
     ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
-}
 
-void NodeEditorShow() { editor.show(); }
+    
+}
+//bp = new BluePrint();
+
+
+//void NodeEditorShow() { editor.show(); }
+void NodeEditorShow() {
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+    bp.Draw();
+}
 
 void NodeEditorShutdown() {
     editor.clear();

@@ -43,6 +43,9 @@
     <ClCompile Include="blue_print.cpp">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="node.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -82,6 +85,12 @@
       <Filter>sources</Filter>
     </ClInclude>
     <ClInclude Include="rat.hpp">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="node.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="blue_print.h">
       <Filter>sources</Filter>
     </ClInclude>
   </ItemGroup>

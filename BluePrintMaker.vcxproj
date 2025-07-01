@@ -171,8 +171,10 @@
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="node.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="blue_print.h" />
     <ClInclude Include="fraction.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
@@ -182,6 +184,7 @@
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="node.h" />
     <ClInclude Include="node_editor.h" />
     <ClInclude Include="num.hpp" />
     <ClInclude Include="rat.hpp" />
