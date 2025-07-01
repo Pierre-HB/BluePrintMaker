@@ -774,90 +774,105 @@ ImVec2 MooveLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& l
     }
     return ImVec2(0, 0);
 }
+
+void ComputeLinkControlOffsets(ImNodesEditorContext& editor, const int primary_link_control_idx);
 static void PushEventVar(const ImNodesEventVarElement& Event);
-void ContraintLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& linkControl) {
-    ImLinkData& link = editor.Links.Pool[linkControl.LinkIdx];
-    const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
-    const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
-    const Curve curve = GetCurve(
-        start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+void ContraintLinkControls(ImNodesEditorContext& editor) {
 
     ImNodesEventVarElement Event = ImNodesEventVarElement(ImNodesEventVar_LinkDeformation);
-    int localID_dest[2];
-    int nb_points = GetControlPrimitivePointsLocalID(linkControl.LocalId, *curve.sloped_curve, localID_dest);
-    for (int i = 0; i < nb_points; i++)
-        Event.addOldPos(GetLinkControlId(localID_dest[i], link.Id), link.Deformations[localID_dest[i]]);
+    for (int link_control_ptr = 0; link_control_ptr < editor.SelectedLinkControlIndices.size(); link_control_ptr++) {
+        const ImLinkControlData& linkControl = editor.LinkControls.Pool[editor.SelectedLinkControlIndices[link_control_ptr]];
 
-    if (linkControl.LocalId == 1 || linkControl.LocalId == 6) {
-        link.Deformations[1].y = 0;
+        ImLinkData& link = editor.Links.Pool[linkControl.LinkIdx];
+        const ImPinData start_pin = editor.Pins.Pool[link.StartPinIdx];
+        const ImPinData end_pin = editor.Pins.Pool[link.EndPinIdx];
+        const Curve curve = GetCurve(
+            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
 
-        if (start_pin.Type == ImNodesAttributeType_Output && link.Deformations[1].x < 0)
-            link.Deformations[1].x = 0;
-        if (start_pin.Type == ImNodesAttributeType_Input && link.Deformations[1].x > 0)
-            link.Deformations[1].x = 0;
-    }
-    if (linkControl.LocalId == 4 || linkControl.LocalId == 10) {
-        link.Deformations[4].y = 0;
-        if (end_pin.Type == ImNodesAttributeType_Output && link.Deformations[4].x < 0)
-            link.Deformations[4].x = 0;
-        if (end_pin.Type == ImNodesAttributeType_Input && link.Deformations[4].x > 0)
-            link.Deformations[4].x = 0;
-    }
-    if (linkControl.LocalId == 2) {
-        link.Deformations[2].y = link.Deformations[3].y;
-        link.Deformations[2].x = link.Deformations[1].x;
-    }
-    if (linkControl.LocalId == 3) {
-        link.Deformations[3].y = link.Deformations[2].y;
-        link.Deformations[3].x = link.Deformations[4].x;
-    }
+        int localID_dest[2];
+        int nb_points = GetControlPrimitivePointsLocalID(linkControl.LocalId, *curve.sloped_curve, localID_dest);
+        for (int i = 0; i < nb_points; i++)
+            if(!Event.Ids.contains(GetLinkControlId(localID_dest[i], link.Id)))
+                Event.addOldPos(GetLinkControlId(localID_dest[i], link.Id), link.Deformations[localID_dest[i]]);
 
-    if (linkControl.LocalId == 7) {
-        float avg_x = (link.Deformations[1].x + link.Deformations[2].x)/2.0f;
-        link.Deformations[1].x = avg_x;
-        link.Deformations[2].x = avg_x;
-    }
-    if (linkControl.LocalId == 8) {
-        if (curve.sloped_curve->NumSegments == 3) {
-            float avg_x = (link.Deformations[1].x + link.Deformations[4].x) / 2.0f;
-            float min_slope = ImNodes::GetStyle().LinkSlopedMinSlope;
-            if (min_slope > 0.001f) {
-                float h = (link.Deformations[1].y - link.Deformations[4].y);
-                float x = h/min_slope;
-                link.Deformations[1].x = avg_x + x/2;
-                link.Deformations[4].x = avg_x - x/2;
+        if (linkControl.LocalId == 1 || linkControl.LocalId == 6) {
+            link.Deformations[1].y = 0;
+
+            if (start_pin.Type == ImNodesAttributeType_Output && link.Deformations[1].x < 0)
+                link.Deformations[1].x = 0;
+            if (start_pin.Type == ImNodesAttributeType_Input && link.Deformations[1].x > 0)
+                link.Deformations[1].x = 0;
+        }
+        if (linkControl.LocalId == 4 || linkControl.LocalId == 10) {
+            link.Deformations[4].y = 0;
+            if (end_pin.Type == ImNodesAttributeType_Output && link.Deformations[4].x < 0)
+                link.Deformations[4].x = 0;
+            if (end_pin.Type == ImNodesAttributeType_Input && link.Deformations[4].x > 0)
+                link.Deformations[4].x = 0;
+        }
+        if (linkControl.LocalId == 2) {
+            link.Deformations[2].y = link.Deformations[3].y;
+            link.Deformations[2].x = link.Deformations[1].x;
+        }
+        if (linkControl.LocalId == 3) {
+            link.Deformations[3].y = link.Deformations[2].y;
+            link.Deformations[3].x = link.Deformations[4].x;
+        }
+
+        if (linkControl.LocalId == 7) {
+            float avg_x = (link.Deformations[1].x + link.Deformations[2].x) / 2.0f;
+            link.Deformations[1].x = avg_x;
+            link.Deformations[2].x = avg_x;
+        }
+        if (linkControl.LocalId == 8) {
+            if (curve.sloped_curve->NumSegments == 3) {
+                float avg_x = (link.Deformations[1].x + link.Deformations[4].x) / 2.0f;
+                float min_slope = ImNodes::GetStyle().LinkSlopedMinSlope;
+                if (min_slope > 0.001f) {
+                    float h = (link.Deformations[1].y - link.Deformations[4].y);
+                    float x = h/min_slope;
+                    link.Deformations[1].x = avg_x + x/2;
+                    link.Deformations[4].x = avg_x - x/2;
+                }
+                else {
+                    link.Deformations[1].x = avg_x;
+                    link.Deformations[4].x = avg_x;
+                }
             }
             else {
-                link.Deformations[1].x = avg_x;
-                link.Deformations[4].x = avg_x;
+                float avg_y = (link.Deformations[2].y + link.Deformations[3].y) / 2.0f;
+                link.Deformations[2].y = avg_y;
+                link.Deformations[3].y = avg_y;
             }
+
         }
-        else {
-            float avg_y = (link.Deformations[2].y + link.Deformations[3].y) / 2.0f;
-            link.Deformations[2].y = avg_y;
-            link.Deformations[3].y = avg_y;
+        if (linkControl.LocalId == 9) {
+            float avg_x = (link.Deformations[3].x + link.Deformations[4].x) / 2.0f;
+            link.Deformations[3].x = avg_x;
+            link.Deformations[4].x = avg_x;
         }
-        
+        for (int i = 0; i < nb_points; i++)
+            Event.addNewPos(GetLinkControlId(localID_dest[i], link.Id), link.Deformations[localID_dest[i]]);
     }
-    if (linkControl.LocalId == 9) {
-        float avg_x = (link.Deformations[3].x + link.Deformations[4].x) / 2.0f;
-        link.Deformations[3].x = avg_x;
-        link.Deformations[4].x = avg_x;
-    }
-    for (int i = 0; i < nb_points; i++)
-        Event.addNewPos(GetLinkControlId(localID_dest[i], link.Id), link.Deformations[localID_dest[i]]);
+    if (editor.SelectedLinkControlIndices.size() > 0)
+        ComputeLinkControlOffsets(editor, editor.SelectedLinkControlIndices[0]);
     if (Event.valid())
         PushEventVar(Event);
     editor.current_event = ImNodesEventVarElement();
 }
 
-
-void ContraintLabel(ImNodesEditorContext& editor, ImLabelData& Label) {
+void ComputeLabelOffsets(ImNodesEditorContext& editor, const int primary_label_idx);
+void ContraintLabels(ImNodesEditorContext& editor) {
     ImNodesEventVarElement Event = ImNodesEventVarElement(ImNodesEventVar_LabelMove);
-    Event.addOldPos(Label.Id, Label.Deformation);
-    Label.Deformation = ImVec2(0, 0);
-    Event.addNewPos(Label.Id, Label.Deformation);
-
+    for (int label_ptr = 0; label_ptr < editor.SelectedLabelIndices.size(); label_ptr++) {
+        ImLabelData& Label = editor.Labels.Pool[editor.SelectedLabelIndices[label_ptr]];
+        Event.addOldPos(Label.Id, Label.Deformation);
+        Label.Deformation = ImVec2(0, 0);
+        Event.addNewPos(Label.Id, Label.Deformation);
+    }
+    
+    if(editor.SelectedLabelIndices.size() > 0)
+        ComputeLabelOffsets(editor, editor.SelectedLabelIndices[0]);
     if (Event.valid())
         PushEventVar(Event);
     editor.current_event = ImNodesEventVarElement();
@@ -1323,6 +1338,22 @@ void BeginNodeSelection(ImNodesEditorContext& editor, const int node_idx)
     }
 }
 
+void ComputeLinkControlOffsets(ImNodesEditorContext& editor, const int primary_link_control_idx) {
+    // To support snapping of multiple nodes, we need to store the offset of
+    // each node in the selection to the origin of the dragged node.
+    const ImVec2 ref_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[primary_link_control_idx]);
+    editor.PrimaryLinkControlOffset =
+        ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+
+    editor.SelectedLinkControlOffsets.clear();
+    for (int idx = 0; idx < editor.SelectedLinkControlIndices.Size; idx++)
+    {
+        const int    link_control = editor.SelectedLinkControlIndices[idx];
+        const ImVec2 link_control_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[link_control]) - ref_origin;
+        editor.SelectedLinkControlOffsets.push_back(link_control_origin);
+    }
+}
+
 void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_control_idx) {
 
     if (editor.ClickInteraction.Type != ImNodesClickInteractionType_None)
@@ -1355,18 +1386,21 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
         editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
     }
 
-    // To support snapping of multiple nodes, we need to store the offset of
-    // each node in the selection to the origin of the dragged node.
-    const ImVec2 ref_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[link_control_idx]);
-    editor.PrimaryLinkControlOffset =
+    ComputeLinkControlOffsets(editor, link_control_idx);
+}
+
+void ComputeLabelOffsets(ImNodesEditorContext& editor, const int primary_label_idx) {
+    IM_ASSERT(editor.SelectedLabelIndices.contains(primary_label_idx));
+    const ImVec2 ref_origin = GetLabelOrigin(editor, editor.Labels.Pool[primary_label_idx]) + editor.Labels.Pool[primary_label_idx].Deformation;
+    editor.PrimaryLabelOffset =
         ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
-    
-    editor.SelectedLinkControlOffsets.clear();
-    for (int idx = 0; idx < editor.SelectedLinkControlIndices.Size; idx++)
+
+    editor.SelectedLabelOffsets.clear();
+    for (int idx = 0; idx < editor.SelectedLabelIndices.Size; idx++)
     {
-        const int    link_control = editor.SelectedLinkControlIndices[idx];
-        const ImVec2 link_control_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[link_control]) - ref_origin;
-        editor.SelectedLinkControlOffsets.push_back(link_control_origin);
+        const int    label = editor.SelectedLabelIndices[idx];
+        const ImVec2 label_origin = GetLabelOrigin(editor, editor.Labels.Pool[label]) + editor.Labels.Pool[label].Deformation - ref_origin;
+        editor.SelectedLabelOffsets.push_back(label_origin);
     }
 }
 
@@ -1397,17 +1431,7 @@ void BeginLabelSelection(ImNodesEditorContext& editor, const int label_idx)
         editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
     }
 
-    const ImVec2 ref_origin = GetLabelOrigin(editor, editor.Labels.Pool[label_idx]) + editor.Labels.Pool[label_idx].Deformation;
-    editor.PrimaryLabelOffset =
-        ref_origin  + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
-
-    editor.SelectedLabelOffsets.clear();
-    for (int idx = 0; idx < editor.SelectedLabelIndices.Size; idx++)
-    {
-        const int    label = editor.SelectedLabelIndices[idx];
-        const ImVec2 label_origin = GetLabelOrigin(editor, editor.Labels.Pool[label]) + editor.Labels.Pool[label].Deformation - ref_origin;
-        editor.SelectedLabelOffsets.push_back(label_origin);
-    }
+    ComputeLabelOffsets(editor, label_idx);
 }
 
 ImVector<int> GetAllowedLinkControlLocalId(ImNodesEditorContext& editor, const int link_idx) {
@@ -2080,7 +2104,7 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
         TranslateSelectedLinkControl(editor);
 
         if (ImGui::IsMouseDoubleClicked(0)) {
-            ContraintLinkControl(editor, editor.LinkControls.Pool[GImNodes->HoveredLinkControlIdx.Value()]);
+            ContraintLinkControls(editor);
         }
         else if (GImNodes->LeftMouseReleased)
         {
@@ -2119,8 +2143,8 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
         TranslateSelectedLabels(editor);
 
         if (ImGui::IsMouseDoubleClicked(0)) {
-            ContraintLabel(editor, editor.Labels.Pool[GImNodes->HoveredLabelIdx.Value()]);
-        }
+            ContraintLabels(editor);
+        }   
         if (GImNodes->LeftMouseReleased)
         {
             editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
@@ -2132,7 +2156,7 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
             if (editor.current_event.valid())
                 PushEventVar(editor.current_event);
             editor.current_event = ImNodesEventVarElement();
-        }
+        }            
         break;
     }
     case ImNodesClickInteractionType_Link:
