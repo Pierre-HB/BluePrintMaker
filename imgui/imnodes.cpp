@@ -1216,10 +1216,18 @@ inline ImVec2 GetLabelOrigin(ImNodesEditorContext& editor, const ImLabelData& la
         IM_ASSERT(link_idx != -1);
         const ImLinkData& link = editor.Links.Pool[link_idx];
 
-        const ImPinData& start_pin = editor.Pins.Pool[link.StartPinIdx];
-        const ImPinData& end_pin = editor.Pins.Pool[link.EndPinIdx];
+        const ImPinData& pin_start = editor.Pins.Pool[link.StartPinIdx];
+        const ImPinData& pin_end = editor.Pins.Pool[link.EndPinIdx];
+        const ImRect& node_start_rect = editor.Nodes.Pool[pin_start.ParentNodeIdx].Rect;
+        const ImRect& node_end_rect = editor.Nodes.Pool[pin_end.ParentNodeIdx].Rect;
+
+        const ImVec2 start = GetScreenSpacePinCoordinates(
+            node_start_rect, pin_start.AttributeRect, pin_start.Type);
+        const ImVec2 end =
+            GetScreenSpacePinCoordinates(node_end_rect, pin_end.AttributeRect, pin_end.Type);
+
         const Curve curve = GetCurve(
-            start_pin.Pos, end_pin.Pos, start_pin.Type, end_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
+            start, end, pin_start.Type, pin_end.Type, GImNodes->Style.LinkLineSegmentsPerLength, link.LinkType, link.Deformations);
 
         ImVec2 origin;
         if (curve.type == ImNodesLinkType_Sloped) {
@@ -3651,13 +3659,7 @@ void EndNodeEditor()
         }
     }
 
-    for (int label_idx = 0; label_idx < editor.Labels.Pool.size(); ++label_idx)
-    {
-        if (editor.Labels.InUse[label_idx])
-        {
-            DrawLabel(editor, label_idx);
-        }
-    }
+    
 
     for (int link_control_idx = 0; link_control_idx < editor.LinkControls.Pool.size(); ++link_control_idx)
     {
@@ -3685,6 +3687,14 @@ void EndNodeEditor()
 
             if(local_ids.contains(link_control.LocalId))
                 DrawControlPrimitive(GetControlPrimitive(link_control.LocalId, curve), link_control_color, GImNodes->Style.LinkThickness);
+        }
+    }
+
+    for (int label_idx = 0; label_idx < editor.Labels.Pool.size(); ++label_idx)
+    {
+        if (editor.Labels.InUse[label_idx])
+        {
+            DrawLabel(editor, label_idx);
         }
     }
 
