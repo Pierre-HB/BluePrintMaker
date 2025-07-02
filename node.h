@@ -79,7 +79,7 @@ protected:
 public:
 	NodeViewer(const Node* node);
 
-	void Draw() const; //ImNodes API
+	void Draw(); //ImNodes API
 
 	//void Update(); //Model API.... Maybe move this function up in the blueprint manager ?
 	// or just check if it's Id have been swaped ?
@@ -89,7 +89,10 @@ public:
 	int GetId() const {
 		return node->GetId();
 	}
-
+private:
+	//if the ref node changed (more or less input/outpu), reset all pins.
+	//TODO a child NodeSplitterMergerViwer that only reset if the number of inputs/outputs decreased, keep same order if just one pin was added
+	void Reset();
 };
 
 //IMNode is the Viewer model

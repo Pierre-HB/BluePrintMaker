@@ -46,6 +46,12 @@
     <ClCompile Include="node.cpp">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="link.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="io_panel.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -91,6 +97,12 @@
       <Filter>sources</Filter>
     </ClInclude>
     <ClInclude Include="blue_print.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="link.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="io_panel.h">
       <Filter>sources</Filter>
     </ClInclude>
   </ItemGroup>

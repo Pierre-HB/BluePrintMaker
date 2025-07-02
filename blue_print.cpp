@@ -7,36 +7,6 @@
 //#include "smatrix.h"
 //#include "rat.hpp"
 
-
-//class BluePrint {
-//	int idSeed;
-//	const char* name;
-//	ImVector<int> nodes;
-//	ImVector<int> links; //Get list of link caus wee need to render them after all nodes
-//	int ioPanel; //object for managing user input
-//	/*
-//	asking to create node for now
-//	*/
-//	BluePrint(const char* name) : idSeed(0), name(name) {};
-//
-//	int CreateId() {
-//		return idSeed++;
-//	}
-//
-//	void Draw() const {
-//		//begin editor
-//		//draw node
-//		//draw links
-//
-//		//IF click droit show IOPanel
-//	}
-//
-//	void Update() {
-//		//if need to add node, link, swap attribute
-//		//Copie/paste, save ?
-//	}
-//};
-
 /*
 +---------------------------------------------------------------------------+
 | Blue Print																|
@@ -94,7 +64,9 @@
 
 */
 
-BluePrint::BluePrint(const char* name) : idSeed(0), name(name) {
+BluePrint::BluePrint(const char* name) : idSeed(0), name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers() {
+	//TODO Change this setup for a json reading
+	//PLACEHOLDER
 	Node* node = new Node(CreateId());
 	node->AddInputs(NodeIO(CreateId(), 42));
 	node->AddInputs(NodeIO(CreateId(), 2));
@@ -102,9 +74,6 @@ BluePrint::BluePrint(const char* name) : idSeed(0), name(name) {
 
 	node->AddOutputs(NodeIO(CreateId(), 50));
 	node->AddOutputs(NodeIO(CreateId(), 1));
-
-	nodes = std::vector<Node*>();
-	nodeViewers = std::vector<NodeViewer*>();
 
 	nodes.push_back(node);
 	nodeViewers.push_back(new NodeViewer(node));
@@ -124,10 +93,46 @@ void BluePrint::Draw() const {
 
 	ImNodes::BeginNodeEditor();
 
-	for (const NodeViewer* nodeViewer : nodeViewers)
+	for (NodeViewer* nodeViewer : nodeViewers)
 		nodeViewer->Draw();
+
+	for (const LinkViewer* linkViewer : linkViewers)
+		linkViewer->Draw();
 
 
 	ImNodes::EndNodeEditor();
+
+	ioPanel.Draw();
+
 	ImGui::End();
+}
+
+void BluePrint::Update() {
+
+	int nodeCreateType = -1;
+	ioPanel.Update(nodeCreateType);
+	if (nodeCreateType != -1) {
+		std::cout << "ask to create " << nodeCreateType << std::endl;
+
+		//TODO 
+		// create a static array of all possible empty nodes
+		// (smelter, science, splitter, merger, input, output, etc
+		// add the corrsponding empty node to the node list
+
+		Node* node = new Node(CreateId());
+		node->AddInputs(NodeIO(CreateId(), 2));
+		node->AddOutputs(NodeIO(CreateId(), 1));
+
+		nodes.push_back(node);
+		nodeViewers.push_back(new NodeViewer(node));
+	}
+		
+
+	int start_attr, end_attr;
+	if (ImNodes::IsLinkCreated(&start_attr, &end_attr))
+	{
+		Link* link = new Link(CreateId(), start_attr, end_attr);
+		links.push_back(link);
+		linkViewers.push_back(new LinkViewer(link));
+	}
 }

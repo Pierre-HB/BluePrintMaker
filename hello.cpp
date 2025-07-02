@@ -617,6 +617,7 @@ void NodeEditorShow() {
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
     bp.Draw();
+    bp.Update();
 }
 
 void NodeEditorShutdown() {

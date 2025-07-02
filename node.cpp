@@ -39,22 +39,14 @@ void Node::AddOutputs(NodeIO nodeIO) {
 
 
 NodeViewer::NodeViewer(const Node* node) : node(node), input_ref(), output_ref(), input_perm(), output_perm() {
-	const std::vector<NodeIO>& nodeInput = node->GetInputs();
-	const std::vector<NodeIO>& nodeOutput = node->GetOutputs();
-
-	for (int i = 0; i < nodeInput.size(); i++) {
-		input_perm.push_back(i);
-		input_ref.push_back(NodeIOViewer(&nodeInput[i], true));
-	}
-
-	for (int i = 0; i < nodeOutput.size(); i++) {
-		output_perm.push_back(i);
-		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false));
-	}
+	Reset();
 }
 
 // View, only draw data
-void NodeViewer::Draw() const {
+void NodeViewer::Draw() {
+	if (input_ref.size() != node->GetInputs().size() || output_ref.size() != node->GetOutputs().size())
+		Reset();
+
 	ImNodes::BeginNode(GetId());
 	//TODO Draw Title
 	for (int i = 0; i < std::max(input_perm.size(), output_perm.size()); i++) {
@@ -99,5 +91,24 @@ void NodeViewer::SwapIO(int id1, int id2) {
 		index2 = FindIndex(output_ref, output_perm, id2);
 		assert(index2 != -1);
 		swap(output_perm, index1, index2);
+	}
+}
+
+void NodeViewer::Reset() {
+	input_ref.clear();
+	input_perm.clear();
+	output_ref.clear();
+	output_perm.clear();
+	const std::vector<NodeIO>& nodeInput = node->GetInputs();
+	const std::vector<NodeIO>& nodeOutput = node->GetOutputs();
+
+	for (int i = 0; i < nodeInput.size(); i++) {
+		input_perm.push_back(i);
+		input_ref.push_back(NodeIOViewer(&nodeInput[i], true));
+	}
+
+	for (int i = 0; i < nodeOutput.size(); i++) {
+		output_perm.push_back(i);
+		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false));
 	}
 }

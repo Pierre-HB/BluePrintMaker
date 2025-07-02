@@ -1,6 +1,8 @@
 #pragma once
 
+#include "io_panel.h"
 #include "node.h"
+#include "link.h"
 #include <vector>
 
 class BluePrint {
@@ -8,8 +10,13 @@ private:
 	int idSeed;
 	const char* name;
 
+	IOPanel ioPanel;
+
 	std::vector<Node*> nodes;
 	std::vector<NodeViewer*> nodeViewers;
+
+	std::vector<Link*> links;
+	std::vector<LinkViewer*> linkViewers;
 
 	//ImVector<int> links; //Get list of link caus wee need to render them after all nodes
 	//int ioPanel; //object for managing user input
@@ -27,15 +34,8 @@ public:
 	}
 
 	void Draw() const;
-		//begin editor
-		//draw node
-		//draw links
 
-		//IF click droit show IOPanel
-	
+	void Update();
 
-	//void Update() {
-	//	//if need to add node, link, swap attribute
-	//	//Copie/paste, save ?
-	//}
+	void CreateNewNode(int type);
 };
