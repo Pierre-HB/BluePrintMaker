@@ -64,19 +64,59 @@
 
 */
 
-BluePrint::BluePrint(const char* name) : idSeed(0), name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers() {
-	//TODO Change this setup for a json reading
-	//PLACEHOLDER
-	Node* node = new Node(CreateId());
-	node->AddInputs(NodeIO(CreateId(), 42));
-	node->AddInputs(NodeIO(CreateId(), 2));
-	node->AddInputs(NodeIO(CreateId(), 3));
 
-	node->AddOutputs(NodeIO(CreateId(), 50));
-	node->AddOutputs(NodeIO(CreateId(), 1));
+/*
+	recipies[0] = splitter
+	recipies[1] = merger
+	recipies[2] = input
+	recipies[3] = output
+	recipies[4...nb_machine] = empty machines
+	recipies[nb_machine...] = recipies
+	*/
+static const std::vector<Node> createRecipies() {
+	std::vector<Node> recipies = std::vector<Node>();
+	
+	{// Splitter
+		Node node = Node(-1);
+		node.AddInputs(NodeIO(-1, 0));
+		node.AddOutputs(NodeIO(-1, 0));
+		node.AddOutputs(NodeIO(-1, 0));
+		recipies.push_back(node);
+	}
 
-	nodes.push_back(node);
-	nodeViewers.push_back(new NodeViewer(node));
+	{// Merger
+		Node node = Node(-1);
+		node.AddInputs(NodeIO(-1, 0));
+		node.AddInputs(NodeIO(-1, 0));
+		node.AddOutputs(NodeIO(-1, 0));
+		recipies.push_back(node);
+	}
+
+	{// input
+		Node node = Node(-1);
+		node.AddInputs(NodeIO(-1, 0));
+		recipies.push_back(node);
+	}
+
+	{// output
+		Node node = Node(-1);
+		node.AddOutputs(NodeIO(-1, 0));
+		recipies.push_back(node);
+	}
+
+	{// machine
+		Node node = Node(-1);
+		node.AddInputs(NodeIO(-1, 1));
+		node.AddInputs(NodeIO(-1, 2));
+		node.AddOutputs(NodeIO(-1, 3));
+		node.AddOutputs(NodeIO(-1, 4));
+		recipies.push_back(node);
+	}
+
+	return recipies;
+}
+
+BluePrint::BluePrint(const char* name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()) {
 }
 
 BluePrint::~BluePrint() {
@@ -112,20 +152,13 @@ void BluePrint::Update() {
 	int nodeCreateType = -1;
 	ioPanel.Update(nodeCreateType);
 	if (nodeCreateType != -1) {
-		std::cout << "ask to create " << nodeCreateType << std::endl;
-
-		//TODO 
-		// create a static array of all possible empty nodes
-		// (smelter, science, splitter, merger, input, output, etc
-		// add the corrsponding empty node to the node list
-
-		Node* node = new Node(CreateId());
-		node->AddInputs(NodeIO(CreateId(), 2));
-		node->AddOutputs(NodeIO(CreateId(), 1));
-
+		Node* node = new Node(BluePrint::recipies[nodeCreateType], CreateId);
 		nodes.push_back(node);
 		nodeViewers.push_back(new NodeViewer(node));
 	}
+
+	int node_swap_recipy;
+	//id of node, recipe target
 		
 
 	int start_attr, end_attr;

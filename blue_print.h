@@ -5,9 +5,15 @@
 #include "link.h"
 #include <vector>
 
+static int idSeed = 0;
+
+static int CreateId() {
+	return idSeed++;
+}
+
 class BluePrint {
 private:
-	int idSeed;
+	
 	const char* name;
 
 	IOPanel ioPanel;
@@ -23,15 +29,30 @@ private:
 	/*
 	asking to create node for now
 	*/
+
+	const std::vector<Node> recipies;
+	/*
+	recipies[0] = splitter
+	recipies[1] = merger
+	recipies[2] = input
+	recipies[3] = output
+	recipies[4...nb_machine] = empty machines
+	recipies[nb_machine...] = recipies
+	*/
+
+	const std::vector<int> ressources;
+	/*
+	ressources[0] = all_ressources
+	ressources[1] = iron ?
+	ressources[2] = coal ?
+	...
+	*/
+
 public:
 	
 	BluePrint(const char* name);
 	BluePrint() : BluePrint("hello world") {};
 	~BluePrint();
-
-	int CreateId() {
-		return idSeed++;
-	}
 
 	void Draw() const;
 

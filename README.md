@@ -10,6 +10,7 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
 	 + [ ] Source
 	 + [ ] Merger/Spliter
 	 + [ ] Black box
+ - [ ] JSON reader for factory data
  - [ ] Supr to delet object
  - [ ] Dashed type for proliferator links (maybe not)
  - [ ] Node API to automatically manage:

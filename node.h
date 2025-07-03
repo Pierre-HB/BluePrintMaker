@@ -2,21 +2,27 @@
 #include "imnodes.h"
 #include <list>
 #include <vector>
+#include <iostream>
 
 struct NodeIO {
-	int Id;
+	int id;
 	int ressource;
 	//int proliferator_lvl;
 	//int proliferator_lvl2;
 	//int proliferator_lvl3;
 	//std::list<NodeIO*> connectedIO;
 
-	NodeIO() : Id(), ressource() {}
-	NodeIO(int id) : Id(id), ressource() {}
-	NodeIO(int id, int ressource) : Id(id), ressource(ressource) {}
+	NodeIO() : id(), ressource() {}
+	NodeIO(int id) : id(id), ressource() {}
+	NodeIO(int id, int ressource) : id(id), ressource(ressource) {}
 
 	int GetId() const {
-		return Id;
+		return id;
+	}
+
+	void SetId(int id) {
+		NodeIO::id = id;
+		std::cout << "set nodeIO id : " << NodeIO::id << std::endl;
 	}
 };
 
@@ -24,10 +30,12 @@ struct NodeIOViewer {
 	const NodeIO* nodeIO;
 	bool isInput;
 
-	NodeIOViewer(const NodeIO* nodeIO, bool isInput) : nodeIO(nodeIO), isInput(isInput) {}
+	NodeIOViewer(const NodeIO* nodeIO, bool isInput) : nodeIO(nodeIO), isInput(isInput) {
+		std::cout << "create IOViewer : " << nodeIO->GetId() << std::endl;
+	}
 
 	int GetId() const {
-		return nodeIO->Id;
+		return nodeIO->id;
 	}
 
 	void Draw() const {
@@ -51,10 +59,14 @@ protected:
 	int id;
 	std::vector<NodeIO> inputs;
 	std::vector<NodeIO> outputs;
+	//name ?
 
 public:
 	Node();
 	Node(int id);
+	Node(const Node& node);
+	Node(const Node& node, int(*CreateId)());
+	void Overide(const Node& node, int(*CreateId)());
 
 	void Update();
 
@@ -65,6 +77,9 @@ public:
 
 	void AddInputs(NodeIO nodeIO);
 	void AddOutputs(NodeIO nodeIO);
+
+private:
+	void SetIOIds(int(*CreateId)());
 };
 
 // CONTROLLER CLASS

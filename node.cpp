@@ -1,6 +1,7 @@
 #include "node.h"
 #include "imnodes.h"
 #include <utility>
+#include <iostream>
 
 Node::Node() : id() {
 
@@ -10,8 +11,34 @@ Node::Node(int id) : id(id) {
 
 }
 
+//copy a node
+Node::Node(const Node& node) : id(node.id), inputs(node.inputs), outputs(node.outputs) {
+
+}
+
+//copy a node with brand new ids
+Node::Node(const Node& node, int(*CreateId)() ) : Node(node) {
+	id = CreateId();
+	SetIOIds(CreateId);
+}
+
+//change all node parameter to mimic a targeted node. Don't change Node::id
+void Node::Overide(const Node& node, int(*CreateId)()) {
+	inputs = std::vector<NodeIO>(node.GetInputs());
+	outputs = std::vector<NodeIO>(node.GetOutputs());
+	SetIOIds(CreateId);
+}
+
+void Node::SetIOIds(int(*CreateId)()) {
+	for (NodeIO& input : inputs)
+		input.SetId(CreateId());
+
+	for (NodeIO& output : outputs)
+		output.SetId(CreateId());
+}
+
 void Node::Update() {
-	//TODO
+	//TODO overide nodes if needed
 }
 
 int Node::GetId() const {

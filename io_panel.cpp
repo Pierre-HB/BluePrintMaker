@@ -2,6 +2,22 @@
 #include <iostream>
 
 
+static const std::vector<MenuElement*> createIOPanel() {
+    //TODO actually read the json ioPanel
+    std::vector<MenuElement*> elements = std::vector<MenuElement*>();
+    std::vector<MenuElement*> tmp = std::vector<MenuElement*>();
+    tmp.push_back(new MenuElement("smelter", 4, "CTRL 1")); //create emtpy machine n°1
+    tmp.push_back(new MenuElement("fabricator", 4, "CTRL 2")); //create emtpy machine n°2
+    tmp.push_back(new MenuElement("science", 4, "CTRL 3")); //create emtpy machine n°3
+
+    elements.push_back(new MenuElement("machines", tmp));
+    elements.push_back(new MenuElement("splitter", 0)); // create splitter, cpp made node
+    elements.push_back(new MenuElement("merger", 1));
+    elements.push_back(new MenuElement("inputs", 2));
+    elements.push_back(new MenuElement("outputs", 3));
+
+    return elements;
+}
 
 /*
 Internal, private all purpose constructor
@@ -56,19 +72,8 @@ void MenuElement::Update(int& nodeCreateType) {
     //TODO manage user shortcut here
 }
 
-IOPanel::IOPanel() : show(false), elements() {
-    //TODO Change this setup for a json reading
-    //PLACEHOLDER
-    std::vector<MenuElement*> tmp = std::vector<MenuElement*>();
-    tmp.push_back(new MenuElement("smelter", 0, "CTRL 1")); //create emtpy machine n°1
-    tmp.push_back(new MenuElement("fabricator", 1, "CTRL 2")); //create emtpy machine n°2
-    tmp.push_back(new MenuElement("science", 2, "CTRL 3")); //create emtpy machine n°3
+IOPanel::IOPanel() : show(false), elements(createIOPanel()) {
 
-    elements.push_back(new MenuElement("machines", tmp));
-    elements.push_back(new MenuElement("splitter", 3)); // create splitter, cpp made node
-    elements.push_back(new MenuElement("merger", 4));
-    elements.push_back(new MenuElement("inputs", 5));
-    elements.push_back(new MenuElement("outputs", 6));
 }
 
 IOPanel::~IOPanel() {
