@@ -65,7 +65,7 @@ void Node::AddOutputs(NodeIO nodeIO) {
 //============================== Viewer ==============================//
 
 
-NodeViewer::NodeViewer(const Node* node) : node(node), input_ref(), output_ref(), input_perm(), output_perm() {
+NodeViewer::NodeViewer(const Node* node) : node(node), input_ref(), output_ref(), input_perm(), output_perm(), size(1.0f, 1.0f) {
 	Reset();
 }
 
@@ -73,19 +73,46 @@ NodeViewer::NodeViewer(const Node* node) : node(node), input_ref(), output_ref()
 void NodeViewer::Draw() {
 	if (input_ref.size() != node->GetInputs().size() || output_ref.size() != node->GetOutputs().size())
 		Reset();
-
 	ImNodes::BeginNode(GetId());
 	//TODO Draw Title
-	for (int i = 0; i < std::max(input_perm.size(), output_perm.size()); i++) {
-		if (input_perm.size() > i)
-			input_ref[input_perm[i]].Draw();			
+	//ImNodes::BeginNodeTitleBar();
+	//ImGui::Text("title");
+	//ImNodes::EndNodeTitleBar();
 
-		if (input_perm.size() > i && output_ref.size() > i)
-			ImGui::SameLine();
+	float width_input = 0;
+	float width_output = 0;
+	float height_column = 0;
+	float height_total = 0;
 
-		if (output_ref.size() > i)
-			output_ref[output_perm[i]].Draw();
+	if (ImGui::BeginTable("table1", 2, ImGuiTableFlags_SizingFixedFit, size))
+	{
+		for (int i = 0; i < std::max(input_perm.size(), output_perm.size()); i++) {
+			ImGui::TableNextRow();
+			if (input_perm.size() > i) {
+				ImGui::TableSetColumnIndex(0);
+				input_ref[input_perm[i]].Draw();
+
+				ImVec2 r = ImGui::GetItemRectSize();
+				width_input = std::max(width_input, r.x);
+				height_column = std::max(height_column, r.y);
+			}
+
+			if (output_ref.size() > i) {
+				ImGui::TableSetColumnIndex(1);
+				output_ref[output_perm[i]].Draw();
+
+				ImVec2 r = ImGui::GetItemRectSize();
+				width_output = std::max(width_output, r.x);
+				height_column = std::max(height_column, r.y);
+			}
+			height_total += height_column;
+			height_column = 0;
+		}
+
+		ImGui::EndTable();
+		size = ImVec2(width_input + width_output+ ImGui::GetStyle().CellPadding.x, height_total);
 	}
+
 	ImNodes::EndNode();	
 }
 

@@ -91,6 +91,8 @@ protected:
 
 	std::vector<int> input_perm;
 	std::vector<int> output_perm;
+
+	ImVec2 size;
 public:
 	NodeViewer(const Node* node);
 
