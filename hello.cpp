@@ -603,6 +603,11 @@ void NodeEditorInitialize() {
     // -> destroy the link (detectable with ImNodes::IsLinkDestroyed)
     // -> create a pending link from the farthest pin of the destroyed link
     ImNodes::GetIO().LinkDetachWithModifierClick.Modifier = &ImGui::GetIO().KeyCtrl;
+    ImNodes::GetIO().TranslationModifier.X_Modifier = &ImGui::GetIO().KeysData[ImGuiKey_X - ImGuiKey_NamedKey_BEGIN].Down;
+    ImNodes::GetIO().TranslationModifier.Y_Modifier = &(ImGui::GetIO().KeysData[ImGuiKey_Y - ImGuiKey_NamedKey_BEGIN].Down);
+    //ImGui::IsKeyDown(ImGuiKey_Y)
+    //ImGui::IsKey
+    //ImGuiKeyData  KeysData[ImGuiKey_NamedKey_COUNT];// Key state for all known keys. Use IsKeyXXX() functions to access this.
     ImNodes::StyleColorsBluePrint();
     ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
 

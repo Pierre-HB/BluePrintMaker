@@ -516,7 +516,17 @@ void DrawCubicBezier(const CubicBezier cubic_bezier, ImU32 col, float thick) {
 }
 
 void DrawSlopedCurve(const SlopedCurve sloped_curve, ImU32 col, float thick) {
-    GImNodes->CanvasDrawList->AddPolyline(sloped_curve.P, sloped_curve.NumSegments+1, col, 0, thick);
+    bool lined_up = true;
+    for (int i = 1; i < sloped_curve.NumSegments; i++) {
+        lined_up = lined_up && abs(sloped_curve.P[0].y - sloped_curve.P[i].y) < 0.01;
+        if (!lined_up)
+            break;
+    }
+    //fixe overaliasing for straight line
+    if (lined_up)
+        GImNodes->CanvasDrawList->AddLine(sloped_curve.P[0], sloped_curve.P[sloped_curve.NumSegments], col, thick);
+    else
+        GImNodes->CanvasDrawList->AddPolyline(sloped_curve.P, sloped_curve.NumSegments+1, col, 0, thick);
 }
 
 void DrawCurve(const Curve curve, ImU32 col, float thick) {
@@ -1328,6 +1338,7 @@ void BeginNodeSelection(ImNodesEditorContext& editor, const int node_idx)
     const ImVec2 ref_origin = editor.Nodes.Pool[node_idx].Origin;
     editor.PrimaryNodeOffset =
         ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+    editor.DraggingMousePositionStart = GImNodes->MousePos;
 
     editor.SelectedNodeOffsets.clear();
     for (int idx = 0; idx < editor.SelectedNodeIndices.Size; idx++)
@@ -1344,6 +1355,7 @@ void ComputeLinkControlOffsets(ImNodesEditorContext& editor, const int primary_l
     const ImVec2 ref_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[primary_link_control_idx]);
     editor.PrimaryLinkControlOffset =
         ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+    editor.DraggingMousePositionStart = GImNodes->MousePos;
 
     editor.SelectedLinkControlOffsets.clear();
     for (int idx = 0; idx < editor.SelectedLinkControlIndices.Size; idx++)
@@ -1394,6 +1406,7 @@ void ComputeLabelOffsets(ImNodesEditorContext& editor, const int primary_label_i
     const ImVec2 ref_origin = GetLabelOrigin(editor, editor.Labels.Pool[primary_label_idx]) + editor.Labels.Pool[primary_label_idx].Deformation;
     editor.PrimaryLabelOffset =
         ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+    editor.DraggingMousePositionStart = GImNodes->MousePos;
 
     editor.SelectedLabelOffsets.clear();
     for (int idx = 0; idx < editor.SelectedLabelIndices.Size; idx++)
@@ -1706,13 +1719,34 @@ void TranslateSelectedNodes(ImNodesEditorContext& editor)
     {
         // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
         // slightly
-        const bool shouldTranslate = (GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
-                                         ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
-                                         : true;
+        const bool shouldTranslate = GImNodes->TranslationModifierLargestXY || GImNodes->TranslationModifierX || GImNodes->TranslationModifierY || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
+            ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
+            : true);
 
-        const ImVec2 origin = SnapOriginToGrid(
-            GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
-            editor.PrimaryNodeOffset);
+        ImVec2 origin = GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+            editor.PrimaryNodeOffset;
+
+        ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+            editor.PrimaryNodeOffset;
+
+        if (GImNodes->TranslationModifierLargestXY) {
+            if (abs(GImNodes->MousePos.x - editor.DraggingMousePositionStart.x) > abs(GImNodes->MousePos.y - editor.DraggingMousePositionStart.y)) {
+                origin.y = originStart.y;
+            }
+            else {
+                origin.x = originStart.x;
+            }
+        }
+        else if (GImNodes->TranslationModifierX) {
+            origin.y = originStart.y;
+        }
+        else if (GImNodes->TranslationModifierY) {
+            origin.x = originStart.x;
+        }
+        else {
+            origin = SnapOriginToGrid(origin);
+        }
+
         for (int i = 0; i < editor.SelectedNodeIndices.size(); ++i)
         {
             const ImVec2 node_rel = editor.SelectedNodeOffsets[i];
@@ -1760,13 +1794,34 @@ void TranslateSelectedLinkControl(ImNodesEditorContext& editor)
     {
         // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
         // slightly
-        const bool shouldTranslate = (GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
+        const bool shouldTranslate = GImNodes->TranslationModifierLargestXY || GImNodes->TranslationModifierX || GImNodes->TranslationModifierY || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
             ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
-            : true;
+            : true);
 
-        const ImVec2 origin = SnapOriginToGrid(
-            GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
-            editor.PrimaryLinkControlOffset);
+        ImVec2 origin = GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+            editor.PrimaryLinkControlOffset;
+
+        ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+            editor.PrimaryLinkControlOffset;
+
+        if (GImNodes->TranslationModifierLargestXY) {
+            if (abs(GImNodes->MousePos.x - editor.DraggingMousePositionStart.x) > abs(GImNodes->MousePos.y - editor.DraggingMousePositionStart.y)) {
+                origin.y = originStart.y;
+            }
+            else {
+                origin.x = originStart.x;
+            }
+        }
+        else if (GImNodes->TranslationModifierX) {
+            origin.y = originStart.y;
+        }
+        else if (GImNodes->TranslationModifierY) {
+            origin.x = originStart.x;
+        }
+        else {
+            origin = SnapOriginToGrid(origin);
+        }
+
         for (int i = 0; i < editor.SelectedLinkControlIndices.size(); ++i)
         {
             const ImVec2 link_control_rel = editor.SelectedLinkControlOffsets[i];
@@ -1793,13 +1848,34 @@ void TranslateSelectedLabels(ImNodesEditorContext& editor)
     {
         // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
         // slightly
-        const bool shouldTranslate = (GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
+        const bool shouldTranslate = GImNodes->TranslationModifierLargestXY || GImNodes->TranslationModifierX || GImNodes->TranslationModifierY || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
             ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
-            : true;
+            : true);
 
-        const ImVec2 origin = SnapOriginToGrid(
-            GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
-            editor.PrimaryLabelOffset);
+        ImVec2 origin = GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+            editor.PrimaryLabelOffset;
+
+        ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+            editor.PrimaryLabelOffset;
+
+        if (GImNodes->TranslationModifierLargestXY) {
+            if (abs(GImNodes->MousePos.x - editor.DraggingMousePositionStart.x) > abs(GImNodes->MousePos.y - editor.DraggingMousePositionStart.y)) {
+                origin.y = originStart.y;
+            }
+            else {
+                origin.x = originStart.x;
+            }
+        }
+        else if (GImNodes->TranslationModifierX) {
+            origin.y = originStart.y;
+        }
+        else if (GImNodes->TranslationModifierY) {
+            origin.x = originStart.x;
+        }
+        else {
+            origin = SnapOriginToGrid(origin);
+        }
+
         for (int i = 0; i < editor.SelectedLabelIndices.size(); ++i)
         {
             const ImVec2 label_rel = editor.SelectedLabelOffsets[i];
@@ -3252,6 +3328,8 @@ ImNodesIO::LinkDetachWithModifierClick::LinkDetachWithModifierClick() : Modifier
 
 ImNodesIO::MultipleSelectModifier::MultipleSelectModifier() : Modifier(NULL) {}
 
+ImNodesIO::TranslationModifier::TranslationModifier() : X_Modifier(NULL), Y_Modifier(NULL), Largest_X_Y_Modifier(NULL) {}
+
 ImNodesIO::ImNodesIO()
     : EmulateThreeButtonMouse(), LinkDetachWithModifierClick(),
       AltMouseButton(ImGuiMouseButton_Middle), AutoPanningSpeed(1000.0f)
@@ -3556,6 +3634,18 @@ void BeginNodeEditor()
         (GImNodes->Io.MultipleSelectModifier.Modifier != NULL
              ? *GImNodes->Io.MultipleSelectModifier.Modifier
              : ImGui::GetIO().KeyCtrl);
+    GImNodes->TranslationModifierX =
+        (GImNodes->Io.TranslationModifier.X_Modifier != NULL
+            ? *GImNodes->Io.TranslationModifier.X_Modifier
+            : false);
+    GImNodes->TranslationModifierY =
+        (GImNodes->Io.TranslationModifier.Y_Modifier != NULL
+            ? *GImNodes->Io.TranslationModifier.Y_Modifier
+            : false);
+    GImNodes->TranslationModifierLargestXY =
+        (GImNodes->Io.TranslationModifier.Largest_X_Y_Modifier != NULL
+            ? *GImNodes->Io.TranslationModifier.Largest_X_Y_Modifier
+            : ImGui::GetIO().KeyCtrl);
 
     GImNodes->ActiveAttribute = false;
     GImNodes->ActiveSwappableAttribute = false;
@@ -4521,6 +4611,51 @@ bool IsLabelSelected(int label_id)
 {
     ImNodesEditorContext& editor = EditorContextGet();
     return IsObjectSelected(editor.Labels, editor.SelectedLabelIndices, label_id);
+}
+
+ImNodeData* GetNodeData(int node_id) {
+    ImNodesEditorContext& editor = EditorContextGet();
+    const int node_idx = ObjectPoolFind(editor.Nodes, node_id);
+    IM_ASSERT(node_idx != -1);
+    const ImNodeData& node = editor.Nodes.Pool[node_idx];
+    return new ImNodeData(node);
+}
+
+void SetNodeData(int node_id, ImNodeData* node) {
+    ImNodesEditorContext& editor = EditorContextGet();
+    const int node_idx = ObjectPoolFindOrCreateIndex(editor.Nodes, node_id);
+    editor.Nodes.Pool[node_idx] = ImNodeData(*node);
+    editor.Nodes.Pool[node_idx].Id = node_id; //Just keep the old Id
+}
+
+ImLinkData* GetLinkData(int link_id) {
+    ImNodesEditorContext& editor = EditorContextGet();
+    const int link_idx = ObjectPoolFind(editor.Links, link_id);
+    IM_ASSERT(link_idx != -1);
+    const ImLinkData& link = editor.Links.Pool[link_idx];
+    return new ImLinkData(link);
+}
+
+void SetLinkData(int link_id, ImLinkData* link) {
+    ImNodesEditorContext& editor = EditorContextGet();
+    const int link_idx = ObjectPoolFindOrCreateIndex(editor.Links, link_id);
+    editor.Links.Pool[link_idx] = ImLinkData(*link);
+    editor.Links.Pool[link_idx].Id = link_id; //Just keep the old Id
+}
+
+ImLabelData* GetLabelData(int label_id) {
+    ImNodesEditorContext& editor = EditorContextGet();
+    const int label_idx = ObjectPoolFind(editor.Labels, label_id);
+    IM_ASSERT(label_idx != -1);
+    const ImLabelData& label = editor.Labels.Pool[label_idx];
+    return new ImLabelData(label);
+}
+
+void SetLabelData(int label_id, ImLabelData* label) {
+    ImNodesEditorContext& editor = EditorContextGet();
+    const int label_idx = ObjectPoolFindOrCreateIndex(editor.Labels, label_id);
+    editor.Labels.Pool[label_idx] = ImLabelData(*label);
+    editor.Labels.Pool[label_idx].Id = label_id; //Just keep the old Id
 }
 
 bool IsAttributeActive()

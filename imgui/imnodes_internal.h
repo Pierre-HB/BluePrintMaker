@@ -518,6 +518,9 @@ struct ImNodesEditorContext
     // Offset of the primary link label origin relative to the mouse cursor.
     ImVec2 PrimaryLabelOffset;
 
+    //Mouse position when starting to dragg
+    ImVec2 DraggingMousePositionStart;
+
     ImClickInteractionState ClickInteraction;
 
     // Mini-map state set by MiniMap()
@@ -620,6 +623,9 @@ struct ImNodesContext
     bool  AltMouseDragging;
     float AltMouseScrollDelta;
     bool  MultipleSelectModifier;
+    bool TranslationModifierX;
+    bool TranslationModifierY;
+    bool TranslationModifierLargestXY;
 };
 
 namespace IMNODES_NAMESPACE

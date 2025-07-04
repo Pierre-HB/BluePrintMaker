@@ -153,6 +153,7 @@ void BluePrint::Update() {
 	ioPanel.Update(nodeCreateType);
 	if (nodeCreateType != -1) {
 		Node* node = new Node(BluePrint::recipies[nodeCreateType], CreateId);
+		ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
 		nodes.push_back(node);
 		nodeViewers.push_back(new NodeViewer(node));
 	}
@@ -167,5 +168,32 @@ void BluePrint::Update() {
 		Link* link = new Link(CreateId(), start_attr, end_attr);
 		links.push_back(link);
 		linkViewers.push_back(new LinkViewer(link));
+	}
+
+	int link_id;
+	if (ImNodes::IsLinkDestroyed(&link_id)) {
+		for (int i = 0; i < links.size(); i++) {
+			if (links[i]->GetId() == link_id) {
+				delete linkViewers[i];
+				delete links[i];
+				linkViewers.erase(linkViewers.begin() + i);
+				links.erase(links.begin() + i);
+				break;
+			}
+		}
+	}
+
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+		//TODO find all selected link and delet them
+		// find all node, and all attached link and delete them
+	}
+
+	int src_attr, dest_attr;
+	if (ImNodes::IsAttributeSwapped(&src_attr, &dest_attr))
+	{
+		for (NodeViewer* nodeViewer : nodeViewers) {
+			if(nodeViewer->SwapIO(src_attr, dest_attr))
+				break;
+		}
 	}
 }

@@ -101,7 +101,7 @@ public:
 	//void Update(); //Model API.... Maybe move this function up in the blueprint manager ?
 	// or just check if it's Id have been swaped ?
 
-	void SwapIO(int id1, int id2);
+	bool SwapIO(int id1, int id2);
 
 	int GetId() const {
 		return node->GetId();

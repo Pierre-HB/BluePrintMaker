@@ -130,7 +130,7 @@ static int FindIndex(const std::vector<NodeIOViewer>& nodeios, const std::vector
 	return -1;
 }
 
-void NodeViewer::SwapIO(int id1, int id2) {
+bool NodeViewer::SwapIO(int id1, int id2) {
 	int index1 = FindIndex(input_ref, input_perm, id1);
 	int index2 = -1;
 
@@ -138,14 +138,16 @@ void NodeViewer::SwapIO(int id1, int id2) {
 		index2 = FindIndex(input_ref, input_perm, id2);
 		assert(index2 != -1);
 		swap(input_perm, index1, index2);
-		return;
+		return true;
 	}
 	index1 = FindIndex(output_ref, output_perm, id1);
 	if (index1 != -1) {
 		index2 = FindIndex(output_ref, output_perm, id2);
 		assert(index2 != -1);
 		swap(output_perm, index1, index2);
+		return true;
 	}
+	return false;
 }
 
 void NodeViewer::Reset() {

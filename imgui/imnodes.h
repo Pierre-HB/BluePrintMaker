@@ -192,6 +192,23 @@ struct ImNodesIO
         const bool* Modifier;
     } MultipleSelectModifier;
 
+    struct TranslationModifier
+    {
+        TranslationModifier();
+
+        // Pointer to a boolean value indicating when the desired modifier is pressed. Set to NULL
+        // by default. To enable the feature, set the modifier to point to a boolean indicating the
+        // state of a modifier. For example,
+        //
+        // ImNodes::GetIO().TranslationModifier.Modifier = &ImGui::GetIO().KeyCtrl;
+        //
+        // Translate object only in one direction
+        // currently selected nodes. If this value is NULL, the Ctrl key will be used.
+        const bool* X_Modifier;
+        const bool* Y_Modifier;
+        const bool* Largest_X_Y_Modifier;
+    } TranslationModifier;
+
     // Holding alt mouse button pans the node area, by default middle mouse button will be used
     // Set based on ImGuiMouseButton values
     int AltMouseButton;
@@ -268,6 +285,9 @@ struct ImGuiContext;
 struct ImVec2;
 
 struct ImNodesContext;
+struct ImNodeData;
+struct ImLinkData;
+struct ImLabelData;
 
 // An editor context corresponds to a set of nodes in a single workspace (created with a single
 // Begin/EndNodeEditor pair)
@@ -456,6 +476,16 @@ bool IsLinkSelected(int link_id);
 void SelectLabel(int label_id);
 void ClearLabelSelection(int label_id);
 bool IsLabelSelected(int label_id);
+
+
+ImNodeData* GetNodeData(int node_id);
+void SetNodeData(int node_id, ImNodeData* node);
+
+ImLinkData* GetLinkData(int link_id);
+void SetLinkData(int link_id, ImLinkData* link);
+
+ImLabelData* GetLabelData(int label_id);
+void SetLabelData(int label_id, ImLabelData* label);
 
 // Was the previous attribute active? This will continuously return true while the left mouse button
 // is being pressed over the UI content of the attribute.
