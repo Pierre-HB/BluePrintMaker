@@ -4323,9 +4323,9 @@ void PushEvent(int idx) {
     PushEventVar(ImNodesEventVarElement(ImNodesEventVar_UserEvent, idx));
 }
 
-bool GetPopedEvent(int* idx) {
+bool GetPopedEvent(int* id) {
     if (GImNodes->PopedEvent.HasValue()) {
-        *idx = GImNodes->PopedEvent.Value();
+        *id = GImNodes->PopedEvent.Value();
         return true;
     }
     return false;
@@ -4603,6 +4603,10 @@ void SetNodeData(int node_id, ImNodeData* node) {
     editor.Nodes.Pool[node_idx].Id = node_id; //Just keep the old Id
 }
 
+void DeleteNodeData(ImNodeData* node) {
+    delete node;
+}
+
 ImLinkData* GetLinkData(int link_id) {
     ImNodesEditorContext& editor = EditorContextGet();
     const int link_idx = ObjectPoolFind(editor.Links, link_id);
@@ -4618,6 +4622,10 @@ void SetLinkData(int link_id, ImLinkData* link) {
     editor.Links.Pool[link_idx].Id = link_id; //Just keep the old Id
 }
 
+void DeleteLinkData(ImLinkData* link) {
+    delete link;
+}
+
 ImLabelData* GetLabelData(int label_id) {
     ImNodesEditorContext& editor = EditorContextGet();
     const int label_idx = ObjectPoolFind(editor.Labels, label_id);
@@ -4631,6 +4639,10 @@ void SetLabelData(int label_id, ImLabelData* label) {
     const int label_idx = ObjectPoolFindOrCreateIndex(editor.Labels, label_id);
     editor.Labels.Pool[label_idx] = ImLabelData(*label);
     editor.Labels.Pool[label_idx].Id = label_id; //Just keep the old Id
+}
+
+void DeleteLabelData(ImLabelData* label) {
+    delete label;
 }
 
 bool IsAttributeActive()

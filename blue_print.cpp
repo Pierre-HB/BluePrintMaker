@@ -147,15 +147,55 @@ void BluePrint::Draw() const {
 	ImGui::End();
 }
 
+int BluePrint::CreateNewNode(int type) {
+	Node* node = new Node(BluePrint::recipies[type], CreateId);
+	ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
+	nodes.push_back(node);
+	NodeViewer* nodeViewer = new NodeViewer(node);
+	nodeViewers.push_back(nodeViewer);
+
+	graphEvents.push(CreationEvent(CreateId(), node, nodeViewer, ImNodes::GetNodeData(node->GetId())));
+
+	return node->GetId();
+}
+
+int BluePrint::CreateNewNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData) {
+	Node* new_node = new Node(*node);
+	ImNodes::SetNodeData(new_node->GetId(), nodeData);
+	nodes.push_back(new_node);
+	nodeViewers.push_back(new NodeViewer(*nodeViewer, new_node));
+
+
+
+	//WARNING TODO Be carefull when undoing node deletion (deletin them a second time) need to NOT RECREATE EVENT, bu need to DELETE for real the node
+
+	return node->GetId();
+}
+
+void BluePrint::DeleteNewNode(int nodeId) {
+	//TODO delete assosciated links
+
+}
+
 void BluePrint::Update() {
 
 	int nodeCreateType = -1;
 	ioPanel.Update(nodeCreateType);
 	if (nodeCreateType != -1) {
-		Node* node = new Node(BluePrint::recipies[nodeCreateType], CreateId);
+		CreateNewNode(nodeCreateType);
+		/*Node* node = new Node(BluePrint::recipies[nodeCreateType], CreateId);
 		ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
 		nodes.push_back(node);
-		nodeViewers.push_back(new NodeViewer(node));
+		nodeViewers.push_back(new NodeViewer(node));*/
+
+		graphEvents.push(CreationEvent(42));
+	}
+
+	if (ImGui::IsKeyPressed(ImGuiKey_O)) {
+		GraphEvent dest;
+		if (graphEvents.pop(&dest)) {
+			std::cout << "poped" << std::endl;
+		}
 	}
 
 	int node_swap_recipy;
@@ -178,6 +218,7 @@ void BluePrint::Update() {
 				delete links[i];
 				linkViewers.erase(linkViewers.begin() + i);
 				links.erase(links.begin() + i);
+				//TODO Only destroy the viewer, keep the node until the related events are themself deleted
 				break;
 			}
 		}
@@ -194,6 +235,25 @@ void BluePrint::Update() {
 		for (NodeViewer* nodeViewer : nodeViewers) {
 			if(nodeViewer->SwapIO(src_attr, dest_attr))
 				break;
+		}
+	}
+
+	int eventId;
+	if (ImNodes::GetPopedEvent(&eventId)) {
+		GraphEvent dest;
+		if (graphEvents.pop(&dest)) {
+			assert(dest == eventId);
+			//TODO
+
+
+		}
+	}
+
+	if (ImNodes::GetUnpopedEvent(&eventId)) {
+		GraphEvent dest;
+		if (graphEvents.unpop(&dest)) {
+			assert(dest == eventId);
+			//TODO
 		}
 	}
 }

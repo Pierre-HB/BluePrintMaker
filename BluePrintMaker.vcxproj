@@ -161,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="blue_print.cpp" />
+    <ClCompile Include="graph_event.cpp" />
     <ClCompile Include="hello.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imnodes.cpp" />
@@ -178,6 +179,8 @@
   <ItemGroup>
     <ClInclude Include="blue_print.h" />
     <ClInclude Include="fraction.h" />
+    <ClInclude Include="graph_event.h" />
+    <ClInclude Include="imgui\bififo.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imnodes.h" />

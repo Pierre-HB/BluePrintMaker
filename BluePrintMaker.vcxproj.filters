@@ -52,6 +52,9 @@
     <ClCompile Include="io_panel.cpp">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="graph_event.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -104,6 +107,12 @@
     </ClInclude>
     <ClInclude Include="io_panel.h">
       <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="graph_event.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\bififo.h">
+      <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

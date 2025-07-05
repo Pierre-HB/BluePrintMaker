@@ -357,9 +357,9 @@ void PopStyleVar(int count = 1);
 
 // use PushEvent to add an event in the event stack (that can be reverse by CTRL Z and unreverse by CTRL Y). use GetPopedEvent and GetUnpopedEvent to get reversed and unreversed events.
 // As long as the user keep track of at least EVENT_STACK_SIZE (in imnodes_internal.h) event, he can remove safely event because internally ImNodes start removeing event past the EVENT_STACK_SIZE. (start forgetting oldest event first).
-void PushEvent(int idx);
-bool GetPopedEvent(int* idx);
-bool GetUnpopedEvent(int* idx);
+void PushEvent(int id);
+bool GetPopedEvent(int* id);
+bool GetUnpopedEvent(int* id);
 
 
 
@@ -480,12 +480,15 @@ bool IsLabelSelected(int label_id);
 
 ImNodeData* GetNodeData(int node_id);
 void SetNodeData(int node_id, ImNodeData* node);
+void DeleteNodeData(ImNodeData* node);
 
 ImLinkData* GetLinkData(int link_id);
 void SetLinkData(int link_id, ImLinkData* link);
+void DeleteLinkData(ImLinkData* link);
 
 ImLabelData* GetLabelData(int label_id);
 void SetLabelData(int label_id, ImLabelData* label);
+void DeleteLabelData(ImLabelData* label);
 
 // Was the previous attribute active? This will continuously return true while the left mouse button
 // is being pressed over the UI content of the attribute.

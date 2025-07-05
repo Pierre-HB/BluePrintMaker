@@ -95,6 +95,7 @@ protected:
 	ImVec2 size;
 public:
 	NodeViewer(const Node* node);
+	NodeViewer(const NodeViewer& nodeViewer, const Node* node);
 
 	void Draw(); //ImNodes API
 

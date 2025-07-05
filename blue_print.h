@@ -4,6 +4,9 @@
 #include "node.h"
 #include "link.h"
 #include <vector>
+#include "graph_event.h"
+#include "bififo.h"
+
 
 static int idSeed = 0;
 
@@ -23,6 +26,8 @@ private:
 
 	std::vector<Link*> links;
 	std::vector<LinkViewer*> linkViewers;
+
+	BiFIFO<GraphEvent, 1024> graphEvents;
 
 	//ImVector<int> links; //Get list of link caus wee need to render them after all nodes
 	//int ioPanel; //object for managing user input
@@ -58,5 +63,7 @@ public:
 
 	void Update();
 
-	void CreateNewNode(int type);
+	int CreateNewNode(int type);
+	int CreateNewNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData);
+	void DeleteNewNode(int nodeId);
 };
