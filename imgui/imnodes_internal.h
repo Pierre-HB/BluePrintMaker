@@ -625,7 +625,7 @@ struct ImNodesContext
     bool  MultipleSelectModifier;
     bool TranslationModifierX;
     bool TranslationModifierY;
-    bool TranslationModifierLargestXY;
+    bool TranslationModifierNoGridSnapping;
 };
 
 namespace IMNODES_NAMESPACE

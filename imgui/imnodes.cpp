@@ -1719,7 +1719,7 @@ void TranslateSelectedNodes(ImNodesEditorContext& editor)
     {
         // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
         // slightly
-        const bool shouldTranslate = GImNodes->TranslationModifierLargestXY || GImNodes->TranslationModifierX || GImNodes->TranslationModifierY || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
+        const bool shouldTranslate = GImNodes->TranslationModifierNoGridSnapping || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
             ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
             : true);
 
@@ -1729,22 +1729,14 @@ void TranslateSelectedNodes(ImNodesEditorContext& editor)
         ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
             editor.PrimaryNodeOffset;
 
-        if (GImNodes->TranslationModifierLargestXY) {
-            if (abs(GImNodes->MousePos.x - editor.DraggingMousePositionStart.x) > abs(GImNodes->MousePos.y - editor.DraggingMousePositionStart.y)) {
-                origin.y = originStart.y;
-            }
-            else {
-                origin.x = originStart.x;
-            }
-        }
-        else if (GImNodes->TranslationModifierX) {
+        if (!GImNodes->TranslationModifierNoGridSnapping)
+            origin = SnapOriginToGrid(origin);
+
+        if (GImNodes->TranslationModifierX) {
             origin.y = originStart.y;
         }
         else if (GImNodes->TranslationModifierY) {
             origin.x = originStart.x;
-        }
-        else {
-            origin = SnapOriginToGrid(origin);
         }
 
         for (int i = 0; i < editor.SelectedNodeIndices.size(); ++i)
@@ -1794,32 +1786,23 @@ void TranslateSelectedLinkControl(ImNodesEditorContext& editor)
     {
         // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
         // slightly
-        const bool shouldTranslate = GImNodes->TranslationModifierLargestXY || GImNodes->TranslationModifierX || GImNodes->TranslationModifierY || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
+        const bool shouldTranslate = GImNodes->TranslationModifierNoGridSnapping || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
             ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
             : true);
 
         ImVec2 origin = GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
             editor.PrimaryLinkControlOffset;
+        if(!GImNodes->TranslationModifierNoGridSnapping)
+            origin = SnapOriginToGrid(origin);
 
         ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
             editor.PrimaryLinkControlOffset;
 
-        if (GImNodes->TranslationModifierLargestXY) {
-            if (abs(GImNodes->MousePos.x - editor.DraggingMousePositionStart.x) > abs(GImNodes->MousePos.y - editor.DraggingMousePositionStart.y)) {
-                origin.y = originStart.y;
-            }
-            else {
-                origin.x = originStart.x;
-            }
-        }
-        else if (GImNodes->TranslationModifierX) {
+        if (GImNodes->TranslationModifierX) {
             origin.y = originStart.y;
         }
         else if (GImNodes->TranslationModifierY) {
             origin.x = originStart.x;
-        }
-        else {
-            origin = SnapOriginToGrid(origin);
         }
 
         for (int i = 0; i < editor.SelectedLinkControlIndices.size(); ++i)
@@ -1848,7 +1831,7 @@ void TranslateSelectedLabels(ImNodesEditorContext& editor)
     {
         // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
         // slightly
-        const bool shouldTranslate = GImNodes->TranslationModifierLargestXY || GImNodes->TranslationModifierX || GImNodes->TranslationModifierY || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
+        const bool shouldTranslate = GImNodes->TranslationModifierNoGridSnapping || ((GImNodes->Style.Flags & ImNodesStyleFlags_GridSnapping)
             ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
             : true);
 
@@ -1858,22 +1841,14 @@ void TranslateSelectedLabels(ImNodesEditorContext& editor)
         ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
             editor.PrimaryLabelOffset;
 
-        if (GImNodes->TranslationModifierLargestXY) {
-            if (abs(GImNodes->MousePos.x - editor.DraggingMousePositionStart.x) > abs(GImNodes->MousePos.y - editor.DraggingMousePositionStart.y)) {
-                origin.y = originStart.y;
-            }
-            else {
-                origin.x = originStart.x;
-            }
-        }
-        else if (GImNodes->TranslationModifierX) {
+        if (!GImNodes->TranslationModifierNoGridSnapping)
+            origin = SnapOriginToGrid(origin);
+
+        if (GImNodes->TranslationModifierX) {
             origin.y = originStart.y;
         }
         else if (GImNodes->TranslationModifierY) {
             origin.x = originStart.x;
-        }
-        else {
-            origin = SnapOriginToGrid(origin);
         }
 
         for (int i = 0; i < editor.SelectedLabelIndices.size(); ++i)
@@ -3642,7 +3617,7 @@ void BeginNodeEditor()
         (GImNodes->Io.TranslationModifier.Y_Modifier != NULL
             ? *GImNodes->Io.TranslationModifier.Y_Modifier
             : false);
-    GImNodes->TranslationModifierLargestXY =
+    GImNodes->TranslationModifierNoGridSnapping =
         (GImNodes->Io.TranslationModifier.Largest_X_Y_Modifier != NULL
             ? *GImNodes->Io.TranslationModifier.Largest_X_Y_Modifier
             : ImGui::GetIO().KeyCtrl);
