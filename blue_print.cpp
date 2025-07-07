@@ -154,12 +154,14 @@ int BluePrint::CreateNewNode(int type) {
 	NodeViewer* nodeViewer = new NodeViewer(node);
 	nodeViewers.push_back(nodeViewer);
 
-	graphEvents.push(CreationEvent(CreateId(), node, nodeViewer, ImNodes::GetNodeData(node->GetId())));
+	int eventId = CreateId();
+	graphEvents.push(GraphEvent(eventId, CREATION, *node, *nodeViewer)); //Copy node and nodeViewer in an event
+	ImNodes::PushEvent(eventId);
 
 	return node->GetId();
 }
 
-int BluePrint::CreateNewNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData) {
+int BluePrint::CreateNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData) {
 	Node* new_node = new Node(*node);
 	ImNodes::SetNodeData(new_node->GetId(), nodeData);
 	nodes.push_back(new_node);
@@ -169,35 +171,48 @@ int BluePrint::CreateNewNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nod
 
 	//WARNING TODO Be carefull when undoing node deletion (deletin them a second time) need to NOT RECREATE EVENT, bu need to DELETE for real the node
 
-	return node->GetId();
+	return new_node->GetId();
 }
 
-void BluePrint::DeleteNewNode(int nodeId) {
+void BluePrint::DeleteNode(int nodeId, GraphEvent* Event) {
 	//TODO delete assosciated links
+	int nodePtx = -1;
+	int nodeViewerPtx = -1;
+	for (int i = 0; i < nodes.size(); i++) {
+		if (nodes[i]->GetId() == nodeId) {
+			nodePtx = i;
+			break;
+		}
+	}
 
+	for (int i = 0; i < nodeViewers.size(); i++) {
+		if (nodeViewers[i]->GetId() == nodeId) {
+			nodeViewerPtx = i;
+			break;			
+		}
+	}
+	assert(nodePtx != -1);
+	assert(nodeViewerPtx != -1);
+
+	if (Event != nullptr) {
+		Event->Push_Node(nodes[nodePtx], nodeViewers[nodeViewerPtx]);
+	}
+	else {
+		delete nodes[nodePtx];
+		delete nodeViewers[nodeViewerPtx];
+	}
+	
+	nodes.erase(nodes.begin() + nodePtx);
+	nodeViewers.erase(nodeViewers.begin() + nodeViewerPtx);
 }
 
 void BluePrint::Update() {
 
 	int nodeCreateType = -1;
 	ioPanel.Update(nodeCreateType);
-	if (nodeCreateType != -1) {
+	if (nodeCreateType != -1)
 		CreateNewNode(nodeCreateType);
-		/*Node* node = new Node(BluePrint::recipies[nodeCreateType], CreateId);
-		ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
-		nodes.push_back(node);
-		nodeViewers.push_back(new NodeViewer(node));*/
-
-		graphEvents.push(CreationEvent(42));
-	}
-
-	if (ImGui::IsKeyPressed(ImGuiKey_O)) {
-		GraphEvent dest;
-		if (graphEvents.pop(&dest)) {
-			std::cout << "poped" << std::endl;
-		}
-	}
-
+	
 	int node_swap_recipy;
 	//id of node, recipe target
 		
@@ -227,6 +242,22 @@ void BluePrint::Update() {
 	if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
 		//TODO find all selected link and delet them
 		// find all node, and all attached link and delete them
+		int nb_selected_node = ImNodes::NumSelectedNodes();
+		std::cout << "deletion of " << nb_selected_node << " nodes" << std::endl;
+		
+		if (nb_selected_node > 0) {
+			int eventId = CreateId();
+			GraphEvent Event(eventId, DESTRUCTION);
+
+			std::vector<int> selected_node_ids = std::vector<int>(nb_selected_node);
+			ImNodes::GetSelectedNodes(selected_node_ids.data());
+
+			for(int nodeId : selected_node_ids)
+				DeleteNode(nodeId, &Event);
+
+			graphEvents.push(std::move(Event));
+			ImNodes::PushEvent(eventId);
+		}	
 	}
 
 	int src_attr, dest_attr;
@@ -240,20 +271,59 @@ void BluePrint::Update() {
 
 	int eventId;
 	if (ImNodes::GetPopedEvent(&eventId)) {
-		GraphEvent dest;
+		GraphEvent* dest;
 		if (graphEvents.pop(&dest)) {
-			assert(dest == eventId);
-			//TODO
-
+			assert(*dest == eventId);
+			//TODO for link and label
+			std::cout << "Poped event " << eventId << std::endl;
+			switch (dest->type)
+			{
+			case CREATION:
+			{
+				for (Node* node : dest->nodeDatas)
+					DeleteNode(node->GetId(), false);
+				break;
+			}
+			case DESTRUCTION:
+			{
+				for (int i = 0; i < dest->nodeDatas.size(); i++) {
+					CreateNode(dest->nodeDatas[i], dest->nodeViewerDatas[i], dest->nodeImNodesDatas[i]);
+				}
+				break;
+			}
+			default:
+				assert(false);
+				break;
+			}
 
 		}
 	}
 
 	if (ImNodes::GetUnpopedEvent(&eventId)) {
-		GraphEvent dest;
+		GraphEvent* dest;
 		if (graphEvents.unpop(&dest)) {
-			assert(dest == eventId);
-			//TODO
+			assert(*dest == eventId);
+			//TODO do for link and label
+			std::cout << "Unoped event " << eventId << std::endl;
+			switch (dest->type)
+			{
+			case CREATION:
+			{
+				for (int i = 0; i < dest->nodeDatas.size(); i++) {
+					CreateNode(dest->nodeDatas[i], dest->nodeViewerDatas[i], dest->nodeImNodesDatas[i]);
+				}
+				break;
+			}
+			case DESTRUCTION:
+			{
+				for (Node* node : dest->nodeDatas)
+					DeleteNode(node->GetId(), false);
+				break;
+			}
+			default:
+				assert(false);
+				break;
+			}
 		}
 	}
 }

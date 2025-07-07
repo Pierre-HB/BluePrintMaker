@@ -64,6 +64,6 @@ public:
 	void Update();
 
 	int CreateNewNode(int type);
-	int CreateNewNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData);
-	void DeleteNewNode(int nodeId);
+	int CreateNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData);
+	void DeleteNode(int nodeId, GraphEvent* Event=nullptr);
 };

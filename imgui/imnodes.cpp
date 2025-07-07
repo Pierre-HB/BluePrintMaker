@@ -1959,18 +1959,18 @@ static void PushEventVar(const ImNodesEventVarElement& element)
 
 void PopEventVar()
 {
-    ImNodesEventVarElement dest;
+    ImNodesEventVarElement* dest;
     if (!GImNodes->EventStack.pop(&dest))
         return;
     ImNodesEditorContext& editor = EditorContextGet();
-    switch (dest.Event)
+    switch (dest->Event)
     {
     case ImNodesEventVar_LinkDeformation:
     {
-        IM_ASSERT(dest.Ids.size() == dest.OldPoss.size());
-        IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
-        for (int i = 0; i < dest.Ids.size(); i++) {
-            int Id = dest.Ids[i];
+        IM_ASSERT(dest->Ids.size() == dest->OldPoss.size());
+        IM_ASSERT(dest->Ids.size() == dest->NewPoss.size());
+        for (int i = 0; i < dest->Ids.size(); i++) {
+            int Id = dest->Ids[i];
             int linkId = GetLinkControlLinkId(Id);
             int localId = GetLinkControlLocalId(Id);
 
@@ -1978,38 +1978,38 @@ void PopEventVar()
             IM_ASSERT(link_idx != -1);
             ImLinkData& link = editor.Links.Pool[link_idx];
 
-            link.Deformations[localId] = dest.OldPoss[i];
+            link.Deformations[localId] = dest->OldPoss[i];
         }
         break;
     }
     case ImNodesEventVar_NodeMove:
     {
-        IM_ASSERT(dest.Ids.size() == dest.OldPoss.size());
-        IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
-        for (int i = 0; i < dest.Ids.size(); i++) {
-            int Id = dest.Ids[i];
+        IM_ASSERT(dest->Ids.size() == dest->OldPoss.size());
+        IM_ASSERT(dest->Ids.size() == dest->NewPoss.size());
+        for (int i = 0; i < dest->Ids.size(); i++) {
+            int Id = dest->Ids[i];
             const int node_idx = ObjectPoolFind(editor.Nodes, Id);
             IM_ASSERT(node_idx != -1);
             ImNodeData& data = editor.Nodes.Pool[node_idx];
-            data.Origin = dest.OldPoss[i];
+            data.Origin = dest->OldPoss[i];
         }
         break;
     }
     case ImNodesEventVar_LabelMove:
     {
-        IM_ASSERT(dest.Ids.size() == dest.OldPoss.size());
-        IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
-        for (int i = 0; i < dest.Ids.size(); i++) {
-            int Id = dest.Ids[i];
+        IM_ASSERT(dest->Ids.size() == dest->OldPoss.size());
+        IM_ASSERT(dest->Ids.size() == dest->NewPoss.size());
+        for (int i = 0; i < dest->Ids.size(); i++) {
+            int Id = dest->Ids[i];
             const int label_idx = ObjectPoolFind(editor.Labels, Id);
             IM_ASSERT(label_idx != -1);
             ImLabelData& data = editor.Labels.Pool[label_idx];
-            data.Deformation = dest.OldPoss[i];
+            data.Deformation = dest->OldPoss[i];
         }
         break;
     }
     case ImNodesEventVar_UserEvent:
-        GImNodes->PopedEvent = dest.GetId();
+        GImNodes->PopedEvent = dest->GetId();
         break;
     default:
         break;
@@ -2018,19 +2018,19 @@ void PopEventVar()
 
 void UnpopEventVar()
 {
-    ImNodesEventVarElement dest;
+    ImNodesEventVarElement* dest;
     if (!GImNodes->EventStack.unpop(&dest))
         return;
 
     ImNodesEditorContext& editor = EditorContextGet();
-    switch (dest.Event)
+    switch (dest->Event)
     {
     case ImNodesEventVar_LinkDeformation:
     {
-        IM_ASSERT(dest.Ids.size() == dest.OldPoss.size());
-        IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
-        for (int i = 0; i < dest.Ids.size(); i++) {
-            int Id = dest.Ids[i];
+        IM_ASSERT(dest->Ids.size() == dest->OldPoss.size());
+        IM_ASSERT(dest->Ids.size() == dest->NewPoss.size());
+        for (int i = 0; i < dest->Ids.size(); i++) {
+            int Id = dest->Ids[i];
             int linkId = GetLinkControlLinkId(Id);
             int localId = GetLinkControlLocalId(Id);
 
@@ -2039,38 +2039,38 @@ void UnpopEventVar()
             ImLinkData& link = editor.Links.Pool[link_idx];
 
 
-            link.Deformations[localId] = dest.NewPoss[i];
+            link.Deformations[localId] = dest->NewPoss[i];
         }
         break;
     }
     case ImNodesEventVar_NodeMove:
     {
-        IM_ASSERT(dest.Ids.size() == dest.OldPoss.size());
-        IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
-        for (int i = 0; i < dest.Ids.size(); i++) {
-            int Id = dest.Ids[i];
+        IM_ASSERT(dest->Ids.size() == dest->OldPoss.size());
+        IM_ASSERT(dest->Ids.size() == dest->NewPoss.size());
+        for (int i = 0; i < dest->Ids.size(); i++) {
+            int Id = dest->Ids[i];
             const int node_idx = ObjectPoolFind(editor.Nodes, Id);
             IM_ASSERT(node_idx != -1);
             ImNodeData& data = editor.Nodes.Pool[node_idx];
-            data.Origin = dest.NewPoss[i];
+            data.Origin = dest->NewPoss[i];
         }
         break;
     }
     case ImNodesEventVar_LabelMove:
     {
-        IM_ASSERT(dest.Ids.size() == dest.OldPoss.size());
-        IM_ASSERT(dest.Ids.size() == dest.NewPoss.size());
-        for (int i = 0; i < dest.Ids.size(); i++) {
-            int Id = dest.Ids[i];
+        IM_ASSERT(dest->Ids.size() == dest->OldPoss.size());
+        IM_ASSERT(dest->Ids.size() == dest->NewPoss.size());
+        for (int i = 0; i < dest->Ids.size(); i++) {
+            int Id = dest->Ids[i];
             const int label_idx = ObjectPoolFind(editor.Labels, Id);
             IM_ASSERT(label_idx != -1);
             ImLabelData& data = editor.Labels.Pool[label_idx];
-            data.Deformation = dest.NewPoss[i];
+            data.Deformation = dest->NewPoss[i];
         }
         break;
     }
     case ImNodesEventVar_UserEvent:
-        GImNodes->UnpopedEvent = dest.GetId();
+        GImNodes->UnpopedEvent = dest->GetId();
         break;
     default:
         break;
