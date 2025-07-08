@@ -145,9 +145,9 @@ void BluePrint::Draw() const {
 
 	for (const LinkViewer* linkViewer : linkViewers)
 		linkViewer->Draw();*/
-
 	for (const auto& [id, nodeViewer] : nodeViewers)
 		nodeViewer->Draw();
+
 	for (const auto& [id, linkViewer] : linkViewers)
 		linkViewer->Draw();
 
@@ -179,11 +179,11 @@ int BluePrint::CreateNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeDa
 	Node* new_node = new Node(*node);
 	ImNodes::SetNodeData(new_node->GetId(), nodeData);
 	//nodes.push_back(new_node);
-	nodes.insert(std::make_pair(node->GetId(), node));
 	//nodeViewers.push_back(new NodeViewer(*nodeViewer, new_node));
+
+	nodes.insert(std::make_pair(new_node->GetId(), new_node));
 	NodeViewer* new_nodeViewer = new NodeViewer(*nodeViewer, new_node);
 	nodeViewers.insert(std::make_pair(new_nodeViewer->GetId(), new_nodeViewer));
-
 
 
 	//WARNING TODO Be carefull when undoing node deletion (deletin them a second time) need to NOT RECREATE EVENT, bu need to DELETE for real the node
@@ -222,7 +222,6 @@ void BluePrint::DeleteNode(int nodeId, GraphEvent* Event) {
 	nodes.erase(nodes.begin() + nodePtx);
 	nodeViewers.erase(nodeViewers.begin() + nodeViewerPtx);*/
 
-
 	if (Event != nullptr) {
 		Event->Push_Node(nodes[nodeId], nodeViewers[nodeId]);
 	}
@@ -250,9 +249,10 @@ void BluePrint::Update() {
 	if (ImNodes::IsLinkCreated(&start_attr, &end_attr))
 	{
 		Link* link = new Link(CreateId(), start_attr, end_attr);
-		//links.push_back(link);
-		//linkViewers.push_back(new LinkViewer(link));
-
+		
+		/*links.push_back(link);
+		linkViewers.push_back(new LinkViewer(link));*/
+		
 		links.insert(std::make_pair(link->GetId(), link));
 		LinkViewer* new_linkViewer = new LinkViewer(link);
 		linkViewers.insert(std::make_pair(new_linkViewer->GetId(), new_linkViewer));
@@ -260,12 +260,11 @@ void BluePrint::Update() {
 
 	int link_id;
 	if (ImNodes::IsLinkDestroyed(&link_id)) {
-
 		delete linkViewers[link_id];
 		delete links[link_id];
-
 		linkViewers.erase(link_id);
 		links.erase(link_id);
+
 		//for (int i = 0; i < links.size(); i++) {
 		//	if (links[i]->GetId() == link_id) {
 		//		delete linkViewers[i];
@@ -302,14 +301,14 @@ void BluePrint::Update() {
 	int src_attr, dest_attr;
 	if (ImNodes::IsAttributeSwapped(&src_attr, &dest_attr))
 	{
+		for (const auto& [key, nodeViewer] : nodeViewers) {
+			if (nodeViewer->SwapIO(src_attr, dest_attr))
+				break;
+		}
 		/*for (NodeViewer* nodeViewer : nodeViewers) {
 			if(nodeViewer->SwapIO(src_attr, dest_attr))
 				break;
 		}*/
-		for (const auto& [id, nodeViewer] : nodeViewers) {
-			if (nodeViewer->SwapIO(src_attr, dest_attr))
-				break;
-		}
 	}
 
 	int eventId;
