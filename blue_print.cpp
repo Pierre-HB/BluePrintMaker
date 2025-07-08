@@ -119,12 +119,19 @@ static const std::vector<Node> createRecipies() {
 BluePrint::BluePrint(const char* name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()) {
 }
 
+#include <map>
+
 BluePrint::~BluePrint() {
-	for (auto node : nodes)
+	for (const auto& [id, node] : nodes)
+		delete node;
+	for (const auto& [id, nodeViewer] : nodeViewers)
+		delete nodeViewer;
+
+	/*for (auto node : nodes)
 		delete node;
 
 	for (auto nodeViewer : nodeViewers)
-		delete nodeViewer;
+		delete nodeViewer;*/
 }
 
 void BluePrint::Draw() const {
@@ -133,10 +140,15 @@ void BluePrint::Draw() const {
 
 	ImNodes::BeginNodeEditor();
 
-	for (NodeViewer* nodeViewer : nodeViewers)
+	/*for (NodeViewer* nodeViewer : nodeViewers)
 		nodeViewer->Draw();
 
 	for (const LinkViewer* linkViewer : linkViewers)
+		linkViewer->Draw();*/
+
+	for (const auto& [id, nodeViewer] : nodeViewers)
+		nodeViewer->Draw();
+	for (const auto& [id, linkViewer] : linkViewers)
 		linkViewer->Draw();
 
 
@@ -150,9 +162,11 @@ void BluePrint::Draw() const {
 int BluePrint::CreateNewNode(int type) {
 	Node* node = new Node(BluePrint::recipies[type], CreateId);
 	ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
-	nodes.push_back(node);
+	//nodes.push_back(node);
+	nodes.insert(std::make_pair(node->GetId(), node));
 	NodeViewer* nodeViewer = new NodeViewer(node);
-	nodeViewers.push_back(nodeViewer);
+	//nodeViewers.push_back(nodeViewer);
+	nodeViewers.insert(std::make_pair(nodeViewer->GetId(), nodeViewer));
 
 	graphEvents.push(CreationEvent(CreateId(), node, nodeViewer, ImNodes::GetNodeData(node->GetId())));
 
@@ -162,8 +176,11 @@ int BluePrint::CreateNewNode(int type) {
 int BluePrint::CreateNewNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData) {
 	Node* new_node = new Node(*node);
 	ImNodes::SetNodeData(new_node->GetId(), nodeData);
-	nodes.push_back(new_node);
-	nodeViewers.push_back(new NodeViewer(*nodeViewer, new_node));
+	//nodes.push_back(new_node);
+	nodes.insert(std::make_pair(node->GetId(), node));
+	//nodeViewers.push_back(new NodeViewer(*nodeViewer, new_node));
+	NodeViewer* new_nodeViewer = new NodeViewer(*nodeViewer, new_node);
+	nodeViewers.insert(std::make_pair(new_nodeViewer->GetId(), new_nodeViewer));
 
 
 
@@ -206,22 +223,32 @@ void BluePrint::Update() {
 	if (ImNodes::IsLinkCreated(&start_attr, &end_attr))
 	{
 		Link* link = new Link(CreateId(), start_attr, end_attr);
-		links.push_back(link);
-		linkViewers.push_back(new LinkViewer(link));
+		//links.push_back(link);
+		//linkViewers.push_back(new LinkViewer(link));
+
+		links.insert(std::make_pair(link->GetId(), link));
+		LinkViewer* new_linkViewer = new LinkViewer(link);
+		linkViewers.insert(std::make_pair(new_linkViewer->GetId(), new_linkViewer));
 	}
 
 	int link_id;
 	if (ImNodes::IsLinkDestroyed(&link_id)) {
-		for (int i = 0; i < links.size(); i++) {
-			if (links[i]->GetId() == link_id) {
-				delete linkViewers[i];
-				delete links[i];
-				linkViewers.erase(linkViewers.begin() + i);
-				links.erase(links.begin() + i);
-				//TODO Only destroy the viewer, keep the node until the related events are themself deleted
-				break;
-			}
-		}
+
+		delete linkViewers[link_id];
+		delete links[link_id];
+
+		linkViewers.erase(link_id);
+		links.erase(link_id);
+		//for (int i = 0; i < links.size(); i++) {
+		//	if (links[i]->GetId() == link_id) {
+		//		delete linkViewers[i];
+		//		delete links[i];
+		//		linkViewers.erase(linkViewers.begin() + i);
+		//		links.erase(links.begin() + i);
+		//		//TODO Only destroy the viewer, keep the node until the related events are themself deleted
+		//		break;
+		//	}
+		//}
 	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
@@ -232,8 +259,12 @@ void BluePrint::Update() {
 	int src_attr, dest_attr;
 	if (ImNodes::IsAttributeSwapped(&src_attr, &dest_attr))
 	{
-		for (NodeViewer* nodeViewer : nodeViewers) {
+		/*for (NodeViewer* nodeViewer : nodeViewers) {
 			if(nodeViewer->SwapIO(src_attr, dest_attr))
+				break;
+		}*/
+		for (const auto& [id, nodeViewer] : nodeViewers) {
+			if (nodeViewer->SwapIO(src_attr, dest_attr))
 				break;
 		}
 	}

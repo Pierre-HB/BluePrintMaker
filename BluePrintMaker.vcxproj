@@ -108,6 +108,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>imgui;imgui\backends;libs\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
