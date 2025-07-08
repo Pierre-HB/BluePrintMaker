@@ -17,7 +17,17 @@ GraphEvent::GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* node
 	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node->GetId()));
 }
 
+GraphEvent::GraphEvent(int id, GraphEventType type, Link* link, LinkViewer* linkViewer) : id(id), type(type) {
+	linkDatas.push_back(link);
+	linkViewerDatas.push_back(linkViewer);
+	linkImNodesDatas.push_back(ImNodes::GetLinkData(link->GetId()));
+}
+
 GraphEvent::GraphEvent(int id, GraphEventType type, const Node& node, const NodeViewer& nodeViewer) : GraphEvent(id, type, new Node(node), new NodeViewer(nodeViewer)) {
+	std::cout << "create a node. node addr : " << &node << ", node event addr : " << GraphEvent::nodeDatas[0] << std::endl;
+}
+
+GraphEvent::GraphEvent(int id, GraphEventType type, const Link& link, const LinkViewer& linkViewer) : GraphEvent(id, type, new Link(link), new LinkViewer(linkViewer)) {
 
 }
 
@@ -55,4 +65,10 @@ void GraphEvent::Push_Node(Node* node, NodeViewer* nodeViewer) {
 	nodeDatas.push_back(node);
 	nodeViewerDatas.push_back(nodeViewer);
 	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node->GetId()));
+}
+
+void GraphEvent::Push_Link(Link* link, LinkViewer* linkViewer) {
+	linkDatas.push_back(link);
+	linkViewerDatas.push_back(linkViewer);
+	linkImNodesDatas.push_back(ImNodes::GetLinkData(link->GetId()));
 }

@@ -71,7 +71,16 @@ NodeViewer::NodeViewer(const Node* node) : node(node), input_ref(), output_ref()
 
 NodeViewer::NodeViewer(const NodeViewer& nodeViewer, const Node* node) : NodeViewer(nodeViewer) {
 	NodeViewer::node = node;
-	Reset();
+	input_ref.clear();
+	output_ref.clear();
+
+	for (const NodeIO& nodeInput : node->GetInputs())
+		input_ref.push_back(NodeIOViewer(&nodeInput, true));
+
+	for (const NodeIO& nodeOutput : node->GetOutputs())
+		output_ref.push_back(NodeIOViewer(&nodeOutput, false));
+
+	//Reset();
 }
 
 // View, only draw data

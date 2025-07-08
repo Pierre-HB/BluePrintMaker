@@ -119,19 +119,16 @@ static const std::vector<Node> createRecipies() {
 BluePrint::BluePrint(const char* name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()) {
 }
 
-#include <map>
-
 BluePrint::~BluePrint() {
 	for (const auto& [id, node] : nodes)
 		delete node;
 	for (const auto& [id, nodeViewer] : nodeViewers)
 		delete nodeViewer;
 
-	/*for (auto node : nodes)
-		delete node;
-
-	for (auto nodeViewer : nodeViewers)
-		delete nodeViewer;*/
+	for (const auto& [id, link] : links)
+		delete link;
+	for (const auto& [id, linkViewer] : linkViewers)
+		delete linkViewer;
 }
 
 void BluePrint::Draw() const {
@@ -140,17 +137,11 @@ void BluePrint::Draw() const {
 
 	ImNodes::BeginNodeEditor();
 
-	/*for (NodeViewer* nodeViewer : nodeViewers)
-		nodeViewer->Draw();
-
-	for (const LinkViewer* linkViewer : linkViewers)
-		linkViewer->Draw();*/
 	for (const auto& [id, nodeViewer] : nodeViewers)
 		nodeViewer->Draw();
 
 	for (const auto& [id, linkViewer] : linkViewers)
 		linkViewer->Draw();
-
 
 	ImNodes::EndNodeEditor();
 
@@ -162,10 +153,8 @@ void BluePrint::Draw() const {
 int BluePrint::CreateNewNode(int type) {
 	Node* node = new Node(BluePrint::recipies[type], CreateId);
 	ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
-	//nodes.push_back(node);
 	nodes.insert(std::make_pair(node->GetId(), node));
 	NodeViewer* nodeViewer = new NodeViewer(node);
-	//nodeViewers.push_back(nodeViewer);
 	nodeViewers.insert(std::make_pair(nodeViewer->GetId(), nodeViewer));
 
 	int eventId = CreateId();
@@ -175,64 +164,104 @@ int BluePrint::CreateNewNode(int type) {
 	return node->GetId();
 }
 
+// O(n) complexity, supposed to be used at most twice per frame
+static int findNodeContainingAttr(int attrId, const std::map<int, Node*>& nodes) {
+	for (const auto& [nodeId, node] : nodes) {
+		const std::vector<NodeIO>& inputs = node->GetInputs();
+		for (const NodeIO& nodeIO : inputs)
+			if (nodeIO.GetId() == attrId)
+				return nodeId;
+
+		const std::vector<NodeIO>& outputs = node->GetOutputs();
+		for (const NodeIO& nodeIO : outputs)
+			if (nodeIO.GetId() == attrId)
+				return nodeId;
+	}
+	return -1;
+}
+
+int BluePrint::CreateNewLink(int input_attr_id, int output_attr_id) {
+
+	int start_attr_node_id = findNodeContainingAttr(input_attr_id, nodes);
+	int end_attr_node_id = findNodeContainingAttr(output_attr_id, nodes);
+
+	Link* link = new Link(CreateId(), input_attr_id, output_attr_id, start_attr_node_id, end_attr_node_id);
+	ImNodes::CreateLink(link->GetId());
+
+	links.insert(std::make_pair(link->GetId(), link));
+	LinkViewer* new_linkViewer = new LinkViewer(link);
+	linkViewers.insert(std::make_pair(new_linkViewer->GetId(), new_linkViewer));
+
+	int eventId = CreateId();
+	graphEvents.push(GraphEvent(eventId, CREATION, *link, *new_linkViewer));
+	ImNodes::PushEvent(eventId);
+
+	return link->GetId();
+}
+
 int BluePrint::CreateNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData) {
 	Node* new_node = new Node(*node);
 	ImNodes::SetNodeData(new_node->GetId(), nodeData);
-	//nodes.push_back(new_node);
-	//nodeViewers.push_back(new NodeViewer(*nodeViewer, new_node));
 
 	nodes.insert(std::make_pair(new_node->GetId(), new_node));
 	NodeViewer* new_nodeViewer = new NodeViewer(*nodeViewer, new_node);
 	nodeViewers.insert(std::make_pair(new_nodeViewer->GetId(), new_nodeViewer));
 
-
-	//WARNING TODO Be carefull when undoing node deletion (deletin them a second time) need to NOT RECREATE EVENT, bu need to DELETE for real the node
-
 	return new_node->GetId();
 }
 
-void BluePrint::DeleteNode(int nodeId, GraphEvent* Event) {
-	//TODO delete assosciated links
-	/*int nodePtx = -1;
-	int nodeViewerPtx = -1;
-	for (int i = 0; i < nodes.size(); i++) {
-		if (nodes[i]->GetId() == nodeId) {
-			nodePtx = i;
-			break;
-		}
-	}
+int BluePrint::CreateLink(Link* link, LinkViewer* linkViewer, ImLinkData* linkData) {
+	Link* new_link = new Link(*link);
+	ImNodes::SetLinkData(new_link->GetId(), linkData);
 
-	for (int i = 0; i < nodeViewers.size(); i++) {
-		if (nodeViewers[i]->GetId() == nodeId) {
-			nodeViewerPtx = i;
-			break;			
-		}
-	}
-	assert(nodePtx != -1);
-	assert(nodeViewerPtx != -1);
+	links.insert(std::make_pair(new_link->GetId(), new_link));
+	LinkViewer* new_linkViewer = new LinkViewer(*linkViewer, new_link);
+	linkViewers.insert(std::make_pair(new_linkViewer->GetId(), new_linkViewer));
 
-	if (Event != nullptr) {
-		Event->Push_Node(nodes[nodePtx], nodeViewers[nodeViewerPtx]);
-	}
-	else {
-		delete nodes[nodePtx];
-		delete nodeViewers[nodeViewerPtx];
-	}
-	
-	nodes.erase(nodes.begin() + nodePtx);
-	nodeViewers.erase(nodeViewers.begin() + nodeViewerPtx);*/
-
-	if (Event != nullptr) {
-		Event->Push_Node(nodes[nodeId], nodeViewers[nodeId]);
-	}
-	else {
-		delete nodes[nodeId];
-		delete nodeViewers[nodeId];
-	}
-
-	nodes.erase(nodeId);
-	nodeViewers.erase(nodeId);
+	return new_link->GetId();
 }
+
+void BluePrint::DeleteLinks(const std::vector<int>& linkIds, GraphEvent* Event) {
+	for (int linkId : linkIds) {
+		if (Event != nullptr) {
+			Event->Push_Link(links[linkId], linkViewers[linkId]);
+		}
+		else {
+			delete links[linkId];
+			delete linkViewers[linkId];
+		}
+		links.erase(linkId);
+		linkViewers.erase(linkId);
+	}
+}
+
+void BluePrint::DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event) {
+	//TODO delete assosciated links
+	
+	for (int nodeId : nodeIds) {
+		if (Event != nullptr) {
+			Event->Push_Node(nodes[nodeId], nodeViewers[nodeId]);
+		}
+		else {
+			delete nodes[nodeId];
+			delete nodeViewers[nodeId];
+		}
+
+		nodes.erase(nodeId);
+		nodeViewers.erase(nodeId);
+	}
+
+	std::vector<int> linkToDelete = std::vector<int>();
+	for (const auto& [linkId, link] : links) {
+		if (nodes.find(link->GetNodeInputId()) == nodes.end() || nodes.find(link->GetNodeOutputId()) == nodes.end()) {
+			linkToDelete.push_back(linkId);
+		}
+	}
+
+	DeleteLinks(linkToDelete, Event);
+}
+
+
 
 void BluePrint::Update() {
 
@@ -247,68 +276,53 @@ void BluePrint::Update() {
 
 	int start_attr, end_attr;
 	if (ImNodes::IsLinkCreated(&start_attr, &end_attr))
-	{
-		Link* link = new Link(CreateId(), start_attr, end_attr);
-		
-		/*links.push_back(link);
-		linkViewers.push_back(new LinkViewer(link));*/
-		
-		links.insert(std::make_pair(link->GetId(), link));
-		LinkViewer* new_linkViewer = new LinkViewer(link);
-		linkViewers.insert(std::make_pair(new_linkViewer->GetId(), new_linkViewer));
-	}
+		CreateNewLink(start_attr, end_attr);
 
 	int link_id;
 	if (ImNodes::IsLinkDestroyed(&link_id)) {
-		delete linkViewers[link_id];
-		delete links[link_id];
+		int eventId = CreateId();
+		graphEvents.push(GraphEvent(eventId, DESTRUCTION, links[link_id], linkViewers[link_id]));
+		ImNodes::PushEvent(eventId);
+
 		linkViewers.erase(link_id);
 		links.erase(link_id);
-
-		//for (int i = 0; i < links.size(); i++) {
-		//	if (links[i]->GetId() == link_id) {
-		//		delete linkViewers[i];
-		//		delete links[i];
-		//		linkViewers.erase(linkViewers.begin() + i);
-		//		links.erase(links.begin() + i);
-		//		//TODO Only destroy the viewer, keep the node until the related events are themself deleted
-		//		break;
-		//	}
-		//}
 	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-		//TODO find all selected link and delet them
-		// find all node, and all attached link and delete them
 		int nb_selected_node = ImNodes::NumSelectedNodes();
-		std::cout << "deletion of " << nb_selected_node << " nodes" << std::endl;
+		int nb_selected_link = ImNodes::NumSelectedLinks();
 		
-		if (nb_selected_node > 0) {
+		if (nb_selected_node > 0 || nb_selected_link > 0) {
 			int eventId = CreateId();
 			GraphEvent Event(eventId, DESTRUCTION);
+			if (nb_selected_node > 0) {
+				std::vector<int> selected_node_ids = std::vector<int>(nb_selected_node);
+				ImNodes::GetSelectedNodes(selected_node_ids.data());
 
-			std::vector<int> selected_node_ids = std::vector<int>(nb_selected_node);
-			ImNodes::GetSelectedNodes(selected_node_ids.data());
-
-			for(int nodeId : selected_node_ids)
-				DeleteNode(nodeId, &Event);
+				DeleteNodes(selected_node_ids, &Event);	
+			}
+			if (nb_selected_link > 0) {
+				std::vector<int> selected_link_ids = std::vector<int>(nb_selected_link);
+				ImNodes::GetSelectedLinks(selected_link_ids.data());
+				DeleteLinks(selected_link_ids, &Event);
+			}
 
 			graphEvents.push(std::move(Event));
 			ImNodes::PushEvent(eventId);
-		}	
+		}
 	}
 
 	int src_attr, dest_attr;
 	if (ImNodes::IsAttributeSwapped(&src_attr, &dest_attr))
 	{
 		for (const auto& [key, nodeViewer] : nodeViewers) {
+			//TODO create an event
+			/*
+			event is created by taking a snapshot of the nodeViewer Before the first swap and once the user release the ImGui::IsMouseDragged()
+			*/
 			if (nodeViewer->SwapIO(src_attr, dest_attr))
 				break;
 		}
-		/*for (NodeViewer* nodeViewer : nodeViewers) {
-			if(nodeViewer->SwapIO(src_attr, dest_attr))
-				break;
-		}*/
 	}
 
 	int eventId;
@@ -316,20 +330,24 @@ void BluePrint::Update() {
 		GraphEvent* dest;
 		if (graphEvents.pop(&dest)) {
 			assert(*dest == eventId);
-			//TODO for link and label
 			std::cout << "Poped event " << eventId << std::endl;
 			switch (dest->type)
 			{
 			case CREATION:
 			{
-				for (Node* node : dest->nodeDatas)
-					DeleteNode(node->GetId());
+				if(dest->nodeDatas.size() > 0)
+					DeleteNodes(ExtractIds(dest->nodeDatas));
+				if (dest->linkDatas.size() > 0)
+					DeleteLinks(ExtractIds(dest->linkDatas));
 				break;
 			}
 			case DESTRUCTION:
 			{
 				for (int i = 0; i < dest->nodeDatas.size(); i++) {
 					CreateNode(dest->nodeDatas[i], dest->nodeViewerDatas[i], dest->nodeImNodesDatas[i]);
+				}
+				for (int i = 0; i < dest->linkDatas.size(); i++) {
+					CreateLink(dest->linkDatas[i], dest->linkViewerDatas[i], dest->linkImNodesDatas[i]);
 				}
 				break;
 			}
@@ -345,7 +363,6 @@ void BluePrint::Update() {
 		GraphEvent* dest;
 		if (graphEvents.unpop(&dest)) {
 			assert(*dest == eventId);
-			//TODO do for link and label
 			std::cout << "Unoped event " << eventId << std::endl;
 			switch (dest->type)
 			{
@@ -354,12 +371,17 @@ void BluePrint::Update() {
 				for (int i = 0; i < dest->nodeDatas.size(); i++) {
 					CreateNode(dest->nodeDatas[i], dest->nodeViewerDatas[i], dest->nodeImNodesDatas[i]);
 				}
+				for (int i = 0; i < dest->linkDatas.size(); i++) {
+					CreateLink(dest->linkDatas[i], dest->linkViewerDatas[i], dest->linkImNodesDatas[i]);
+				}
 				break;
 			}
 			case DESTRUCTION:
 			{
-				for (Node* node : dest->nodeDatas)
-					DeleteNode(node->GetId());
+				if(dest->nodeDatas.size() > 0)
+					DeleteNodes(ExtractIds(dest->nodeDatas));
+				if (dest->linkDatas.size() > 0)
+					DeleteLinks(ExtractIds(dest->linkDatas));
 				break;
 			}
 			default:

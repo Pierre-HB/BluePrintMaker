@@ -24,16 +24,15 @@ struct GraphEvent {
 	std::vector<Link*> linkDatas;
 	std::vector<LinkViewer*> linkViewerDatas;
 
-	//for swaped attribute
-	std::pair<int, int> swaped_attribute;
-
 	GraphEventType type;
 
 	GraphEvent();
 	GraphEvent(int id, GraphEventType type);
 	GraphEvent(const GraphEvent& other);
 	GraphEvent(int id, GraphEventType type, const Node& node, const NodeViewer& nodeViewer);
+	GraphEvent(int id, GraphEventType type, const Link& link, const LinkViewer& linkViewer);
 	GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* nodeViewer);
+	GraphEvent(int id, GraphEventType type, Link* link, LinkViewer* linkViewer);
 	~GraphEvent();
 
 	bool operator==(int id) const {
@@ -61,9 +60,6 @@ struct GraphEvent {
 		GraphEvent::linkDatas = std::move(m.linkDatas);
 		GraphEvent::linkViewerDatas = std::move(m.linkViewerDatas);
 
-		//for swaped attribute
-		GraphEvent::swaped_attribute = m.swaped_attribute;
-
 		GraphEvent::type = m.type;
 
 		m.nodeImNodesDatas.clear();
@@ -86,4 +82,5 @@ struct GraphEvent {
 	}
 
 	void Push_Node(Node* node, NodeViewer* nodeViewer);
+	void Push_Link(Link* link, LinkViewer* linkViewer);
 };

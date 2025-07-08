@@ -4072,6 +4072,11 @@ void LinkControl(ImNodesEditorContext& editor, int link_idx) {
     }
 }
 
+void CreateLink(const int id) {
+    ImNodesEditorContext& editor = EditorContextGet();
+    ObjectPoolFindOrCreateObject(editor.Links, id);
+}
+
 void Link(const int id, const int start_attr_id, const int end_attr_id, ImNodesLinkType linkType)
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Editor);

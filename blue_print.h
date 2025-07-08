@@ -65,6 +65,17 @@ public:
 	void Update();
 
 	int CreateNewNode(int type);
+	int CreateNewLink(int input_attr_id, int output_attr_id);
 	int CreateNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData);
-	void DeleteNode(int nodeId, GraphEvent* Event=nullptr);
+	int CreateLink(Link* link, LinkViewer* linkViewer, ImLinkData* linkData);
+	void DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event = nullptr);
+	void DeleteLinks(const std::vector<int>& linkIds, GraphEvent* Event = nullptr);
 };
+
+template<typename T>
+std::vector<int> ExtractIds(const std::vector<T>& datas) {
+	std::vector<int> ids = std::vector<int>(datas.size());
+	for (int i = 0; i < datas.size(); i++)
+		ids[i] = datas[i]->GetId();
+	return ids;
+}
