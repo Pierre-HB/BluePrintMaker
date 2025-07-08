@@ -193,7 +193,7 @@ int BluePrint::CreateNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeDa
 
 void BluePrint::DeleteNode(int nodeId, GraphEvent* Event) {
 	//TODO delete assosciated links
-	int nodePtx = -1;
+	/*int nodePtx = -1;
 	int nodeViewerPtx = -1;
 	for (int i = 0; i < nodes.size(); i++) {
 		if (nodes[i]->GetId() == nodeId) {
@@ -220,7 +220,19 @@ void BluePrint::DeleteNode(int nodeId, GraphEvent* Event) {
 	}
 	
 	nodes.erase(nodes.begin() + nodePtx);
-	nodeViewers.erase(nodeViewers.begin() + nodeViewerPtx);
+	nodeViewers.erase(nodeViewers.begin() + nodeViewerPtx);*/
+
+
+	if (Event != nullptr) {
+		Event->Push_Node(nodes[nodeId], nodeViewers[nodeId]);
+	}
+	else {
+		delete nodes[nodeId];
+		delete nodeViewers[nodeId];
+	}
+
+	nodes.erase(nodeId);
+	nodeViewers.erase(nodeId);
 }
 
 void BluePrint::Update() {
@@ -312,7 +324,7 @@ void BluePrint::Update() {
 			case CREATION:
 			{
 				for (Node* node : dest->nodeDatas)
-					DeleteNode(node->GetId(), false);
+					DeleteNode(node->GetId());
 				break;
 			}
 			case DESTRUCTION:
@@ -348,7 +360,7 @@ void BluePrint::Update() {
 			case DESTRUCTION:
 			{
 				for (Node* node : dest->nodeDatas)
-					DeleteNode(node->GetId(), false);
+					DeleteNode(node->GetId());
 				break;
 			}
 			default:
