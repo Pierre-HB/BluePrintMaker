@@ -5,8 +5,27 @@ GraphEvent::GraphEvent() : GraphEvent(-1, NONE) {
 
 }
 
-GraphEvent::GraphEvent(int id, GraphEventType type) : id(), type(type) {
+GraphEvent::GraphEvent(int id, GraphEventType type) : id(id), type(type) {
 
+}
+
+
+
+GraphEvent::GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* nodeViewer) : id(id), type(type) {
+	nodeDatas.push_back(node);
+	nodeViewerDatas.push_back(nodeViewer);
+	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node->GetId()));
+}
+
+GraphEvent::GraphEvent(int id, GraphEventType type, const Node& node, const NodeViewer& nodeViewer) : GraphEvent(id, type, new Node(node), new NodeViewer(nodeViewer)) {
+
+}
+
+//Just to assert that I don't make copy of event, only Moves
+//Because when a copy is deleted, so are the pointers
+//Maybe I should just add 'delete GraphEvent(const GraphEvent& other)' in the class definition to delete the default copy ocnstructor
+GraphEvent::GraphEvent(const GraphEvent& other) : id(), type() {
+	assert(false);
 }
 
 GraphEvent::~GraphEvent() {
@@ -30,4 +49,10 @@ GraphEvent::~GraphEvent() {
 
 	for (LinkViewer* linkViewer : linkViewerDatas)
 		delete linkViewer;
+}
+
+void GraphEvent::Push_Node(Node* node, NodeViewer* nodeViewer) {
+	nodeDatas.push_back(node);
+	nodeViewerDatas.push_back(nodeViewer);
+	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node->GetId()));
 }

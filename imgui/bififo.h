@@ -28,28 +28,36 @@ struct BiFIFO {
     }
 
     //clear fifo_2 and add  an element in fifo1
-    void push(T element) {
-        data[end_fifo_1] = element;
+    void push(T&& element) {
+        data[end_fifo_1] = std::move(element);
         start_fifo_2 = end_fifo_1;
         end_fifo_1 = _add_ptr(end_fifo_1);
         if(end_fifo_1 == start_fifo_1)
             start_fifo_1 = _add_ptr(start_fifo_1);
     }
 
+    void push(const T& element) {
+        data[end_fifo_1] = T(element);
+        start_fifo_2 = end_fifo_1;
+        end_fifo_1 = _add_ptr(end_fifo_1);
+        if (end_fifo_1 == start_fifo_1)
+            start_fifo_1 = _add_ptr(start_fifo_1);
+    }
+
     //pop last element of fifo1 and push it into fifo2. return true if succesful
-    bool pop(T* dest) {
+    bool pop(T** dest) {
         if (end_fifo_1 == start_fifo_1)
             return false;
         end_fifo_1 = _decr_ptr(end_fifo_1); //implicitely push into fifo_2
-        *dest = data[end_fifo_1];
+        *dest = &(data[end_fifo_1]);
         return true;
     }
 
     //pop last element of fifo2 and push it into fifo1. return true if succesful
-    bool unpop(T* dest) {
+    bool unpop(T** dest) {
         if (_decr_ptr(end_fifo_1) == start_fifo_2)
             return false;
-        *dest = data[end_fifo_1];
+        *dest = &(data[end_fifo_1]);
         end_fifo_1 = _add_ptr(end_fifo_1); //implicitely push into fifo_1
 
         return true;
