@@ -4,6 +4,7 @@
 #include "node.h"
 #include "link.h"
 #include <vector>
+#include <map>
 #include "graph_event.h"
 #include "bififo.h"
 
@@ -21,11 +22,11 @@ private:
 
 	IOPanel ioPanel;
 
-	std::vector<Node*> nodes;
-	std::vector<NodeViewer*> nodeViewers;
+	std::map<int, Node*> nodes;
+	std::map<int, NodeViewer*> nodeViewers;
 
-	std::vector<Link*> links;
-	std::vector<LinkViewer*> linkViewers;
+	std::map<int, Link*> links;
+	std::map<int, LinkViewer*> linkViewers;
 
 	BiFIFO<GraphEvent, 1024> graphEvents;
 
