@@ -5,19 +5,17 @@ GraphEvent::GraphEvent() : GraphEvent(-1, NONE) {
 
 }
 
-GraphEvent::GraphEvent(int id, GraphEventType type) : id(id), type(type) {
+GraphEvent::GraphEvent(int id, GraphEventType type) : id(id), type(type), swapedNodeViewerId(-1){
 
 }
 
-
-
-GraphEvent::GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* nodeViewer) : id(id), type(type) {
+GraphEvent::GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* nodeViewer) : id(id), type(type), swapedNodeViewerId(-1) {
 	nodeDatas.push_back(node);
 	nodeViewerDatas.push_back(nodeViewer);
 	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node->GetId()));
 }
 
-GraphEvent::GraphEvent(int id, GraphEventType type, Link* link, LinkViewer* linkViewer) : id(id), type(type) {
+GraphEvent::GraphEvent(int id, GraphEventType type, Link* link, LinkViewer* linkViewer) : id(id), type(type), swapedNodeViewerId(-1) {
 	linkDatas.push_back(link);
 	linkViewerDatas.push_back(linkViewer);
 	linkImNodesDatas.push_back(ImNodes::GetLinkData(link->GetId()));
@@ -31,11 +29,8 @@ GraphEvent::GraphEvent(int id, GraphEventType type, const Link& link, const Link
 
 }
 
-//Just to assert that I don't make copy of event, only Moves
-//Because when a copy is deleted, so are the pointers
-//Maybe I should just add 'delete GraphEvent(const GraphEvent& other)' in the class definition to delete the default copy ocnstructor
-GraphEvent::GraphEvent(const GraphEvent& other) : id(), type() {
-	assert(false);
+GraphEvent::GraphEvent(int id, int swapedNodeViewerId, const NodeViewer& nodeViewer) : id(id), swapedNodeViewerId(swapedNodeViewerId), type(ATTRIUTE_SWAP) {
+	nodeViewerDatas.push_back(new NodeViewer(nodeViewer));
 }
 
 GraphEvent::~GraphEvent() {
@@ -67,8 +62,69 @@ void GraphEvent::Push_Node(Node* node, NodeViewer* nodeViewer) {
 	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node->GetId()));
 }
 
+void GraphEvent::Push_NodeViewer(const NodeViewer& nodeViewer) {
+	assert(type == ATTRIUTE_SWAP);
+	assert(nodeViewerDatas.size() == 1);
+	nodeViewerDatas.push_back(new NodeViewer(nodeViewer));
+}
+
 void GraphEvent::Push_Link(Link* link, LinkViewer* linkViewer) {
 	linkDatas.push_back(link);
 	linkViewerDatas.push_back(linkViewer);
 	linkImNodesDatas.push_back(ImNodes::GetLinkData(link->GetId()));
+}
+
+bool GraphEvent::valid() const {
+	switch (type)
+	{
+	case CREATION:
+	case DESTRUCTION:
+		return nodeDatas.size() > 0 || linkDatas.size() > 0;
+
+	case ATTRIUTE_SWAP:
+	{
+		if (nodeViewerDatas.size() != 2)
+			return false;
+
+		return *nodeViewerDatas[0] != *nodeViewerDatas[1];
+	}
+	case NONE:
+		return false;
+	default:
+		assert(false);
+		return false;
+	}
+}
+
+GraphEvent& GraphEvent::operator=(GraphEvent&& m) noexcept {
+	std::cout << "CALL move assign of Graph event" << std::endl;
+
+	GraphEvent::~GraphEvent();
+
+	GraphEvent::id = m.id;
+
+	//For deletion and rceation event, need only one copy of the object
+	GraphEvent::nodeImNodesDatas = std::move(m.nodeImNodesDatas);
+	GraphEvent::linkImNodesDatas = std::move(m.linkImNodesDatas);
+	GraphEvent::labelImNodesDatas = std::move(m.labelImNodesDatas);
+
+	GraphEvent::nodeDatas = std::move(m.nodeDatas);
+	GraphEvent::nodeViewerDatas = std::move(m.nodeViewerDatas);
+	GraphEvent::linkDatas = std::move(m.linkDatas);
+	GraphEvent::linkViewerDatas = std::move(m.linkViewerDatas);
+
+	GraphEvent::type = m.type;
+
+	GraphEvent::swapedNodeViewerId = m.swapedNodeViewerId;
+
+	m.nodeImNodesDatas.clear();
+	m.linkImNodesDatas.clear();
+	m.labelImNodesDatas.clear();
+	m.nodeDatas.clear();
+	m.nodeViewerDatas.clear();
+	m.linkDatas.clear();
+	m.linkViewerDatas.clear();
+	m.swapedNodeViewerId = -1;
+
+	return *this;
 }

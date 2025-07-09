@@ -5,16 +5,16 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
 
 - [x] Solver with Gauss pivot
 - [x] deformation of links (maybe use link's id to track changes between frames, see selected link for inspiration)
- - [ ] Right Click "Add"
+ - [x] Right Click "Add"
 	 + [ ] Machine
 	 + [ ] Source
 	 + [ ] Merger/Spliter
 	 + [ ] Black box
  - [ ] JSON reader for factory data
- - [ ] Supr to delet object
+ - [x] Supr to delet object
  - [ ] Dashed type for proliferator links (maybe not)
- - [ ] Node API to automatically manage:
-	 + [ ] input and output on the same line (maybe use tables)
+ - [x] Node API to automatically manage:
+	 + [x] input and output on the same line (maybe use tables)
  - [ ] PDF Export (or SVG export) (need to hook at the function **`void  AddLine(...)`**, **`void  AddRect(...)`**, **`void  AddRectFilled(...)`**, ... in file imgui.h line 3113)
  - [ ] Black box creation from other Blue print
  - [ ] Saving of current project
@@ -26,7 +26,7 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
  - [x] Sloped link
  - [x] Manage several link style
  - [x] Swap of attribute
- - [ ] add a control to lock moves on X or Y axis (for link control movement and link label movement and node movement)
+ - [x] add a control to lock moves on X or Y axis (for link control movement and link label movement and node movement)
 
 # Note
 - if I want several windows with independant blueprint, I might take a look at the ImGui::BeginChild call in the ImNodes::BeginNodeEditor(). I may also use several context and switch between them

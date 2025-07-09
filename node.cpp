@@ -144,6 +144,18 @@ static int FindIndex(const std::vector<NodeIOViewer>& nodeios, const std::vector
 	return -1;
 }
 
+bool NodeViewer::Contain(int attr_id) {
+	for (const NodeIOViewer& nodeIOViewer : input_ref)
+		if (nodeIOViewer.GetId() == attr_id)
+			return true;
+
+	for (const NodeIOViewer& nodeIOViewer : output_ref)
+		if (nodeIOViewer.GetId() == attr_id)
+			return true;
+
+	return false;
+}
+
 bool NodeViewer::SwapIO(int id1, int id2) {
 	int index1 = FindIndex(input_ref, input_perm, id1);
 	int index2 = -1;
@@ -181,4 +193,34 @@ void NodeViewer::Reset() {
 		output_perm.push_back(i);
 		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false));
 	}
+}
+
+void NodeViewer::CopyPerm(const NodeViewer& other) {
+	assert(input_perm.size() == other.input_perm.size());
+	assert(output_perm.size() == other.output_perm.size());
+
+	for (int i = 0; i < input_perm.size(); i++)
+		input_perm[i] = other.input_perm[i];
+
+	for (int i = 0; i < output_perm.size(); i++)
+		output_perm[i] = other.output_perm[i];
+}
+
+bool NodeViewer::operator==(const NodeViewer& other) const {
+	if (input_perm.size() != other.input_perm.size() || output_perm.size() != other.output_perm.size())
+		return false;
+
+	for (int i = 0; i < input_perm.size(); i++)
+		if (input_perm[i] != other.input_perm[i])
+			return false;
+
+	for (int i = 0; i < output_perm.size(); i++)
+		if (output_perm[i] != other.output_perm[i])
+			return false;
+
+	return true;
+}
+
+bool NodeViewer::operator!=(const NodeViewer& other) const {
+	return !operator==(other);
 }

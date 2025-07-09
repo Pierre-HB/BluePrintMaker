@@ -116,7 +116,7 @@ static const std::vector<Node> createRecipies() {
 	return recipies;
 }
 
-BluePrint::BluePrint(const char* name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()) {
+BluePrint::BluePrint(const char* name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()), swapingNodeViewerId(-1) {
 }
 
 BluePrint::~BluePrint() {
@@ -313,16 +313,29 @@ void BluePrint::Update() {
 	}
 
 	int src_attr, dest_attr;
+	if (swapingNodeViewerId != -1 && !ImGui::IsMouseDragging(0)) {
+		swapingEvent.Push_NodeViewer(*nodeViewers[swapingNodeViewerId]);
+		if (swapingEvent.valid()) {
+			ImNodes::PushEvent(swapingEvent.id);
+			graphEvents.push(std::move(swapingEvent));
+		}
+		swapingNodeViewerId = -1;
+		swapingEvent = GraphEvent();
+	}
+
 	if (ImNodes::IsAttributeSwapped(&src_attr, &dest_attr))
 	{
-		for (const auto& [key, nodeViewer] : nodeViewers) {
-			//TODO create an event
-			/*
-			event is created by taking a snapshot of the nodeViewer Before the first swap and once the user release the ImGui::IsMouseDragged()
-			*/
-			if (nodeViewer->SwapIO(src_attr, dest_attr))
-				break;
+		if (swapingNodeViewerId == -1) {
+			for (const auto& [key, nodeViewer] : nodeViewers) {
+				if (nodeViewer->Contain(src_attr)) {
+					assert(nodeViewer->Contain(dest_attr));
+					swapingNodeViewerId = nodeViewer->GetId();
+					break;
+				}
+			}
+			swapingEvent = GraphEvent(CreateId(), swapingNodeViewerId, *nodeViewers[swapingNodeViewerId]);
 		}
+		assert(nodeViewers[swapingNodeViewerId]->SwapIO(src_attr, dest_attr));
 	}
 
 	int eventId;
@@ -349,6 +362,11 @@ void BluePrint::Update() {
 				for (int i = 0; i < dest->linkDatas.size(); i++) {
 					CreateLink(dest->linkDatas[i], dest->linkViewerDatas[i], dest->linkImNodesDatas[i]);
 				}
+				break;
+			}
+			case ATTRIUTE_SWAP:
+			{
+				nodeViewers[dest->swapedNodeViewerId]->CopyPerm(*dest->nodeViewerDatas[0]);
 				break;
 			}
 			default:
@@ -382,6 +400,11 @@ void BluePrint::Update() {
 					DeleteNodes(ExtractIds(dest->nodeDatas));
 				if (dest->linkDatas.size() > 0)
 					DeleteLinks(ExtractIds(dest->linkDatas));
+				break;
+			}
+			case ATTRIUTE_SWAP:
+			{
+				nodeViewers[dest->swapedNodeViewerId]->CopyPerm(*dest->nodeViewerDatas[1]);
 				break;
 			}
 			default:

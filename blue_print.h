@@ -30,6 +30,9 @@ private:
 
 	BiFIFO<GraphEvent, 1024> graphEvents;
 
+	GraphEvent swapingEvent;
+	int swapingNodeViewerId;
+
 	//ImVector<int> links; //Get list of link caus wee need to render them after all nodes
 	//int ioPanel; //object for managing user input
 	/*

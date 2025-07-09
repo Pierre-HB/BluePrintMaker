@@ -103,10 +103,16 @@ public:
 	// or just check if it's Id have been swaped ?
 
 	bool SwapIO(int id1, int id2);
+	bool Contain(int attr_id);
 
 	int GetId() const {
 		return node->GetId();
 	}
+
+	bool operator==(const NodeViewer& other) const;
+	bool operator!=(const NodeViewer& other) const;
+
+	void CopyPerm(const NodeViewer& other);
 private:
 	//if the ref node changed (more or less input/outpu), reset all pins.
 	//TODO a child NodeSplitterMergerViwer that only reset if the number of inputs/outputs decreased, keep same order if just one pin was added
