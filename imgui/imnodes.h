@@ -83,6 +83,7 @@ enum ImNodesStyleVar_
     ImNodesStyleVar_PinOffset,
     ImNodesStyleVar_MiniMapPadding,
     ImNodesStyleVar_MiniMapOffset,
+    ImNodesStyleVar_ZoomSensitivity,    
     ImNodesStyleVar_COUNT
 };
 
@@ -263,6 +264,8 @@ struct ImNodesStyle
     ImVec2 MiniMapPadding;
     // Mini-map offset from the screen side.
     ImVec2 MiniMapOffset;
+    // Zoom speed
+    float ZoomSensitivity;
 
     // By default, ImNodesStyleFlags_NodeOutline and ImNodesStyleFlags_Gridlines are enabled.
     ImNodesStyleFlags Flags;
@@ -346,6 +349,10 @@ void MiniMap(
     const ImNodesMiniMapLocation                     location = ImNodesMiniMapLocation_TopLeft,
     const ImNodesMiniMapNodeHoveringCallback         node_hovering_callback = NULL,
     const ImNodesMiniMapNodeHoveringCallbackUserData node_hovering_callback_data = NULL);
+
+//Set the zoom level call before BeginNodeEditor
+void SetZoom(float zoom);
+float GetZoom();
 
 // Use PushColorStyle and PopColorStyle to modify ImNodesStyle::Colors mid-frame.
 void PushColorStyle(ImNodesCol item, unsigned int color);

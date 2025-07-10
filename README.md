@@ -34,10 +34,11 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
 - if I want several windows with independant blueprint, I might take a look at the ImGui::BeginChild call in the ImNodes::BeginNodeEditor(). I may also use several context and switch between them
 - For SVG Export, need to hook at the function **`void  AddLine(...)`**, **`void  AddRect(...)`**, **`void  AddRectFilled(...)`**, ... in file imgui.h line 3113
 - For the computation of the flow solver, use a separate thread and add a rotating ImGui widget to show that something is being computed.
+- ImGui spinners : https://github.com/dalerank/imspinner/blob/master/imspinner.h
 
 # Projet
 
-The projet is build upon ImGui, ImNode and Num library (https://github.com/983/Num). Id did everything else including:
+The projet is build upon ImGui, ImNode (https://github.com/Nelarius/imnodes) and Num library (https://github.com/983/Num). Id did everything else including:
 
 - BluePrint theme
 - Sloped curve in node editor

@@ -3316,16 +3316,52 @@ ImNodesStyle::ImNodesStyle()
       LinkThickness(3.f), LinkLineSegmentsPerLength(0.1f), LinkHoverDistance(10.f), LinkSlopedMinSlope(5.0f), LinkSlopedMinOffset(50.0f), LinkCreationType(ImNodesLinkType_::ImNodesLinkType_Bezier), LabelPadding(3.f, 3.f), LabelCornerRounding(3.f), LabelDraggable(true),
       PinCircleRadius(4.f), PinQuadSideLength(7.f), PinTriangleSideLength(9.5),
       PinLineThickness(1.f), PinHoverRadius(10.f), PinOffset(0.f), MiniMapPadding(8.0f, 8.0f),
-      MiniMapOffset(4.0f, 4.0f), Flags(ImNodesStyleFlags_NodeOutline | ImNodesStyleFlags_GridLines),
+      MiniMapOffset(4.0f, 4.0f), ZoomSensitivity(1.2f), Flags(ImNodesStyleFlags_NodeOutline | ImNodesStyleFlags_GridLines),
       Colors()
 {
 }
 
 namespace IMNODES_NAMESPACE
 {
+void CreateContextFont(ImNodesContext* ctx) {
+    float raison = 1.2f;
+    float min_size = 0.5f;
+    float max_size = 3.0f;
+
+    const float BASE_FONT_SIZE = 13.0f; //Base font size from ImGui
+    float current_value = 1.0f;
+
+    while (current_value > min_size)
+        current_value /= raison;
+
+    current_value *= raison;
+    ImGuiIO& io = ImGui::GetIO();
+
+    while (current_value <= max_size) {
+        //all possible built in fonts:
+        //
+        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/ProggyClean.ttf", BASE_FONT_SIZE * current_value));
+        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/ProggyTiny.ttf", BASE_FONT_SIZE * current_value));
+        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Roboto-Medium.ttf", BASE_FONT_SIZE * current_value));
+        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Karla-Regular.ttf", BASE_FONT_SIZE * current_value));
+        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/DroidSans.ttf", BASE_FONT_SIZE * current_value));
+
+        ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Cousine-Regular.ttf", BASE_FONT_SIZE * current_value));
+        ctx->fontSizes.push_back(current_value);
+        current_value *= raison;
+    }
+
+    //ensure that when swaping fonts, the blur level is the same
+    float alpha = sqrtf(raison);
+    for (int i = 0; i < ctx->fontSizes.size() - 1; i++)
+        ctx->fontChanges.push_back(ctx->fontSizes[i] * alpha);
+}
+
 ImNodesContext* CreateContext()
-{
+{    
     ImNodesContext* ctx = IM_NEW(ImNodesContext)();
+    ImGui::GetIO().Fonts->AddFontDefault(); // To ensure a default font is set for other ImGui window
+    CreateContextFont(ctx);
     if (GImNodes == NULL)
         SetCurrentContext(ctx);
     Initialize(ctx);
@@ -3559,7 +3595,7 @@ void StyleColorsBluePrint(ImNodesStyle* dest)
     dest->Colors[ImNodesCol_BoxSelectorOutline] = IM_COL32(255, 255, 255, 255);
 
 }
-
+void BeginZoom(const ImNodesEditorContext& editor);
 void BeginNodeEditor()
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_None);
@@ -3626,6 +3662,13 @@ void BeginNodeEditor()
     GImNodes->ActiveSwappableAttribute = false;
     GImNodes->HoveredSwappableAttribute = false;
 
+    float mouseWheel = ImGui::GetIO().MouseWheel * GImNodes->Style.ZoomSensitivity;
+    if(mouseWheel > 0)
+        editor.Zoom *= mouseWheel;
+    if(mouseWheel < 0)
+        editor.Zoom /= abs(mouseWheel);
+    BeginZoom(editor);
+
     ImGui::BeginGroup();
     {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
@@ -3657,6 +3700,7 @@ void BeginNodeEditor()
     }
 }
 //descriptor of a function delcared after, might change some stuff to avoid it...
+void EndZoom();
 void LinkControl(ImNodesEditorContext& editor, int link_idx);
 void EndNodeEditor()
 {
@@ -3878,6 +3922,8 @@ void EndNodeEditor()
     ImGui::PopStyleVar();   // pop window padding
     ImGui::PopStyleVar();   // pop frame padding
     ImGui::EndGroup();
+
+    EndZoom();
 }
 
 void MiniMap(
@@ -3906,6 +3952,41 @@ void MiniMap(
     // mini map is draw over everything and all pin/link positions are updated
     // correctly relative to their respective nodes. Hence, we must store some of
     // of the state for the mini map in GImNodes for the actual drawing/updating
+}
+
+void SetZoom(float zoom) {
+    IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_None);
+    ImNodesEditorContext& editor = EditorContextGet();
+    editor.Zoom = zoom;
+}
+
+float GetZoom() {
+    IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_None);
+    ImNodesEditorContext& editor = EditorContextGet();
+    return editor.Zoom;
+}
+
+void BeginZoom(const ImNodesEditorContext& editor) {
+    IM_ASSERT(GImNodes->fonts.size() > 0);
+    ImGuiIO& io = ImGui::GetIO();
+    for (int i = 0; i < GImNodes->fontChanges.size(); i++) {
+        if (GImNodes->fontChanges[i] >= editor.Zoom) {
+            io.FontGlobalScale = editor.Zoom / GImNodes->fontSizes[i];
+            ImGui::PushFont(GImNodes->fonts[i]);
+            
+            return;
+        }
+    }
+    //Always select the bigger fonts if needed
+    int i = GImNodes->fonts.size() - 1;
+    io.FontGlobalScale = editor.Zoom / GImNodes->fontSizes[i];
+    ImGui::PushFont(GImNodes->fonts[i]);
+}
+
+void EndZoom() {
+    ImGuiIO& io = ImGui::GetIO();
+    io.FontGlobalScale = 1.0f;
+    ImGui::PopFont();
 }
 
 void BeginNode(const int node_id)
@@ -4233,6 +4314,8 @@ static const ImNodesStyleVarInfo GStyleVarInfo[] = {
     {ImGuiDataType_Float, 2, (ImU32)offsetof(ImNodesStyle, MiniMapPadding)},
     // ImNodesStyleVar_MiniMapOffset
     {ImGuiDataType_Float, 2, (ImU32)offsetof(ImNodesStyle, MiniMapOffset)},
+    // ImNodesStyleVar_ZoomSensitivity
+    {ImGuiDataType_Float, 1, (ImU32)offsetof(ImNodesStyle, ZoomSensitivity)},
 };
 
 static const ImNodesStyleVarInfo* GetStyleVarInfo(ImNodesStyleVar idx)
