@@ -18,7 +18,7 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
  - [x] Manage several link style
  - [x] Swap of attribute
  - [x] add a control to lock moves on X or Y axis (for link control movement and link label movement and node movement)
-- [ ] zoom
+- [x] zoom
 - [ ] Saving
 - [ ] Nice node visual
 - [ ] Json reading

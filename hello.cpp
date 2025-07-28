@@ -176,15 +176,17 @@ public:
 
 
         ImNodes::PushStyleVar(ImNodesStyleVar_PinQuadSideLength, 20.0f);
-
+        
         ImNodes::BeginInputAttribute(2);
         ImGui::Text("2");
         ImNodes::EndInputAttribute();
 
         ImNodes::PopStyleVar(1);
         ImGui::SameLine();
-        
-        ImGui::Indent(40*2);
+
+        //ImGui::Indent(40*2);
+        ImGui::TextUnformatted("          ");
+        ImGui::SameLine();
         ImNodes::BeginOutputAttribute(3);
         ImGui::Text("3");
         ImNodes::EndOutputAttribute();
@@ -616,14 +618,14 @@ void NodeEditorInitialize() {
 //bp = new BluePrint();
 
 
-//void NodeEditorShow() { editor.show(); }
-void NodeEditorShow() {
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-    ImGui::SetNextWindowSize(viewport->Size);
-    bp.Draw();
-    bp.Update();
-}
+void NodeEditorShow() { editor.show(); }
+//void NodeEditorShow() {
+//    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+//    ImGui::SetNextWindowPos(viewport->Pos);
+//    ImGui::SetNextWindowSize(viewport->Size);
+//    bp.Draw();
+//    bp.Update();
+//}
 
 void NodeEditorShutdown() {
     editor.clear();

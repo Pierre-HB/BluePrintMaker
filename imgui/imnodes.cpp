@@ -265,32 +265,32 @@ inline SlopedCurve GetSlopedCurve(
         ImSwap(start, end);
     }
     //start is either an output or the mouse
-
+    const ImNodesEditorContext& editor = EditorContextGet();
     float min_slope = ImNodes::GetStyle().LinkSlopedMinSlope;
-    float min_offset = ImNodes::GetStyle().LinkSlopedMinOffset;
+    float min_offset = ImNodes::GetStyle().LinkSlopedMinOffset*editor.Zoom;
 
     ImVec2 offset = ImVec2(min_offset, 0.0f);
     SlopedCurve sloped_curve;
-    sloped_curve.P[0] = start + deformation[0];
-    sloped_curve.P[1] = start + offset + deformation[1];
+    sloped_curve.P[0] = start + deformation[0] * editor.Zoom;
+    sloped_curve.P[1] = start + offset + deformation[1] * editor.Zoom;
 
-    if (end.x >= start.x + 2*min_offset) {
+    if (end.x >= start.x + 2 * min_offset) {
         //standart sloped curve
         float h = end.y - start.y;
         float d = abs(h) / min_slope;//distance traveld with the min slope
         if (min_slope > 0.001f && d < end.x - start.x - 2 * min_offset)
-            sloped_curve.P[2] = start + offset + ImVec2(d, h) + deformation[4];
+            sloped_curve.P[2] = start + offset + ImVec2(d, h) + deformation[4] * editor.Zoom;
         else
-            sloped_curve.P[2] = end - offset + deformation[4];
-        sloped_curve.P[3] = end + deformation[5];
+            sloped_curve.P[2] = end - offset + deformation[4] * editor.Zoom;
+        sloped_curve.P[3] = end + deformation[5] * editor.Zoom;
         sloped_curve.NumSegments = 3;
     }
     else {
         float mid_y = (end.y + start.y) / 2;
-        sloped_curve.P[2] = ImVec2(start.x + min_offset, mid_y) + deformation[2];
-        sloped_curve.P[3] = ImVec2(end.x - min_offset, mid_y) + deformation[3];
-        sloped_curve.P[4] = end - offset + deformation[4];
-        sloped_curve.P[5] = end + deformation[5];
+        sloped_curve.P[2] = ImVec2(start.x + min_offset, mid_y) + deformation[2] * editor.Zoom;
+        sloped_curve.P[3] = ImVec2(end.x - min_offset, mid_y) + deformation[3] * editor.Zoom;
+        sloped_curve.P[4] = end - offset + deformation[4] * editor.Zoom;
+        sloped_curve.P[5] = end + deformation[5] * editor.Zoom;
         sloped_curve.NumSegments = 5;
     }
     return sloped_curve;
@@ -755,7 +755,7 @@ ImVec2 GetLinkControlOrigin(const ImNodesEditorContext& editor, const ImLinkCont
         else
             origin = curve.sloped_curve->P[linkControl.LocalId-6+1];
     }
-    return origin;
+    return origin/editor.Zoom;
 }
 
 ImVec2 MooveLinkControl(ImNodesEditorContext& editor, const ImLinkControlData& linkControl, ImVec2 origin) {
@@ -892,7 +892,8 @@ void ContraintLabels(ImNodesEditorContext& editor) {
 
 inline ImVec2 ScreenSpaceToGridSpace(const ImNodesEditorContext& editor, const ImVec2& v)
 {
-    return v - GImNodes->CanvasOriginScreenSpace - editor.Panning;
+    const ImVec2 padded = v - editor.Panning;
+    return ImVec2(padded.x / editor.Zoom, padded.y / editor.Zoom) - GImNodes->CanvasOriginScreenSpace;
 }
 
 inline ImRect ScreenSpaceToGridSpace(const ImNodesEditorContext& editor, const ImRect& r)
@@ -902,17 +903,18 @@ inline ImRect ScreenSpaceToGridSpace(const ImNodesEditorContext& editor, const I
 
 inline ImVec2 GridSpaceToScreenSpace(const ImNodesEditorContext& editor, const ImVec2& v)
 {
-    return v + GImNodes->CanvasOriginScreenSpace + editor.Panning;
+    return ImVec2(v.x * editor.Zoom, v.y * editor.Zoom) + GImNodes->CanvasOriginScreenSpace + editor.Panning;
 }
 
 inline ImVec2 GridSpaceToEditorSpace(const ImNodesEditorContext& editor, const ImVec2& v)
 {
-    return v + editor.Panning;
+    return ImVec2(v.x*editor.Zoom, v.y * editor.Zoom) + editor.Panning;
 }
 
 inline ImVec2 EditorSpaceToGridSpace(const ImNodesEditorContext& editor, const ImVec2& v)
 {
-    return v - editor.Panning;
+    const ImVec2 padded = v - editor.Panning;
+    return ImVec2(padded.x/editor.Zoom, padded.y/editor.Zoom);
 }
 
 inline ImVec2 EditorSpaceToScreenSpace(const ImVec2& v)
@@ -1199,7 +1201,8 @@ ImVec2 GetScreenSpacePinCoordinates(const ImNodesEditorContext& editor, const Im
 
 inline ImVec2 GetLabelOrigin(ImNodesEditorContext& editor, const ImLabelData& label) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImVec2 correction = window->Pos - window->Scroll; //offset due to windows data
+    //ImVec2 correction = window->Pos - window->Scroll; //offset due to windows data
+    ImVec2 correction = GImNodes->CanvasOriginScreenSpace;
     switch (label.parentType)
     {
     case ImNodesParentLabelType_None:
@@ -1337,7 +1340,7 @@ void BeginNodeSelection(ImNodesEditorContext& editor, const int node_idx)
     // each node in the selection to the origin of the dragged node.
     const ImVec2 ref_origin = editor.Nodes.Pool[node_idx].Origin;
     editor.PrimaryNodeOffset =
-        ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+        ref_origin - ScreenSpaceToGridSpace(editor,  GImNodes->MousePos);
     editor.DraggingMousePositionStart = GImNodes->MousePos;
 
     editor.SelectedNodeOffsets.clear();
@@ -1354,7 +1357,7 @@ void ComputeLinkControlOffsets(ImNodesEditorContext& editor, const int primary_l
     // each node in the selection to the origin of the dragged node.
     const ImVec2 ref_origin = GetLinkControlOrigin(editor, editor.LinkControls.Pool[primary_link_control_idx]);
     editor.PrimaryLinkControlOffset =
-        ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+        ref_origin - ScreenSpaceToGridSpace(editor, GImNodes->MousePos);
     editor.DraggingMousePositionStart = GImNodes->MousePos;
 
     editor.SelectedLinkControlOffsets.clear();
@@ -1403,9 +1406,9 @@ void BeginLinkControlSelection(ImNodesEditorContext& editor, const int link_cont
 
 void ComputeLabelOffsets(ImNodesEditorContext& editor, const int primary_label_idx) {
     IM_ASSERT(editor.SelectedLabelIndices.contains(primary_label_idx));
-    const ImVec2 ref_origin = GetLabelOrigin(editor, editor.Labels.Pool[primary_label_idx]) + editor.Labels.Pool[primary_label_idx].Deformation;
+    const ImVec2 ref_origin = ScreenSpaceToGridSpace(editor, GetLabelOrigin(editor, editor.Labels.Pool[primary_label_idx])) + editor.Labels.Pool[primary_label_idx].Deformation;
     editor.PrimaryLabelOffset =
-        ref_origin + GImNodes->CanvasOriginScreenSpace + editor.Panning - GImNodes->MousePos;
+        ref_origin - ScreenSpaceToGridSpace(editor, GImNodes->MousePos);
     editor.DraggingMousePositionStart = GImNodes->MousePos;
 
     editor.SelectedLabelOffsets.clear();
@@ -1723,10 +1726,10 @@ void TranslateSelectedNodes(ImNodesEditorContext& editor)
             ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
             : true);
 
-        ImVec2 origin = GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+        ImVec2 origin = ScreenSpaceToGridSpace(editor, GImNodes->MousePos) +
             editor.PrimaryNodeOffset;
 
-        ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+        ImVec2 originStart = ScreenSpaceToGridSpace(editor, editor.DraggingMousePositionStart) +
             editor.PrimaryNodeOffset;
 
         if (!GImNodes->TranslationModifierNoGridSnapping)
@@ -1790,12 +1793,12 @@ void TranslateSelectedLinkControl(ImNodesEditorContext& editor)
             ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
             : true);
 
-        ImVec2 origin = GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+        ImVec2 origin = ScreenSpaceToGridSpace(editor, GImNodes->MousePos) +
             editor.PrimaryLinkControlOffset;
         if(!GImNodes->TranslationModifierNoGridSnapping)
             origin = SnapOriginToGrid(origin);
 
-        ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+        ImVec2 originStart = ScreenSpaceToGridSpace(editor, editor.DraggingMousePositionStart) +
             editor.PrimaryLinkControlOffset;
 
         if (GImNodes->TranslationModifierX) {
@@ -1835,10 +1838,10 @@ void TranslateSelectedLabels(ImNodesEditorContext& editor)
             ? ImGui::GetIO().MouseDragMaxDistanceSqr[0] > 5.0
             : true);
 
-        ImVec2 origin = GImNodes->MousePos - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+        ImVec2 origin = ScreenSpaceToGridSpace(editor, GImNodes->MousePos) +
             editor.PrimaryLabelOffset;
 
-        ImVec2 originStart = editor.DraggingMousePositionStart - GImNodes->CanvasOriginScreenSpace - editor.Panning +
+        ImVec2 originStart = ScreenSpaceToGridSpace(editor,  editor.DraggingMousePositionStart) +
             editor.PrimaryLabelOffset;
 
         if (!GImNodes->TranslationModifierNoGridSnapping)
@@ -2266,7 +2269,7 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
                 start_pos, end_pos, start_pin.Type, editor.Pins.Pool[GImNodes->HoveredPinIdx.Value()].Type, GImNodes->Style.LinkLineSegmentsPerLength, GImNodes->Style.LinkCreationType, no_deformation);
         }
 
-        DrawCurve(curve, GImNodes->Style.Colors[ImNodesCol_Link], GImNodes->Style.LinkThickness);
+        DrawCurve(curve, GImNodes->Style.Colors[ImNodesCol_Link], GImNodes->Style.LinkThickness* editor.Zoom);
        
         const bool link_creation_on_snap =
             GImNodes->HoveredPinIdx.HasValue() &&
@@ -2378,7 +2381,8 @@ ImOptionalIndex ResolveHoveredPin(
     float           smallest_distance = FLT_MAX;
     ImOptionalIndex pin_idx_with_smallest_distance;
 
-    const float hover_radius_sqr = GImNodes->Style.PinHoverRadius * GImNodes->Style.PinHoverRadius;
+    const ImNodesEditorContext& editor = EditorContextGet();
+    const float hover_radius_sqr = GImNodes->Style.PinHoverRadius * GImNodes->Style.PinHoverRadius * editor.Zoom;
 
     for (int idx = 0; idx < pins.Pool.Size; ++idx)
     {
@@ -2519,7 +2523,7 @@ ImOptionalIndex ResolveHoveredLinkControl(
     float           smallest_distance = FLT_MAX;
     ImOptionalIndex control_primitive_idx_with_smallest_distance;
     ImNodesLinkControlType control_primitive_type = ImNodesLinkControlType_Segment;
-
+    const ImNodesEditorContext& editor = EditorContextGet();
     for (int idx = 0; idx < linkControls.Pool.Size; ++idx)
     {
 
@@ -2544,7 +2548,7 @@ ImOptionalIndex ResolveHoveredLinkControl(
                 GImNodes->MousePos, cp);
 
 
-            if (distance < GImNodes->Style.LinkHoverDistance) {
+            if (distance < GImNodes->Style.LinkHoverDistance*editor.Zoom) {
                 if (control_primitive_type == cp.Type && distance < smallest_distance) {
                     smallest_distance = distance;
                     control_primitive_idx_with_smallest_distance = idx;
@@ -2587,9 +2591,10 @@ inline ImVec2 GetNodeTitleBarOrigin(const ImNodeData& node)
 
 inline ImVec2 GetNodeContentOrigin(const ImNodeData& node)
 {
+    const ImNodesEditorContext& editor = EditorContextGet();
     const ImVec2 title_bar_height =
-        ImVec2(0.f, node.TitleBarContentRect.GetHeight() + 2.0f * node.LayoutStyle.Padding.y);
-    return node.Origin + title_bar_height + node.LayoutStyle.Padding;
+        ImVec2(0.f, node.TitleBarContentRect.GetHeight() + 2.0f * node.LayoutStyle.Padding.y * editor.Zoom);
+    return GridSpaceToEditorSpace(editor, node.Origin) + title_bar_height + node.LayoutStyle.Padding*editor.Zoom;
 }
 
 inline ImRect GetNodeTitleRect(const ImNodeData& node)
@@ -2679,15 +2684,16 @@ TriangleOffsets CalculateTriangleOffsets(const float side_length)
 
 void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_color)
 {
-    static const int CIRCLE_NUM_SEGMENTS = 8;
-
+    
+    const ImNodesEditorContext& editor = EditorContextGet();
+    int CIRCLE_NUM_SEGMENTS = 8*editor.Zoom;
     switch (pin.Shape)
     {
     case ImNodesPinShape_Circle:
     {
         GImNodes->CanvasDrawList->AddCircle(
             pin_pos,
-            GImNodes->Style.PinCircleRadius,
+            GImNodes->Style.PinCircleRadius*editor.Zoom,
             pin_color,
             CIRCLE_NUM_SEGMENTS,
             GImNodes->Style.PinLineThickness);
@@ -2696,7 +2702,7 @@ void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_c
     case ImNodesPinShape_CircleFilled:
     {
         GImNodes->CanvasDrawList->AddCircleFilled(
-            pin_pos, GImNodes->Style.PinCircleRadius, pin_color, CIRCLE_NUM_SEGMENTS);
+            pin_pos, GImNodes->Style.PinCircleRadius * editor.Zoom, pin_color, CIRCLE_NUM_SEGMENTS);
     }
     break;
     case ImNodesPinShape_Quad:
@@ -2775,7 +2781,7 @@ void DrawPin(ImNodesEditorContext& editor, const int pin_idx)
 void DrawNode(ImNodesEditorContext& editor, const int node_idx)
 {
     const ImNodeData& node = editor.Nodes.Pool[node_idx];
-    ImGui::SetCursorPos(node.Origin + editor.Panning);
+    ImGui::SetCursorPos(GridSpaceToEditorSpace(editor, node.Origin));
 
     const bool node_hovered =
         GImNodes->HoveredNodeIdx == node_idx &&
@@ -2798,7 +2804,7 @@ void DrawNode(ImNodesEditorContext& editor, const int node_idx)
     {
         // node base
         GImNodes->CanvasDrawList->AddRectFilled(
-            node.Rect.Min, node.Rect.Max, node_background, node.LayoutStyle.CornerRounding);
+            node.Rect.Min, node.Rect.Max, node_background, node.LayoutStyle.CornerRounding*editor.Zoom);
 
         // title bar:
         if (node.TitleBarContentRect.GetHeight() > 0.f)
@@ -2817,7 +2823,7 @@ void DrawNode(ImNodesEditorContext& editor, const int node_idx)
                 title_bar_rect.Min,
                 title_bar_rect.Max,
                 titlebar_background,
-                node.LayoutStyle.CornerRounding,
+                node.LayoutStyle.CornerRounding*editor.Zoom,
                 ImDrawFlags_RoundCornersTop);
 
 #endif
@@ -2830,17 +2836,17 @@ void DrawNode(ImNodesEditorContext& editor, const int node_idx)
                 node.Rect.Min,
                 node.Rect.Max,
                 node.ColorStyle.Outline,
-                node.LayoutStyle.CornerRounding,
+                node.LayoutStyle.CornerRounding * editor.Zoom,
                 ImDrawCornerFlags_All,
-                node.LayoutStyle.BorderThickness);
+                node.LayoutStyle.BorderThickness * editor.Zoom);
 #else
             GImNodes->CanvasDrawList->AddRect(
                 node.Rect.Min,
                 node.Rect.Max,
                 node.ColorStyle.Outline,
-                node.LayoutStyle.CornerRounding,
+                node.LayoutStyle.CornerRounding*editor.Zoom,
                 ImDrawFlags_RoundCornersAll,
-                node.LayoutStyle.BorderThickness);
+                node.LayoutStyle.BorderThickness*editor.Zoom);
 #endif
         }
     }
@@ -2859,7 +2865,7 @@ void DrawNode(ImNodesEditorContext& editor, const int node_idx)
 void DrawLabel(ImNodesEditorContext& editor, const int label_idx)
 {
     const ImLabelData& label = editor.Labels.Pool[label_idx];
-    ImGui::SetCursorPos(label._Origin + editor.Panning);
+    ImGui::SetCursorPos(GridSpaceToEditorSpace(editor, label._Origin));
 
     const bool label_hovered =
         GImNodes->HoveredLabelIdx == label_idx &&
@@ -2882,7 +2888,7 @@ void DrawLabel(ImNodesEditorContext& editor, const int label_idx)
 
     if(show_border)
         GImNodes->CanvasDrawList->AddRect(
-            label.Rect.Min, label.Rect.Max, border_color, label.LayoutStyle.CornerRounding);
+            label.Rect.Min, label.Rect.Max, border_color, label.LayoutStyle.CornerRounding*editor.Zoom);
 }
 
 void DrawLink(ImNodesEditorContext& editor, const int link_idx)
@@ -2923,7 +2929,7 @@ void DrawLink(ImNodesEditorContext& editor, const int link_idx)
         link_color = link.ColorStyle.Hovered;
     }
 
-    DrawCurve(curve, link_color, GImNodes->Style.LinkThickness);
+    DrawCurve(curve, link_color, GImNodes->Style.LinkThickness*editor.Zoom);
 }
 
 void BeginSwappableAttribute() {
@@ -3662,11 +3668,13 @@ void BeginNodeEditor()
     GImNodes->ActiveSwappableAttribute = false;
     GImNodes->HoveredSwappableAttribute = false;
 
+    float oldZoom = editor.Zoom;
     float mouseWheel = ImGui::GetIO().MouseWheel * GImNodes->Style.ZoomSensitivity;
     if(mouseWheel > 0)
         editor.Zoom *= mouseWheel;
     if(mouseWheel < 0)
         editor.Zoom /= abs(mouseWheel);
+    editor.Panning = GImNodes->MousePos - (GImNodes->MousePos - editor.Panning) * editor.Zoom / oldZoom;
     BeginZoom(editor);
 
     ImGui::BeginGroup();
@@ -3708,7 +3716,7 @@ void EndNodeEditor()
     GImNodes->CurrentScope = ImNodesScope_None;
 
     ImNodesEditorContext& editor = EditorContextGet();
-
+    
     //resolve visible control primitive
     for(int link_idx : editor.SelectedLinkIndices) 
         LinkControl(editor, link_idx);
@@ -3819,7 +3827,7 @@ void EndNodeEditor()
             }
 
             if(local_ids.contains(link_control.LocalId))
-                DrawControlPrimitive(GetControlPrimitive(link_control.LocalId, curve), link_control_color, GImNodes->Style.LinkThickness);
+                DrawControlPrimitive(GetControlPrimitive(link_control.LocalId, curve), link_control_color, GImNodes->Style.LinkThickness*editor.Zoom);
         }
     }
 
@@ -4037,7 +4045,7 @@ void EndNode()
 
     ImNodeData& node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
     node.Rect = GetItemRect();
-    node.Rect.Expand(node.LayoutStyle.Padding);
+    node.Rect.Expand(node.LayoutStyle.Padding*editor.Zoom);
 
     editor.GridContentBounds.Add(node.Origin);
     editor.GridContentBounds.Add(node.Origin + node.Rect.GetSize());
@@ -4074,7 +4082,7 @@ void EndNodeTitleBar()
 
     ImGui::ItemAdd(GetNodeTitleRect(node), ImGui::GetID("title_bar"));
 
-    ImGui::SetCursorPos(GridSpaceToEditorSpace(editor, GetNodeContentOrigin(node)));
+    ImGui::SetCursorPos(GetNodeContentOrigin(node));
 }
 
 void BeginInputAttribute(const int id, const ImNodesPinShape shape)
@@ -4206,7 +4214,7 @@ void BeginLabel(int parentId, int labelId, ImNodesParentLabelType parentType) {
     label.Draggable = GImNodes->Style.LabelDraggable;
     label.parentId = parentId;
     label.parentType = parentType;
-    label._Origin = GetLabelOrigin(editor, label) + label.Deformation;
+    label._Origin = GetLabelOrigin(editor, label) + label.Deformation*editor.Zoom;
 
     ImGui::SetCursorPos(label._Origin);
 
