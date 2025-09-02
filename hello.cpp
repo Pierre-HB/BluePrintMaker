@@ -292,7 +292,7 @@ public:
 #endif
 
         ImNodes::EndNode();
-
+#ifdef SMATRIX
         {
             
             ImNodes::BeginNode(8459);
@@ -479,7 +479,7 @@ public:
             ImNodes::EndStaticAttribute();
             ImNodes::EndNode();
         }
-
+#endif
 //======================= END SELECTABLE attribute =============================
 
 

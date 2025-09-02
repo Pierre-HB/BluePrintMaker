@@ -434,6 +434,11 @@ struct ImNodesEditorContext
     ImVec2 Panning;
     ImVec2 AutoPanningDelta;
     float Zoom;
+    
+    // default spacing for zoom = 1
+    ImVec2 BaseItemSpacing;
+    ImVec2 BaseItemInnerSpacing;
+
     // Minimum and maximum extents of all content in grid space. Valid after final
     // ImNodes::EndNode() call.
     ImRect GridContentBounds;
@@ -480,7 +485,7 @@ struct ImNodesEditorContext
     ImNodesEventVarElement current_event;
 
     ImNodesEditorContext()
-        : Nodes(), Pins(), Links(), LinkControls(), Labels(), Panning(0.f, 0.f), Zoom(1.0f), SelectedNodeIndices(), SelectedLinkIndices(),
+        : Nodes(), Pins(), Links(), LinkControls(), Labels(), Panning(0.f, 0.f), Zoom(1.0f), BaseItemSpacing(8, 4), BaseItemInnerSpacing(4, 4), SelectedNodeIndices(), SelectedLinkIndices(),
           SelectedNodeOffsets(), SelectedLabelIndices(), PrimaryNodeOffset(0.f, 0.f), ClickInteraction(),
           MiniMapEnabled(false), MiniMapSizeFraction(0.0f), MiniMapNodeHoveringCallback(NULL),
           MiniMapNodeHoveringCallbackUserData(NULL), MiniMapScaling(0.0f), current_event()

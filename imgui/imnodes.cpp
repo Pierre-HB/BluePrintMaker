@@ -2693,7 +2693,7 @@ void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_c
     {
         GImNodes->CanvasDrawList->AddCircle(
             pin_pos,
-            GImNodes->Style.PinCircleRadius*editor.Zoom,
+            GImNodes->Style.PinCircleRadius * editor.Zoom,
             pin_color,
             CIRCLE_NUM_SEGMENTS,
             GImNodes->Style.PinLineThickness);
@@ -2709,10 +2709,10 @@ void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_c
     {
         const QuadOffsets offset = CalculateQuadOffsets(GImNodes->Style.PinQuadSideLength);
         GImNodes->CanvasDrawList->AddQuad(
-            pin_pos + offset.TopLeft,
-            pin_pos + offset.BottomLeft,
-            pin_pos + offset.BottomRight,
-            pin_pos + offset.TopRight,
+            pin_pos + offset.TopLeft * editor.Zoom,
+            pin_pos + offset.BottomLeft * editor.Zoom,
+            pin_pos + offset.BottomRight * editor.Zoom,
+            pin_pos + offset.TopRight * editor.Zoom,
             pin_color,
             GImNodes->Style.PinLineThickness);
     }
@@ -2721,10 +2721,10 @@ void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_c
     {
         const QuadOffsets offset = CalculateQuadOffsets(GImNodes->Style.PinQuadSideLength);
         GImNodes->CanvasDrawList->AddQuadFilled(
-            pin_pos + offset.TopLeft,
-            pin_pos + offset.BottomLeft,
-            pin_pos + offset.BottomRight,
-            pin_pos + offset.TopRight,
+            pin_pos + offset.TopLeft * editor.Zoom,
+            pin_pos + offset.BottomLeft * editor.Zoom,
+            pin_pos + offset.BottomRight * editor.Zoom,
+            pin_pos + offset.TopRight * editor.Zoom,
             pin_color);
     }
     break;
@@ -2733,9 +2733,9 @@ void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_c
         const TriangleOffsets offset =
             CalculateTriangleOffsets(GImNodes->Style.PinTriangleSideLength);
         GImNodes->CanvasDrawList->AddTriangle(
-            pin_pos + offset.TopLeft,
-            pin_pos + offset.BottomLeft,
-            pin_pos + offset.Right,
+            pin_pos + offset.TopLeft * editor.Zoom,
+            pin_pos + offset.BottomLeft * editor.Zoom,
+            pin_pos + offset.Right * editor.Zoom,
             pin_color,
             // NOTE: for some weird reason, the line drawn by AddTriangle is
             // much thinner than the lines drawn by AddCircle or AddQuad.
@@ -2749,9 +2749,9 @@ void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_c
         const TriangleOffsets offset =
             CalculateTriangleOffsets(GImNodes->Style.PinTriangleSideLength);
         GImNodes->CanvasDrawList->AddTriangleFilled(
-            pin_pos + offset.TopLeft,
-            pin_pos + offset.BottomLeft,
-            pin_pos + offset.Right,
+            pin_pos + offset.TopLeft * editor.Zoom,
+            pin_pos + offset.BottomLeft * editor.Zoom,
+            pin_pos + offset.Right * editor.Zoom,
             pin_color);
     }
     break;
@@ -3976,6 +3976,10 @@ float GetZoom() {
 
 void BeginZoom(const ImNodesEditorContext& editor) {
     IM_ASSERT(GImNodes->fonts.size() > 0);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, editor.BaseItemSpacing * editor.Zoom);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, editor.BaseItemInnerSpacing * editor.Zoom);
+
     ImGuiIO& io = ImGui::GetIO();
     for (int i = 0; i < GImNodes->fontChanges.size(); i++) {
         if (GImNodes->fontChanges[i] >= editor.Zoom) {
@@ -3993,7 +3997,8 @@ void BeginZoom(const ImNodesEditorContext& editor) {
 
 void EndZoom() {
     ImGuiIO& io = ImGui::GetIO();
-    io.FontGlobalScale = 1.0f;
+    io.FontGlobalScale = 1.0f; 
+    ImGui::PopStyleVar(2);
     ImGui::PopFont();
 }
 
@@ -4038,7 +4043,7 @@ void EndNode()
     GImNodes->CurrentScope = ImNodesScope_Editor;
 
     ImNodesEditorContext& editor = EditorContextGet();
-
+    
     // The node's rectangle depends on the ImGui UI group size.
     ImGui::EndGroup();
     ImGui::PopID();
