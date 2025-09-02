@@ -1,126 +1,150 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="imgui">
-      <UniqueIdentifier>{20b90ce4-7fcb-4731-b9a0-075f875de82d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="sources">
       <UniqueIdentifier>{f18ab499-84e1-499f-8eff-9754361e0e52}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="sources\blue_print">
+      <UniqueIdentifier>{6908c7d5-5393-41ea-8227-099cfd91aeed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\blue_print\link">
+      <UniqueIdentifier>{b1773a04-7e24-45aa-b687-30c2c33c6df7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\blue_print\node">
+      <UniqueIdentifier>{e84f575c-9b72-4603-9685-286d38a8a7a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\blue_print\io_panel">
+      <UniqueIdentifier>{b7ce74ee-7554-41df-855f-c0781cfd46d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\blue_print\graph_event">
+      <UniqueIdentifier>{969cf431-2824-4bce-b6e5-7cd032f4e8df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\algebre">
+      <UniqueIdentifier>{1e838a0e-25a7-40b6-90d3-59295566d129}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{20b90ce4-7fcb-4731-b9a0-075f875de82d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui\imgui">
+      <UniqueIdentifier>{37ea76d6-bd9d-4765-bb02-cf643b99c126}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui\imnodes">
+      <UniqueIdentifier>{c79ba63d-317d-4321-b7cf-be60dccddf3c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\imgui.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_demo.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_draw.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_tables.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imgui_widgets.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
     <ClCompile Include="hello.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui\imnodes.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
     <ClCompile Include="blue_print.cpp">
-      <Filter>sources</Filter>
-    </ClCompile>
-    <ClCompile Include="node.cpp">
-      <Filter>sources</Filter>
+      <Filter>sources\blue_print</Filter>
     </ClCompile>
     <ClCompile Include="link.cpp">
-      <Filter>sources</Filter>
+      <Filter>sources\blue_print\link</Filter>
+    </ClCompile>
+    <ClCompile Include="node.cpp">
+      <Filter>sources\blue_print\node</Filter>
     </ClCompile>
     <ClCompile Include="io_panel.cpp">
-      <Filter>sources</Filter>
+      <Filter>sources\blue_print\io_panel</Filter>
     </ClCompile>
     <ClCompile Include="graph_event.cpp">
-      <Filter>sources</Filter>
+      <Filter>sources\blue_print\graph_event</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imnodes.cpp">
+      <Filter>ui\imnodes</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui.cpp">
+      <Filter>ui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_demo.cpp">
+      <Filter>ui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_draw.cpp">
+      <Filter>ui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp">
+      <Filter>ui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>ui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_tables.cpp">
+      <Filter>ui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_widgets.cpp">
+      <Filter>ui\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="imgui\imconfig.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\imgui.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\imgui_internal.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
     <ClInclude Include="node_editor.h">
       <Filter>sources</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\imnodes.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\imnodes_internal.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\backends\imgui_impl_glfw.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\backends\imgui_impl_opengl3.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="smatrix.h">
-      <Filter>sources</Filter>
-    </ClInclude>
-    <ClInclude Include="fraction.h">
-      <Filter>sources</Filter>
-    </ClInclude>
-    <ClInclude Include="num.hpp">
-      <Filter>sources</Filter>
-    </ClInclude>
-    <ClInclude Include="rat.hpp">
-      <Filter>sources</Filter>
-    </ClInclude>
-    <ClInclude Include="node.h">
-      <Filter>sources</Filter>
-    </ClInclude>
     <ClInclude Include="blue_print.h">
-      <Filter>sources</Filter>
+      <Filter>sources\blue_print</Filter>
     </ClInclude>
     <ClInclude Include="link.h">
-      <Filter>sources</Filter>
+      <Filter>sources\blue_print\link</Filter>
+    </ClInclude>
+    <ClInclude Include="node.h">
+      <Filter>sources\blue_print\node</Filter>
     </ClInclude>
     <ClInclude Include="io_panel.h">
-      <Filter>sources</Filter>
+      <Filter>sources\blue_print\io_panel</Filter>
     </ClInclude>
     <ClInclude Include="graph_event.h">
-      <Filter>sources</Filter>
+      <Filter>sources\blue_print\graph_event</Filter>
+    </ClInclude>
+    <ClInclude Include="smatrix.h">
+      <Filter>sources\algebre</Filter>
+    </ClInclude>
+    <ClInclude Include="rat.hpp">
+      <Filter>sources\algebre</Filter>
+    </ClInclude>
+    <ClInclude Include="num.hpp">
+      <Filter>sources\algebre</Filter>
+    </ClInclude>
+    <ClInclude Include="fraction.h">
+      <Filter>sources\algebre</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imnodes_internal.h">
+      <Filter>ui\imnodes</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imnodes.h">
+      <Filter>ui\imnodes</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imconfig.h">
+      <Filter>ui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui.h">
+      <Filter>ui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\backends\imgui_impl_glfw.h">
+      <Filter>ui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\backends\imgui_impl_opengl3.h">
+      <Filter>ui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h">
+      <Filter>ui\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_internal.h">
+      <Filter>ui\imgui</Filter>
     </ClInclude>
     <ClInclude Include="imgui\bififo.h">
-      <Filter>imgui</Filter>
+      <Filter>ui\imnodes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="imgui\misc\debuggers\imgui.natvis">
-      <Filter>imgui</Filter>
-    </None>
     <None Include="imgui\misc\debuggers\imgui.natstepfilter">
-      <Filter>imgui</Filter>
+      <Filter>ui\imgui</Filter>
+    </None>
+    <None Include="imgui\misc\debuggers\imgui.natvis">
+      <Filter>ui\imgui</Filter>
     </None>
   </ItemGroup>
 </Project>

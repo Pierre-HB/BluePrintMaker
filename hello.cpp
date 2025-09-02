@@ -4,9 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "smatrix.h"
-//#include "fraction.h"
 #include "rat.hpp"
-#include "node.h"
 #include "blue_print.h"
 
 
@@ -618,14 +616,14 @@ void NodeEditorInitialize() {
 //bp = new BluePrint();
 
 
-void NodeEditorShow() { editor.show(); }
-//void NodeEditorShow() {
-//    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-//    ImGui::SetNextWindowPos(viewport->Pos);
-//    ImGui::SetNextWindowSize(viewport->Size);
-//    bp.Draw();
-//    bp.Update();
-//}
+//void NodeEditorShow() { editor.show(); }
+void NodeEditorShow() {
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+    bp.Draw();
+    bp.Update();
+}
 
 void NodeEditorShutdown() {
     editor.clear();

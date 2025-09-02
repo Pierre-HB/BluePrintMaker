@@ -223,6 +223,9 @@ int BluePrint::CreateLink(Link* link, LinkViewer* linkViewer, ImLinkData* linkDa
 
 void BluePrint::DeleteLinks(const std::vector<int>& linkIds, GraphEvent* Event) {
 	for (int linkId : linkIds) {
+		if (links.find(linkId) == links.end()) // already deleted when one of the attached node was deleted
+			continue;
+
 		if (Event != nullptr) {
 			Event->Push_Link(links[linkId], linkViewers[linkId]);
 		}
@@ -289,6 +292,7 @@ void BluePrint::Update() {
 	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+		//TODO also delete labels
 		int nb_selected_node = ImNodes::NumSelectedNodes();
 		int nb_selected_link = ImNodes::NumSelectedLinks();
 		
@@ -309,6 +313,8 @@ void BluePrint::Update() {
 
 			graphEvents.push(std::move(Event));
 			ImNodes::PushEvent(eventId);
+			ImNodes::ClearNodeSelection();
+			ImNodes::ClearLinkSelection();
 		}
 	}
 
