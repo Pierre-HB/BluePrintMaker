@@ -7,6 +7,7 @@
 #include <map>
 #include "graph_event.h"
 #include "bififo.h"
+#include "json11.hpp"
 
 
 static int idSeed = 0;
@@ -74,7 +75,7 @@ public:
 	void DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event = nullptr);
 	void DeleteLinks(const std::vector<int>& linkIds, GraphEvent* Event = nullptr);
 
-	std::string ToJson() const;
+	json11::Json ToJson() const;
 };
 
 template<typename T>
@@ -83,4 +84,12 @@ std::vector<int> ExtractIds(const std::vector<T>& datas) {
 	for (int i = 0; i < datas.size(); i++)
 		ids[i] = datas[i]->GetId();
 	return ids;
+}
+
+template<typename T>
+json11::Json MapToJson(const std::map<int, T*> m) {
+	std::vector<json11::Json> jsonVector;
+	for (const auto& [key, value] : m)
+		jsonVector.push_back(value->ToJson());
+	return json11::Json(jsonVector);
 }

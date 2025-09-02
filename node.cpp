@@ -61,6 +61,16 @@ void Node::AddOutputs(NodeIO nodeIO) {
 	outputs.push_back(nodeIO);
 }
 
+static json11::Json VectorToJson(const std::vector<NodeIO>& v) {
+	std::vector<json11::Json> json;
+	for (const NodeIO& obj : v)
+		json.push_back(obj.ToJson());
+	return json11::Json(json);
+}
+
+json11::Json Node::ToJson() const {
+	return json11::Json({ {"inputs", VectorToJson(inputs)}, {"outputs", VectorToJson(outputs)}, {"id", id}});
+}
 
 //============================== Viewer ==============================//
 
@@ -223,4 +233,12 @@ bool NodeViewer::operator==(const NodeViewer& other) const {
 
 bool NodeViewer::operator!=(const NodeViewer& other) const {
 	return !operator==(other);
+}
+
+json11::Json NodeViewer::ToJson() const {
+	return json11::Json({ 
+		{"input_perm", input_perm}, 
+		{"output_perm", output_perm}, 
+		{"node_id", node->GetId()}, 
+		{"size", json11::Json::array{ size.x, size.y }}});
 }

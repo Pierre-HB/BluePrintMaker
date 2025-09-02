@@ -1,5 +1,7 @@
 #pragma once
 
+#include "json11.hpp"
+
 class Link {
 private:
 	int id;
@@ -21,6 +23,8 @@ public:
 	int GetNodeInputId() const;
 	int GetNodeOutputId() const;
 
+	json11::Json ToJson() const;
+
 	//void AddLabels();
 };
 
@@ -35,4 +39,6 @@ public:
 	void Draw() const;
 
 	int GetId() const;
+
+	json11::Json ToJson() const;
 };

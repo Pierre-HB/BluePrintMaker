@@ -37,6 +37,9 @@ int Link::GetNodeOutputId() const {
 	return outputNodeId;
 }
 
+json11::Json Link::ToJson() const {
+	return json11::Json({ {"id", id}, {"inputId", inputId}, {"outputId", outputId}, {"inputNodeId", inputNodeId}, {"outputNodeId", outputNodeId }});
+}
 
 //============================== Viewer ==============================//
 
@@ -55,4 +58,8 @@ void LinkViewer::Draw() const {
 
 int LinkViewer::GetId() const {
 	return link->GetId();
+}
+
+json11::Json LinkViewer::ToJson() const {
+	return json11::Json::object{ { "linkId", link->GetId() } };
 }

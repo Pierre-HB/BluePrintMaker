@@ -273,8 +273,6 @@ void BluePrint::Update() {
 	ioPanel.Update(nodeCreateType);
 	if (nodeCreateType != -1)
 		CreateNewNode(nodeCreateType);
-	if (nodeCreateType != -1)
-		ToJson();
 	
 	int node_swap_recipy;
 	//id of node, recipe target
@@ -424,8 +422,14 @@ void BluePrint::Update() {
 	}
 }
 
-std::string BluePrint::ToJson() const {
-	json11::Json m_json = json11::Json(42);
-	std::cout << "json dump : " << m_json.dump() << std::endl;
-	return m_json.dump();
+json11::Json BluePrint::ToJson() const {
+	json11::Json jsonBluePrint = json11::Json({ 
+		{"nodes", MapToJson(nodes)}, 
+		{"nodeViewers", MapToJson(nodeViewers)}, 
+		{"links", MapToJson(links)}, 
+		{"linkViewers", MapToJson(linkViewers)}});
+
+	std::cout << "json of bluePrint : " << jsonBluePrint.dump() << std::endl;
+
+	return jsonBluePrint;
 }

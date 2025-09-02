@@ -3,6 +3,7 @@
 #include <list>
 #include <vector>
 #include <iostream>
+#include "json11.hpp"
 
 struct NodeIO {
 	int id;
@@ -23,6 +24,10 @@ struct NodeIO {
 	void SetId(int id) {
 		NodeIO::id = id;
 		std::cout << "set nodeIO id : " << NodeIO::id << std::endl;
+	}
+
+	json11::Json ToJson() const {
+		return json11::Json({ {"id", id}, {"ressource", ressource} });
 	}
 };
 
@@ -78,6 +83,8 @@ public:
 	void AddInputs(NodeIO nodeIO);
 	void AddOutputs(NodeIO nodeIO);
 
+	json11::Json ToJson() const;
+
 private:
 	void SetIOIds(int(*CreateId)());
 };
@@ -113,6 +120,8 @@ public:
 	bool operator!=(const NodeViewer& other) const;
 
 	void CopyPerm(const NodeViewer& other);
+
+	json11::Json ToJson() const;
 private:
 	//if the ref node changed (more or less input/outpu), reset all pins.
 	//TODO a child NodeSplitterMergerViwer that only reset if the number of inputs/outputs decreased, keep same order if just one pin was added

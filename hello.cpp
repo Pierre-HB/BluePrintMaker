@@ -623,6 +623,8 @@ void NodeEditorShow() {
     ImGui::SetNextWindowSize(viewport->Size);
     bp.Draw();
     bp.Update();
+    if (ImGui::IsKeyPressed(ImGuiKey_J))
+        bp.ToJson();
 }
 
 void NodeEditorShutdown() {
