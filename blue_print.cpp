@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "blue_print.h"
+#include "json11.hpp"
 //#include "smatrix.h"
 //#include "rat.hpp"
 
@@ -272,6 +273,8 @@ void BluePrint::Update() {
 	ioPanel.Update(nodeCreateType);
 	if (nodeCreateType != -1)
 		CreateNewNode(nodeCreateType);
+	if (nodeCreateType != -1)
+		ToJson();
 	
 	int node_swap_recipy;
 	//id of node, recipe target
@@ -419,4 +422,10 @@ void BluePrint::Update() {
 			}
 		}
 	}
+}
+
+std::string BluePrint::ToJson() const {
+	json11::Json m_json = json11::Json(42);
+	std::cout << "json dump : " << m_json.dump() << std::endl;
+	return m_json.dump();
 }

@@ -32,6 +32,9 @@
     <Filter Include="ui\imnodes">
       <UniqueIdentifier>{c79ba63d-317d-4321-b7cf-be60dccddf3c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sources\json">
+      <UniqueIdentifier>{3eeac9f4-8805-4fce-b1bf-a8ff0d47c9cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -78,6 +81,9 @@
     </ClCompile>
     <ClCompile Include="imgui\imgui_widgets.cpp">
       <Filter>ui\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="json11.cpp">
+      <Filter>sources\json</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +143,9 @@
     </ClInclude>
     <ClInclude Include="imgui\bififo.h">
       <Filter>ui\imnodes</Filter>
+    </ClInclude>
+    <ClInclude Include="json11.hpp">
+      <Filter>sources\json</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

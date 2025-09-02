@@ -73,6 +73,8 @@ public:
 	int CreateLink(Link* link, LinkViewer* linkViewer, ImLinkData* linkData);
 	void DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event = nullptr);
 	void DeleteLinks(const std::vector<int>& linkIds, GraphEvent* Event = nullptr);
+
+	std::string ToJson() const;
 };
 
 template<typename T>

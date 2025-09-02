@@ -173,6 +173,7 @@
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="io_panel.cpp" />
+    <ClCompile Include="json11.cpp" />
     <ClCompile Include="link.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="node.cpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3_loader.h" />
     <ClInclude Include="io_panel.h" />
+    <ClInclude Include="json11.hpp" />
     <ClInclude Include="link.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="node_editor.h" />
