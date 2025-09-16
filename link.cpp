@@ -41,6 +41,15 @@ json11::Json Link::ToJson() const {
 	return json11::Json({ {"id", id}, {"inputId", inputId}, {"outputId", outputId}, {"inputNodeId", inputNodeId}, {"outputNodeId", outputNodeId }});
 }
 
+Link::Link(const json11::Json& json) {
+	json11::Json::object obj = json.object_items();
+	id = obj.at("id").int_value();
+	inputId = obj.at("inputId").int_value();
+	outputId = obj.at("outputId").int_value();
+	inputNodeId = obj.at("inputNodeId").int_value();
+	outputNodeId = obj.at("outputNodeId").int_value();
+}
+
 //============================== Viewer ==============================//
 
 
@@ -61,5 +70,10 @@ int LinkViewer::GetId() const {
 }
 
 json11::Json LinkViewer::ToJson() const {
-	return json11::Json::object{ { "linkId", link->GetId() } };
+	//TODO maybe remove if unecessary at end of project
+	return json11::Json::object{ { "id", link->GetId() } };
+}
+
+LinkViewer::LinkViewer(std::map<int, Link*>& links, const json11::Json& json) : link(links.at(json.object_items().at("id").int_value())) {
+
 }

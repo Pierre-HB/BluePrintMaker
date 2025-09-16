@@ -13,6 +13,7 @@ public:
 	Link();
 	Link(int id);
 	Link(int id, int inputId, int outputId, int inpoutNodeId, int outputNodeId);
+	Link(const json11::Json& json);
 
 	void Update();
 
@@ -35,7 +36,8 @@ private:
 public:
 	LinkViewer(Link* link);
 	LinkViewer(const LinkViewer& linkViewer, const Link* link);
-
+	LinkViewer(std::map<int, Link*>& links, const json11::Json& json);
+	
 	void Draw() const;
 
 	int GetId() const;

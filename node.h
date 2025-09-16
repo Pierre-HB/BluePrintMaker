@@ -16,6 +16,7 @@ struct NodeIO {
 	NodeIO() : id(), ressource() {}
 	NodeIO(int id) : id(id), ressource() {}
 	NodeIO(int id, int ressource) : id(id), ressource(ressource) {}
+	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), ressource(json.object_items().at("ressource").int_value()) {}
 
 	int GetId() const {
 		return id;
@@ -71,6 +72,7 @@ public:
 	Node(int id);
 	Node(const Node& node);
 	Node(const Node& node, int(*CreateId)());
+	Node(const json11::Json& json);
 	void Overide(const Node& node, int(*CreateId)());
 
 	void Update();
@@ -103,6 +105,7 @@ protected:
 public:
 	NodeViewer(const Node* node);
 	NodeViewer(const NodeViewer& nodeViewer, const Node* node);
+	NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json);
 
 	void Draw(); //ImNodes API
 

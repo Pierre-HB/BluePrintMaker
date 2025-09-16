@@ -117,7 +117,7 @@ static const std::vector<Node> createRecipies() {
 	return recipies;
 }
 
-BluePrint::BluePrint(const char* name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()), swapingNodeViewerId(-1) {
+BluePrint::BluePrint(std::string name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()), swapingNodeViewerId(-1) {
 }
 
 BluePrint::~BluePrint() {
@@ -134,7 +134,7 @@ BluePrint::~BluePrint() {
 
 void BluePrint::Draw() const {
 	ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-	ImGui::Begin(name, NULL, flags);
+	ImGui::Begin(name.c_str(), NULL, flags);
 
 	ImNodes::BeginNodeEditor();
 
@@ -427,9 +427,37 @@ json11::Json BluePrint::ToJson() const {
 		{"nodes", MapToJson(nodes)}, 
 		{"nodeViewers", MapToJson(nodeViewers)}, 
 		{"links", MapToJson(links)}, 
-		{"linkViewers", MapToJson(linkViewers)}});
+		{"linkViewers", MapToJson(linkViewers)},
+		{"name", name}});
 
 	std::cout << "json of bluePrint : " << jsonBluePrint.dump() << std::endl;
 
 	return jsonBluePrint;
+}
+
+BluePrint::BluePrint(const json11::Json& json) : BluePrint(json.object_items().at("name").string_value()) {
+
+	const json11::Json::object obj = json.object_items();
+	//name = obj.at("name").string_value().c_str();
+	std::cout << "name should be : " << obj.at("name").string_value() << " | " << obj.at("name").string_value().c_str() << std::endl;
+	nodes = JsonToMap<Node>(obj.at("nodes").array_items());
+	links = JsonToMap<Link>(obj.at("links").array_items());
+
+
+	nodeViewers = JsonToMap<Node, NodeViewer>(nodes, obj.at("nodeViewers").array_items());
+	linkViewers = JsonToMap<Link, LinkViewer>(links, obj.at("linkViewers").array_items());
+	
+
+	for (const auto& [key, node] : nodes) {
+		idSeed = std::max(idSeed, node->GetId());
+		const std::vector<NodeIO>& inputs = node->GetInputs();
+		for(const NodeIO& nodeIO : node->GetInputs())
+			idSeed = std::max(idSeed, nodeIO.GetId());
+		for (const NodeIO& nodeIO : node->GetOutputs())
+			idSeed = std::max(idSeed, nodeIO.GetId());
+	}
+	for (const auto& [key, link] : links)
+		idSeed = std::max(idSeed, link->GetId());
+
+	//TODO Store some ImNodes data to place back nodes and label at the same place
 }

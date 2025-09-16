@@ -16,10 +16,15 @@ static int CreateId() {
 	return idSeed++;
 }
 
+static void SetIdSeed(int seed) {
+	idSeed = seed;
+}
+
 class BluePrint {
 private:
 	
-	const char* name;
+	//const char* name;
+	std::string name;
 
 	IOPanel ioPanel;
 
@@ -60,8 +65,10 @@ private:
 
 public:
 	
-	BluePrint(const char* name);
+	BluePrint(std::string name);
+	BluePrint(const char* name) : BluePrint(std::string(name)) {};
 	BluePrint() : BluePrint("hello world") {};
+	BluePrint(const json11::Json& json);
 	~BluePrint();
 
 	void Draw() const;
@@ -92,4 +99,20 @@ json11::Json MapToJson(const std::map<int, T*> m) {
 	for (const auto& [key, value] : m)
 		jsonVector.push_back(value->ToJson());
 	return json11::Json(jsonVector);
+}
+
+template<typename T>
+std::map<int, T*> JsonToMap(const json11::Json::array json) {
+	std::map<int, T*> m;
+	for (const auto& a : json)
+		m[a.object_items().at("id").int_value()] = new T(a);
+	return m;
+}
+
+template<typename T, typename TV>
+std::map<int, TV*> JsonToMap(std::map<int, T*>& m, const json11::Json::array json) {
+	std::map<int, TV*> mv;
+	for (const auto& a : json)
+		mv[a.object_items().at("id").int_value()] = new TV(m, a);
+	return mv;
 }

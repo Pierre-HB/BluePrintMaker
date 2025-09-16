@@ -587,7 +587,7 @@ public:
 };
 
 static HelloWorldNodeEditor editor;
-static BluePrint bp;
+static BluePrint* bp;
 } // namespace
 
 void NodeEditorInitialize() {
@@ -610,7 +610,8 @@ void NodeEditorInitialize() {
     //ImGuiKeyData  KeysData[ImGuiKey_NamedKey_COUNT];// Key state for all known keys. Use IsKeyXXX() functions to access this.
     ImNodes::StyleColorsBluePrint();
     ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
-
+    
+    bp = new BluePrint("test");
     
 }
 //bp = new BluePrint();
@@ -621,10 +622,16 @@ void NodeEditorShow() {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
-    bp.Draw();
-    bp.Update();
+    bp->Draw();
+    bp->Update();
     if (ImGui::IsKeyPressed(ImGuiKey_J))
-        bp.ToJson();
+        bp->ToJson();
+    if (ImGui::IsKeyPressed(ImGuiKey_K)) {
+        json11::Json tmp = bp->ToJson();
+        delete bp;
+        bp = new BluePrint(tmp);
+    }
+        
 }
 
 void NodeEditorShutdown() {

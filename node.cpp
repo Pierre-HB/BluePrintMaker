@@ -68,8 +68,22 @@ static json11::Json VectorToJson(const std::vector<NodeIO>& v) {
 	return json11::Json(json);
 }
 
+static std::vector<NodeIO> JsonToVector(const json11::Json::array& json) {
+	std::vector<NodeIO> arr;
+	for (const auto& obj : json)
+		arr.push_back(NodeIO(obj));
+	return arr;
+}
+
 json11::Json Node::ToJson() const {
 	return json11::Json({ {"inputs", VectorToJson(inputs)}, {"outputs", VectorToJson(outputs)}, {"id", id}});
+}
+
+Node::Node(const json11::Json& json) {
+	const json11::Json::object obj = json.object_items();
+	inputs = JsonToVector(obj.at("inputs").array_items());
+	outputs = JsonToVector(obj.at("outputs").array_items());
+	id = obj.at("id").int_value();
 }
 
 //============================== Viewer ==============================//
@@ -239,6 +253,29 @@ json11::Json NodeViewer::ToJson() const {
 	return json11::Json({ 
 		{"input_perm", input_perm}, 
 		{"output_perm", output_perm}, 
-		{"node_id", node->GetId()}, 
+		{"id", node->GetId()}, 
 		{"size", json11::Json::array{ size.x, size.y }}});
+}
+
+static std::vector<int> JsonToVectorInt(const json11::Json::array& arr) {
+	std::vector<int> v;
+	for (const auto& a : arr)
+		v.push_back(a.int_value());
+	return v;
+}
+
+NodeViewer::NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json) : node(nodes.at(json.object_items().at("id").int_value())) {
+	const json11::Json::object obj = json.object_items();
+
+	input_perm = JsonToVectorInt(obj.at("input_perm").array_items());
+	output_perm = JsonToVectorInt(obj.at("output_perm").array_items());
+
+	size = ImVec2(obj.at("size").array_items()[0].number_value(), obj.at("size").array_items()[1].number_value());
+
+	const std::vector<NodeIO>& nodeInput = node->GetInputs();
+	const std::vector<NodeIO>& nodeOutput = node->GetOutputs();
+	for (int i = 0; i < nodeInput.size(); i++)
+		input_ref.push_back(NodeIOViewer(&nodeInput[i], true));
+	for (int i = 0; i < nodeOutput.size(); i++)
+		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false));
 }
