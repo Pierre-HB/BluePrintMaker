@@ -4444,21 +4444,21 @@ void SetNodeScreenSpacePos(const int node_id, const ImVec2& screen_space_pos)
 {
     ImNodesEditorContext& editor = EditorContextGet();
     ImNodeData&           node = ObjectPoolFindOrCreateObject(editor.Nodes, node_id);
-    node.Origin = ScreenSpaceToGridSpace(editor, screen_space_pos);
+    node.Origin = SnapOriginToGrid(ScreenSpaceToGridSpace(editor, screen_space_pos));
 }
 
 void SetNodeEditorSpacePos(const int node_id, const ImVec2& editor_space_pos)
 {
     ImNodesEditorContext& editor = EditorContextGet();
     ImNodeData&           node = ObjectPoolFindOrCreateObject(editor.Nodes, node_id);
-    node.Origin = EditorSpaceToGridSpace(editor, editor_space_pos);
+    node.Origin = SnapOriginToGrid(EditorSpaceToGridSpace(editor, editor_space_pos));
 }
 
 void SetNodeGridSpacePos(const int node_id, const ImVec2& grid_pos)
 {
     ImNodesEditorContext& editor = EditorContextGet();
     ImNodeData&           node = ObjectPoolFindOrCreateObject(editor.Nodes, node_id);
-    node.Origin = grid_pos;
+    node.Origin = SnapOriginToGrid(grid_pos);
 }
 
 void SetNodeDraggable(const int node_id, const bool draggable)
@@ -5006,6 +5006,35 @@ const char* SaveEditorStateToIniString(
             const ImNodeData& node = editor.Nodes.Pool[i];
             GImNodes->TextBuffer.appendf("\n[node.%d]\n", node.Id);
             GImNodes->TextBuffer.appendf("origin=%i,%i\n", (int)node.Origin.x, (int)node.Origin.y);
+        }
+    }
+
+    for (int i = 0; i < editor.Links.Pool.size(); i++)
+    {
+        if (editor.Links.InUse[i])
+        {
+            const ImLinkData& link = editor.Links.Pool[i];
+            GImNodes->TextBuffer.appendf("\n[link.%d]\n", link.Id);
+            if(link.LinkType == ImNodesLinkType_Sloped)
+                GImNodes->TextBuffer.appendf("type=Sloped\n");
+            else
+                GImNodes->TextBuffer.appendf("type=Bezier\n");
+
+            GImNodes->TextBuffer.appendf("deformations=[\n");
+            for(int i = 0; i < MAX_CONTROL_PT_PER_CURVE-1; i++)
+                GImNodes->TextBuffer.appendf("(%i, %i), ", (int)link.Deformations[i].x, (int)link.Deformations[i].y);
+            GImNodes->TextBuffer.appendf("(%i, %i)]\n", (int)link.Deformations[MAX_CONTROL_PT_PER_CURVE - 1].x, (int)link.Deformations[MAX_CONTROL_PT_PER_CURVE - 1].y);
+        }
+    }
+
+    for (int i = 0; i < editor.Labels.Pool.size(); i++)
+    {
+        if (editor.Labels.InUse[i])
+        {
+            const ImLabelData& label = editor.Labels.Pool[i];
+            GImNodes->TextBuffer.appendf("\n[label.%d]\n", label.Id);
+            GImNodes->TextBuffer.appendf("deformation=%i,%i\n", (int)label.Deformation.x, (int)label.Deformation.y);
+            GImNodes->TextBuffer.appendf("parentId=%i\n", label.parentId);
         }
     }
 

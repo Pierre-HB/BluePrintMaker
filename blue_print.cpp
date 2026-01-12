@@ -423,12 +423,13 @@ void BluePrint::Update() {
 }
 
 json11::Json BluePrint::ToJson() const {
-	json11::Json jsonBluePrint = json11::Json({ 
-		{"nodes", MapToJson(nodes)}, 
-		{"nodeViewers", MapToJson(nodeViewers)}, 
-		{"links", MapToJson(links)}, 
+	json11::Json jsonBluePrint = json11::Json({
+		{"nodes", MapToJson(nodes)},
+		{"nodeViewers", MapToJson(nodeViewers)},
+		{"links", MapToJson(links)},
 		{"linkViewers", MapToJson(linkViewers)},
-		{"name", name}});
+		{"name", name},
+		{"ui", ImNodes::SaveCurrentEditorStateToIniString()} });
 
 	std::cout << "json of bluePrint : " << jsonBluePrint.dump() << std::endl;
 
@@ -460,4 +461,6 @@ BluePrint::BluePrint(const json11::Json& json) : BluePrint(json.object_items().a
 		idSeed = std::max(idSeed, link->GetId());
 
 	//TODO Store some ImNodes data to place back nodes and label at the same place
+	std::string ui = obj.at("ui").string_value();
+	ImNodes::LoadCurrentEditorStateFromIniString(ui.c_str(), ui.size());
 }
