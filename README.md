@@ -30,6 +30,9 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
 - [ ] Splitter/Merger/Input/Output
 - [ ] TUTO
 
+# Bug
+ - When creating two node, linking them, moving one control point of the link and undoing everything WITHOUT CLIKING AWAY (the control points are still selected), the link (actually, the control points) does not desapear.
+
 # Note
 - if I want several windows with independant blueprint, I might take a look at the ImGui::BeginChild call in the ImNodes::BeginNodeEditor(). I may also use several context and switch between them
 - For SVG Export, need to hook at the function **`void  AddLine(...)`**, **`void  AddRect(...)`**, **`void  AddRectFilled(...)`**, ... in file imgui.h line 3113
