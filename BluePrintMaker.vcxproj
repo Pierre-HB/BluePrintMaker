@@ -162,8 +162,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="blue_print.cpp" />
+    <ClCompile Include="data_base.cpp" />
     <ClCompile Include="graph_event.cpp" />
     <ClCompile Include="hello.cpp" />
+    <ClCompile Include="image_loader.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imnodes.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
@@ -180,6 +182,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="blue_print.h" />
+    <ClInclude Include="data_base.h" />
     <ClInclude Include="fraction.h" />
     <ClInclude Include="graph_event.h" />
     <ClInclude Include="imgui\bififo.h" />
@@ -199,6 +202,7 @@
     <ClInclude Include="num.hpp" />
     <ClInclude Include="rat.hpp" />
     <ClInclude Include="smatrix.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natstepfilter" />

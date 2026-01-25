@@ -1,6 +1,7 @@
 #pragma once
 
 #include "json11.hpp"
+#include "data_base.h"
 
 class Link {
 private:
@@ -32,11 +33,12 @@ public:
 class LinkViewer {
 private:
 	const Link* link;
+	const DataBase* dataBase;
 
 public:
-	LinkViewer(Link* link);
+	LinkViewer(Link* link, const DataBase* dataBase);
 	LinkViewer(const LinkViewer& linkViewer, const Link* link);
-	LinkViewer(std::map<int, Link*>& links, const json11::Json& json);
+	LinkViewer(std::map<int, Link*>& links, const json11::Json& json, const DataBase* dataBase);
 	
 	void Draw() const;
 

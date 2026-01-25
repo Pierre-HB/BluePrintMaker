@@ -117,7 +117,7 @@ static const std::vector<Node> createRecipies() {
 	return recipies;
 }
 
-BluePrint::BluePrint(std::string name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()), swapingNodeViewerId(-1) {
+BluePrint::BluePrint(std::string name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()), swapingNodeViewerId(-1), dataBase() {
 }
 
 BluePrint::~BluePrint() {
@@ -155,7 +155,7 @@ int BluePrint::CreateNewNode(int type) {
 	Node* node = new Node(BluePrint::recipies[type], CreateId);
 	ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
 	nodes.insert(std::make_pair(node->GetId(), node));
-	NodeViewer* nodeViewer = new NodeViewer(node);
+	NodeViewer* nodeViewer = new NodeViewer(node, &dataBase);
 	nodeViewers.insert(std::make_pair(nodeViewer->GetId(), nodeViewer));
 
 	int eventId = CreateId();
@@ -190,7 +190,7 @@ int BluePrint::CreateNewLink(int input_attr_id, int output_attr_id) {
 	ImNodes::CreateLink(link->GetId());
 
 	links.insert(std::make_pair(link->GetId(), link));
-	LinkViewer* new_linkViewer = new LinkViewer(link);
+	LinkViewer* new_linkViewer = new LinkViewer(link, &dataBase);
 	linkViewers.insert(std::make_pair(new_linkViewer->GetId(), new_linkViewer));
 
 	int eventId = CreateId();
@@ -437,7 +437,8 @@ json11::Json BluePrint::ToJson() const {
 }
 
 BluePrint::BluePrint(const json11::Json& json) : BluePrint(json.object_items().at("name").string_value()) {
-
+	//TODO
+	//initialize the Database with the adresse to the database given, in the json (if none, use a default adresse)
 	const json11::Json::object obj = json.object_items();
 	//name = obj.at("name").string_value().c_str();
 	std::cout << "name should be : " << obj.at("name").string_value() << " | " << obj.at("name").string_value().c_str() << std::endl;
@@ -445,8 +446,8 @@ BluePrint::BluePrint(const json11::Json& json) : BluePrint(json.object_items().a
 	links = JsonToMap<Link>(obj.at("links").array_items());
 
 
-	nodeViewers = JsonToMap<Node, NodeViewer>(nodes, obj.at("nodeViewers").array_items());
-	linkViewers = JsonToMap<Link, LinkViewer>(links, obj.at("linkViewers").array_items());
+	nodeViewers = JsonToMap<Node, NodeViewer>(nodes, obj.at("nodeViewers").array_items(), &dataBase);
+	linkViewers = JsonToMap<Link, LinkViewer>(links, obj.at("linkViewers").array_items(), &dataBase);
 	
 
 	for (const auto& [key, node] : nodes) {
@@ -463,4 +464,14 @@ BluePrint::BluePrint(const json11::Json& json) : BluePrint(json.object_items().a
 	//TODO Store some ImNodes data to place back nodes and label at the same place
 	std::string ui = obj.at("ui").string_value();
 	ImNodes::LoadCurrentEditorStateFromIniString(ui.c_str(), ui.size());
+}
+
+void BluePrint::LoadDataBase(const json11::Json& json){
+	//load items "ITEMS"
+	//load machines "MACHINES"
+	//load modifiers "MODIFIERS"
+	//load modifiers categories "MODIFIER_CATEGORIES"
+	//load recipes "RECIPES"
+
+
 }

@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include "json11.hpp"
+#include "data_base.h"
 
 struct NodeIO {
 	int id;
@@ -35,8 +36,9 @@ struct NodeIO {
 struct NodeIOViewer {
 	const NodeIO* nodeIO;
 	bool isInput;
+	const DataBase* dataBase;
 
-	NodeIOViewer(const NodeIO* nodeIO, bool isInput) : nodeIO(nodeIO), isInput(isInput) {
+	NodeIOViewer(const NodeIO* nodeIO, bool isInput, const DataBase* dataBase) : nodeIO(nodeIO), isInput(isInput), dataBase(dataBase) {
 		std::cout << "create IOViewer : " << nodeIO->GetId() << std::endl;
 	}
 
@@ -51,7 +53,10 @@ struct NodeIOViewer {
 			ImNodes::BeginOutputAttribute(GetId());
 
 		ImGui::Text("NodeIO ressource : %d", nodeIO->ressource);
-
+		ImGui::Text(dataBase->getRessourceName(nodeIO->ressource));
+		drawDataBaseIcone(nodeIO->ressource, dataBase);
+		//look ate the lookUpTable for name and icone of ressource
+		//need acces to this LUT
 		if (isInput)
 			ImNodes::EndInputAttribute();
 		else
@@ -102,10 +107,12 @@ protected:
 	std::vector<int> output_perm;
 
 	ImVec2 size;
+
+	const DataBase* dataBase;
 public:
-	NodeViewer(const Node* node);
+	NodeViewer(const Node* node, const DataBase* dataBase);
 	NodeViewer(const NodeViewer& nodeViewer, const Node* node);
-	NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json);
+	NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json, const DataBase* dataBase);
 
 	void Draw(); //ImNodes API
 

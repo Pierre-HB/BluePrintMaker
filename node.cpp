@@ -89,7 +89,7 @@ Node::Node(const json11::Json& json) {
 //============================== Viewer ==============================//
 
 
-NodeViewer::NodeViewer(const Node* node) : node(node), input_ref(), output_ref(), input_perm(), output_perm(), size(1.0f, 1.0f) {
+NodeViewer::NodeViewer(const Node* node, const DataBase* dataBase) : node(node), input_ref(), output_ref(), input_perm(), output_perm(), size(1.0f, 1.0f), dataBase(dataBase){
 	Reset();
 }
 
@@ -99,10 +99,10 @@ NodeViewer::NodeViewer(const NodeViewer& nodeViewer, const Node* node) : NodeVie
 	output_ref.clear();
 
 	for (const NodeIO& nodeInput : node->GetInputs())
-		input_ref.push_back(NodeIOViewer(&nodeInput, true));
+		input_ref.push_back(NodeIOViewer(&nodeInput, true, nodeViewer.dataBase));
 
 	for (const NodeIO& nodeOutput : node->GetOutputs())
-		output_ref.push_back(NodeIOViewer(&nodeOutput, false));
+		output_ref.push_back(NodeIOViewer(&nodeOutput, false, nodeViewer.dataBase));
 
 	//Reset();
 }
@@ -210,12 +210,12 @@ void NodeViewer::Reset() {
 
 	for (int i = 0; i < nodeInput.size(); i++) {
 		input_perm.push_back(i);
-		input_ref.push_back(NodeIOViewer(&nodeInput[i], true));
+		input_ref.push_back(NodeIOViewer(&nodeInput[i], true, dataBase));
 	}
 
 	for (int i = 0; i < nodeOutput.size(); i++) {
 		output_perm.push_back(i);
-		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false));
+		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false, dataBase));
 	}
 }
 
@@ -264,7 +264,7 @@ static std::vector<int> JsonToVectorInt(const json11::Json::array& arr) {
 	return v;
 }
 
-NodeViewer::NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json) : node(nodes.at(json.object_items().at("id").int_value())) {
+NodeViewer::NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json, const DataBase* dataBase) : node(nodes.at(json.object_items().at("id").int_value())), dataBase(dataBase) {
 	const json11::Json::object obj = json.object_items();
 
 	input_perm = JsonToVectorInt(obj.at("input_perm").array_items());
@@ -275,7 +275,7 @@ NodeViewer::NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json) : 
 	const std::vector<NodeIO>& nodeInput = node->GetInputs();
 	const std::vector<NodeIO>& nodeOutput = node->GetOutputs();
 	for (int i = 0; i < nodeInput.size(); i++)
-		input_ref.push_back(NodeIOViewer(&nodeInput[i], true));
+		input_ref.push_back(NodeIOViewer(&nodeInput[i], true, dataBase));
 	for (int i = 0; i < nodeOutput.size(); i++)
-		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false));
+		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false, dataBase));
 }

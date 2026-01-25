@@ -56,12 +56,15 @@ private:
 	*/
 
 	const std::vector<int> ressources;
+	//ressources viwer : name ressource, icone ressource
 	/*
 	ressources[0] = all_ressources
 	ressources[1] = iron ?
 	ressources[2] = coal ?
 	...
 	*/
+	DataBase dataBase;
+
 
 public:
 	
@@ -70,6 +73,8 @@ public:
 	BluePrint() : BluePrint("hello world") {};
 	BluePrint(const json11::Json& json);
 	~BluePrint();
+
+	void LoadDataBase(const json11::Json& json);
 
 	void Draw() const;
 
@@ -110,9 +115,9 @@ std::map<int, T*> JsonToMap(const json11::Json::array json) {
 }
 
 template<typename T, typename TV>
-std::map<int, TV*> JsonToMap(std::map<int, T*>& m, const json11::Json::array json) {
+std::map<int, TV*> JsonToMap(std::map<int, T*>& m, const json11::Json::array json, const DataBase* dataBase) {
 	std::map<int, TV*> mv;
 	for (const auto& a : json)
-		mv[a.object_items().at("id").int_value()] = new TV(m, a);
+		mv[a.object_items().at("id").int_value()] = new TV(m, a, dataBase);
 	return mv;
 }

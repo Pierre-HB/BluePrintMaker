@@ -1,0 +1,50 @@
+"machines" : {
+	"smelter" : {
+		"recipes" : ["iron plate", "copper plate"],
+		"icone" : 46
+	},
+	"assembler" : {
+		"recipes" : ["copper cabble", "..."],
+		"icone" : 45
+	},
+	"MAM" : ["make anything machine IMPLICIT IN THE SOFTWARE"] //already in it
+},
+"items" : {
+	"iron plate" : 42, //location in spreadsheet : 0	1	2
+					  //						 3	4 	5...
+	"copper plate" : 43
+}
+"modifiers" : {
+	"Smelter lvl 1" : {
+		"consumable" : {
+			"Idle power" : 12,
+			"working power" : 36
+		},
+		"speed" : 1, //if undefined default value is 1
+		"icone" : 44, //location in spreadsheet
+	},
+	"proliferator production lvl 1" : {
+		"consumable" : {
+			"proliferator lvl 1" : "INPUTS*0.125" //consume 0.125 per input, OUTPUS work similarly
+		},
+		"icone" : 45
+	}
+}
+"modifiers categories" : {//the first modifier is always set by default. EACH RECPE MUST CHOOSE ONE MODIFIER
+	"smelters" : ["Smelter lvl 1", "Smelter lvl 1"],
+	"proliferator" : ["NONE", "proliferator production lvl 1"],
+}
+
+"recipes" : {
+	"iron plate" : { //name not link to item or machine
+		"inputs" : {
+			"row iron" : 2
+		},
+		"outputs" : {
+			"iron plate" : 1
+		},
+		"time" : 3,//time in s
+		"modifiers" : ["smelters", "proliferator"],
+		"icone" : 65
+	}
+}
