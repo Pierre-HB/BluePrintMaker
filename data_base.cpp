@@ -162,21 +162,21 @@ DataBase::DataBase(const json11::Json& json) : textureId(0), textureSize(0, 0) {
 	}
 	std::map<std::string, int> itemIdMap = createIdMap(items);
 
-	for (const auto& va : json.object_items().at("items").array_items()) {
+	for (const auto& va : json.object_items().at("machines").array_items()) {
 		machines.push_back(Machine(va, itemIdMap));
 	}
 
-	for (const auto& va : json.object_items().at("items").array_items()) {
+	for (const auto& va : json.object_items().at("modifiers").array_items()) {
 		modifiers.push_back(Modifier(va, itemIdMap));
 	}
 	std::map<std::string, int> modifierIdMap = createIdMap(modifiers);
 
-	for (const auto& va : json.object_items().at("items").array_items()) {
+	for (const auto& va : json.object_items().at("modifierCategories").array_items()) {
 		modifierCategories.push_back(ModiferCategory(va, modifierIdMap));
 	}
 	std::map<std::string, int> modifierCategoryIdMap = createIdMap(modifierCategories);
 
-	for (const auto& va : json.object_items().at("items").array_items()) {
+	for (const auto& va : json.object_items().at("recipes").array_items()) {
 		recipes.push_back(Recipe(va, itemIdMap, modifierCategoryIdMap));
 	}
 }
