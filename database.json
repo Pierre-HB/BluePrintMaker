@@ -27,6 +27,13 @@
 		"consumable" : {
 			"proliferator lvl 1" : "INPUTS*0.125" //consume 0.125 per input, OUTPUS work similarly
 		},
+		"consumables" : [
+			{
+				"name" : "proliferator",
+				"inputConsumtion" : 0.2,
+				"outputConsumtion" : 0.0,
+			}	
+		],
 		"icone" : 45
 	}
 }

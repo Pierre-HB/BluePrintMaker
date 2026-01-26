@@ -3,14 +3,12 @@
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
 
-DataBase::DataBase() : textureId(0), textureSize(0, 0) {
-	const char* filename = "logo2.png";
-
+void DataBase::loadIcones(std::string filename) {
 	int w;
 	int h;
 	int comp;
 
-	unsigned char* image = stbi_load(filename, &w, &h, &comp, STBI_rgb);
+	unsigned char* image = stbi_load(filename.c_str(), &w, &h, &comp, STBI_rgb);
 
 	if (image == nullptr)
 		throw(std::string("Failed to load texture"));

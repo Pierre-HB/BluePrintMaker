@@ -53,7 +53,7 @@ struct NodeIOViewer {
 			ImNodes::BeginOutputAttribute(GetId());
 
 		ImGui::Text("NodeIO ressource : %d", nodeIO->ressource);
-		ImGui::Text(dataBase->getRessourceName(nodeIO->ressource));
+		ImGui::Text(dataBase->getRessourceName(nodeIO->ressource).c_str());
 		drawDataBaseIcone(nodeIO->ressource, dataBase);
 		//look ate the lookUpTable for name and icone of ressource
 		//need acces to this LUT
