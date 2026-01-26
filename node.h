@@ -9,15 +9,17 @@
 struct NodeIO {
 	int id;
 	int ressource;
+	float quantity;
 	//int proliferator_lvl;
 	//int proliferator_lvl2;
 	//int proliferator_lvl3;
 	//std::list<NodeIO*> connectedIO;
 
-	NodeIO() : id(), ressource() {}
-	NodeIO(int id) : id(id), ressource() {}
-	NodeIO(int id, int ressource) : id(id), ressource(ressource) {}
-	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), ressource(json.object_items().at("ressource").int_value()) {}
+	NodeIO() : id(), ressource(), quantity() {}
+	NodeIO(int id) : id(id), ressource(), quantity() {}
+	NodeIO(int id, int ressource) : id(id), ressource(ressource), quantity() {}
+	NodeIO(int id, int ressource, float quantity) : id(id), ressource(ressource), quantity(quantity) {}
+	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), ressource(json.object_items().at("ressource").int_value()), quantity(json.object_items().at("quantity").number_value()) {}
 
 	int GetId() const {
 		return id;
@@ -29,7 +31,7 @@ struct NodeIO {
 	}
 
 	json11::Json ToJson() const {
-		return json11::Json({ {"id", id}, {"ressource", ressource} });
+		return json11::Json({ {"id", id}, {"ressource", ressource}, {"quantity", quantity}});
 	}
 };
 
@@ -57,6 +59,8 @@ struct NodeIOViewer {
 		drawDataBaseIcone(item.iconeId, dataBase);
 		ImGui::SameLine();
 		ImGui::Text(item.name.c_str());
+		ImGui::SameLine();
+		ImGui::Text("%.2f", nodeIO->quantity);
 
 		if (isInput)
 			ImNodes::EndInputAttribute();
@@ -72,16 +76,26 @@ protected:
 	std::vector<NodeIO> inputs;
 	std::vector<NodeIO> outputs;
 	//name ?
+	std::string name;
+	float time;
+	float idlePower;
+	float workingPower;
+	int type;
+	std::vector<int> state; //for the selected recipe and the selected modifier
+	bool specialNode;//true for merger, splitter, intput and output
 
 public:
 	Node();
 	Node(int id);
 	Node(const Node& node);
 	Node(const Node& node, int(*CreateId)());
+	Node(const DataBase* dataBase, int type, int(*CreateId)());
 	Node(const json11::Json& json);
 	void Overide(const Node& node, int(*CreateId)());
 
 	void Update();
+
+	void changeState(const DataBase* dataBase, const std::vector<int> newState, int(*CreateId)());
 
 	int GetId() const;
 

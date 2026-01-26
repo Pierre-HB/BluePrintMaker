@@ -22,6 +22,24 @@ Node::Node(const Node& node, int(*CreateId)() ) : Node(node) {
 	SetIOIds(CreateId);
 }
 
+//create node from dataBase
+Node::Node(const DataBase* dataBase, int type, int(*CreateId)()) : type(type) {
+	if (dataBase->getMachine(type).recipiesId.size() == 0) {
+		//special machine : merger or sorter or input or output
+		id = CreateId();
+		specialNode = true;
+		return;
+	}
+	specialNode = false;
+	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(type).recipiesId[0]);
+
+	state = std::vector<int>(recipe.modifierCategoriesId.size(), -1);
+	std::vector<int> newState = std::vector<int>(recipe.modifierCategoriesId.size(), 0);
+
+	id = CreateId();
+	changeState(dataBase, newState, CreateId);
+}
+
 //change all node parameter to mimic a targeted node. Don't change Node::id
 void Node::Overide(const Node& node, int(*CreateId)()) {
 	inputs = std::vector<NodeIO>(node.GetInputs());
@@ -39,6 +57,51 @@ void Node::SetIOIds(int(*CreateId)()) {
 
 void Node::Update() {
 	//TODO overide nodes if needed
+}
+
+void Node::changeState(const DataBase* dataBase, const std::vector<int> newState, int(*CreateId)()) {
+	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(type).recipiesId[newState[0]]);
+
+	if (newState[0] != state[0]) {
+		inputs.clear();
+		outputs.clear();
+		for (int i = 0; i < recipe.inputsId.size(); i++)
+			inputs.push_back(NodeIO(CreateId()));
+		for (int i = 0; i < recipe.outputsId.size(); i++)
+			outputs.push_back(NodeIO(CreateId()));
+	}
+	
+	//Asume outputs and outputs already in place
+	for (int i = 0; i < recipe.outputsId.size(); i++) {
+		int itemId = recipe.outputsId[i].first;
+		int itemQuantity = recipe.outputsId[i].second;
+		outputs[i].quantity = itemQuantity;
+		outputs[i].ressource = itemId;
+	}
+	for (int i = 0; i < recipe.inputsId.size(); i++) {
+		int itemId = recipe.inputsId[i].first;
+		int itemQuantity = recipe.inputsId[i].second;
+		inputs[i].quantity = itemQuantity;
+		inputs[i].ressource = itemId;
+	}
+	time = recipe.time;
+	idlePower = 0.0;
+	workingPower = 0.0;
+	name = recipe.name;
+
+	
+	for (int j = 0; j < recipe.modifierCategoriesId.size(); j++) {
+		int modifierCategory = recipe.modifierCategoriesId[j];
+		int modifierId = dataBase->getModifierCategory(modifierCategory).modifiersId[newState[j]];
+		const Modifier& modifier = dataBase->getModifier(modifierId);
+
+		idlePower += modifier.idlePower;
+		workingPower += modifier.workingPower;
+		time *= modifier.speedModifier;
+		for(int i = 0; i < recipe.outputsId.size(); i++)
+			outputs[i].quantity *= modifier.outputModifier;
+	}
+	state = std::vector<int>(newState);
 }
 
 int Node::GetId() const {

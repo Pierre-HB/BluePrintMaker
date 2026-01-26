@@ -23,10 +23,9 @@ private:
 	int type;
 	bool toggleOn;
 
-	DataBase* dataBase;
 
 private:
-	MenuElement(const char* name, std::vector<MenuElement*> childs, int type, const char* shortcut, DataBase* dataBase);
+	MenuElement(const char* name, std::vector<MenuElement*> childs, int type, const char* shortcut);
 
 public:
 	MenuElement(const char* name, int type, const char* shortcut = "");

@@ -170,5 +170,8 @@
     <None Include="imgui\misc\debuggers\imgui.natvis">
       <Filter>ui\imgui</Filter>
     </None>
+    <None Include="dataBaseTest.json">
+      <Filter>sources</Filter>
+    </None>
   </ItemGroup>
 </Project>

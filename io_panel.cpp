@@ -35,26 +35,27 @@ static const std::vector<MenuElement*> createIOPanel() {
 /*
 Internal, private all purpose constructor
 */
-MenuElement::MenuElement(const char* name, std::vector<MenuElement*>childs, int type, const char* shortcut, DataBase* dataBase) : name(name), childs(childs), shortcut(shortcut), type(type), toggleOn(false), dataBase(dataBase) {
+MenuElement::MenuElement(const char* name, std::vector<MenuElement*>childs, int type, const char* shortcut) : name(name), childs(childs), shortcut(shortcut), type(type), toggleOn(false) {
 
 }
 
 /*
 Constructor for leaf elements in the right click menu
 */
-MenuElement::MenuElement(const char* name, int type, const char* shortcut) : MenuElement(name, std::vector<MenuElement*>(0), type, shortcut, nullptr) {
+MenuElement::MenuElement(const char* name, int type, const char* shortcut) : MenuElement(name, std::vector<MenuElement*>(0), type, shortcut) {
 }
 
 /*
 Constructor for custom leaf elements in the right click menu
 */
-MenuElement::MenuElement(DataBase* dataBase, int type, const char* shortcut) : MenuElement("", std::vector<MenuElement*>(0), type, shortcut, dataBase) {
+MenuElement::MenuElement(DataBase* dataBase, int type, const char* shortcut) : MenuElement(dataBase->getMachine(type).name.c_str(), type, shortcut) {
+
 }
 
 /*
 Constructor for node elements in the right click menu
 */
-MenuElement::MenuElement(const char* name, std::vector<MenuElement*> childs) : MenuElement(name, childs, -1, "", nullptr) {
+MenuElement::MenuElement(const char* name, std::vector<MenuElement*> childs) : MenuElement(name, childs, -1, "") {
 
 }
 
@@ -64,11 +65,6 @@ MenuElement::~MenuElement() {
 }
 
 void MenuElement::Draw() {
-    if (dataBase != nullptr) {//only available for leaf
-        if (ImGui::MenuItem(dataBase->getMachine(type).name.c_str(), shortcut))
-            toggleOn = true;
-        return;
-    }
     if (childs.size() == 0) {
         if (ImGui::MenuItem(name, shortcut))
             toggleOn = true;

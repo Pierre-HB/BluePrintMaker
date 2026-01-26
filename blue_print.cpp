@@ -74,7 +74,7 @@
 	recipies[4...nb_machine] = empty machines
 	recipies[nb_machine...] = recipies
 	*/
-static const std::vector<Node> createRecipies() {
+static const std::vector<Node> createRecipes() {
 	std::vector<Node> recipies = std::vector<Node>();
 	
 	{// Splitter
@@ -117,7 +117,7 @@ static const std::vector<Node> createRecipies() {
 	return recipies;
 }
 
-BluePrint::BluePrint(std::string name) : name(name), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()), swapingNodeViewerId(-1), dataBase("dataBaseTest.json"), ioPanel(&dataBase) {
+BluePrint::BluePrint(std::string name) : name(name), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase("dataBaseTest.json"), ioPanel(&dataBase) {
 }
 
 BluePrint::~BluePrint() {
@@ -152,7 +152,8 @@ void BluePrint::Draw() const {
 }
 
 int BluePrint::CreateNewNode(int type) {
-	Node* node = new Node(BluePrint::recipies[type], CreateId);
+	Node* node = new Node(&dataBase, type, CreateId);
+	//Node* node = new Node(BluePrint::recipes[type], CreateId);
 	ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
 	nodes.insert(std::make_pair(node->GetId(), node));
 	NodeViewer* nodeViewer = new NodeViewer(node, &dataBase);

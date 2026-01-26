@@ -43,7 +43,7 @@ private:
 	asking to create node for now
 	*/
 
-	const std::vector<Node> recipies;
+	const std::vector<Node> recipes;
 	/*
 	recipies[0] = splitter
 	recipies[1] = merger
