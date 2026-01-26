@@ -1,0 +1,89 @@
+{
+	"spreadsheet" : "logo2.png",
+	"items" : [
+		{
+			"iconeId" : 0,
+			"name" : "Coal"
+		},
+		{
+			"iconeId" : 1,
+			"name" : "Proliferator"
+		}
+	],
+	"modifiers" : [
+		{
+			"name" : "Assembler",
+			"iconeId" : 0,
+			"speedModifier" : 1,
+			"outputModifier" : 1,
+			"idlePower" : 1,
+			"workingPower" : 12,
+			"consumables" : []
+		},
+		{
+			"name" : "None",
+			"iconeId" : 0,
+			"speedModifier" : 1,
+			"outputModifier" : 1,
+			"idlePower" : 0,
+			"workingPower" : 0,
+			"consumables" : []
+		},
+		{
+			"name" : "Proliferator",
+			"iconeId" : 0,
+			"speedModifier" : 1,
+			"outputModifier" : 1.125,
+			"idlePower" : 0,
+			"workingPower" : 0,
+			"consumables" : [
+				{
+					"item" : "Proliferator",
+					"inputConsumtion" : 0.125,
+					"outputConsumtion" : 0.125
+				}
+			]
+		}
+	],
+	"modifierCategories" : [
+		{
+			"name" : "Assembler",
+			"modifiers" : [
+				"Assembler"
+			]
+		},
+		{
+			"name" : "Proliferator",
+			"modifiers" : [
+				"None",
+				"Proliferator"
+			]
+		}
+	],
+	"recipes" : [
+		{
+			"name" : "Proliferator",
+			"iconeId" : 0,
+			"inputs" : {
+				"Coal" : 1
+			},
+			"outputs" : {
+				"Proliferator" : 1
+			},
+			"time" : 0.5,
+			"modifierCategories" : [
+				"Assembler",
+				"Proliferator"
+			]
+		}
+	],
+	"machines" : [
+		{
+			"name" : "Assembler",
+			"iconeId" : 0,
+			"recipes" : [
+				"Proliferator"
+			]
+		}
+	]
+}

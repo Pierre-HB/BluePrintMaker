@@ -1,5 +1,6 @@
 #include "data_base.h"
 #include <iostream>
+#include <fstream>
 
 //===================================================================
 
@@ -152,32 +153,127 @@ std::vector<Consumable> readConsumable(const json11::Json& json, const std::map<
 //===================================================================
 
 
-DataBase::DataBase(const json11::Json& json) : textureId(0), textureSize(0, 0) {
-	std::string filename = readString(json, "spreadsheet", "DataBase", "logo2.png");
+DataBase::DataBase(const std::string& filename) : textureId(0), textureSize(0, 0) {
+	std::ifstream file(filename);
+	std::string line;
+	std::string content;
+	if (file.is_open()) {
+		while (std::getline(file, line))
+			content += line;
+	}
+	else {
+		std::cout << "[ERROR] Database not found" << std::endl;
+		return;
+	}
+	file.close();
+	std::cout << "File content : \n" << content << std::endl;
+	//json11::Json json = json11::Json::parse("", "err");
+	json11::Json json = json11::Json::parse(content, std::string("ERROR"));
 
-	loadIcones(filename);
+	if (!json.is_object()) {
+		std::cout << "[ERROR] database is not an object" << std::endl;
+		return;
+	}
 
-	for (const auto& va : json.object_items().at("items").array_items()) {
-		items.push_back(Item(va));
+	std::string fileSpreadSheet = readString(json, "spreadsheet", "DataBase", "logo2.png");
+
+	loadIcones(fileSpreadSheet);
+
+	if(json.object_items().count("items"))
+	{
+		if(json.object_items().at("items").is_array())
+		{
+			for (const auto& va : json.object_items().at("items").array_items()) {
+				if (va.is_object())
+					items.push_back(Item(va));
+				else
+					std::cout << "[ERROR] Wrong type for 'item' (should be object) in items : " << va.dump() << std::endl;
+
+				
+			}
+		}
+		else
+			std::cout << "[ERROR] Wrong type for 'items' (should be array) in database : " << json.object_items().at("items").dump() << std::endl;
+	}
+	else {
+		std::cout << "[ERROR] did not found 'items' in database" << std::endl;
 	}
 	std::map<std::string, int> itemIdMap = createIdMap(items);
 
-	for (const auto& va : json.object_items().at("machines").array_items()) {
-		machines.push_back(Machine(va, itemIdMap));
+	if (json.object_items().count("modifiers"))
+	{
+		if (json.object_items().at("modifiers").is_array())
+		{
+			for (const auto& va : json.object_items().at("modifiers").array_items()) {
+				if(va.is_object())
+					modifiers.push_back(Modifier(va, itemIdMap));
+				else
+					std::cout << "[ERROR] Wrong type for 'modifier' (should be object) in modifiers : " << va.dump() << std::endl;
+			}
+		}
+		else
+			std::cout << "[ERROR] Wrong type for 'modifiers' (should be array) in database : " << json.object_items().at("modifiers").dump() << std::endl;
 	}
-
-	for (const auto& va : json.object_items().at("modifiers").array_items()) {
-		modifiers.push_back(Modifier(va, itemIdMap));
+	else {
+		std::cout << "[ERROR] did not found 'modifiers' in database" << std::endl;
 	}
 	std::map<std::string, int> modifierIdMap = createIdMap(modifiers);
 
-	for (const auto& va : json.object_items().at("modifierCategories").array_items()) {
-		modifierCategories.push_back(ModiferCategory(va, modifierIdMap));
+	if (json.object_items().count("modifierCategories"))
+	{
+		if (json.object_items().at("modifierCategories").is_array())
+		{
+			for (const auto& va : json.object_items().at("modifierCategories").array_items()) {
+				if (va.is_object())
+					modifierCategories.push_back(ModiferCategory(va, modifierIdMap));
+				else
+					std::cout << "[ERROR] Wrong type for 'modifierCategory' (should be object) in modifierCategorys : " << va.dump() << std::endl;
+				
+			}
+		}
+		else
+			std::cout << "[ERROR] Wrong type for 'modifierCategories' (should be array) in database : " << json.object_items().at("modifierCategories").dump() << std::endl;
+	}
+	else {
+		std::cout << "[ERROR] did not found 'modifierCategories' in database" << std::endl;
 	}
 	std::map<std::string, int> modifierCategoryIdMap = createIdMap(modifierCategories);
 
-	for (const auto& va : json.object_items().at("recipes").array_items()) {
-		recipes.push_back(Recipe(va, itemIdMap, modifierCategoryIdMap));
+	if (json.object_items().count("recipes"))
+	{
+		if (json.object_items().at("recipes").is_array())
+		{
+			for (const auto& va : json.object_items().at("recipes").array_items()) {
+				if (va.is_object())
+					recipes.push_back(Recipe(va, itemIdMap, modifierCategoryIdMap));
+				else
+					std::cout << "[ERROR] Wrong type for 'recipe' (should be object) in recipes : " << va.dump() << std::endl;
+			}
+		}
+		else
+			std::cout << "[ERROR] Wrong type for 'recipes' (should be array) in database : " << json.object_items().at("recipes").dump() << std::endl;
+	}
+	else {
+		std::cout << "[ERROR] did not found 'recipes' in database" << std::endl;
+	}
+	std::map<std::string, int> recipeIdMap = createIdMap(recipes);
+
+	if (json.object_items().count("machines"))
+	{
+		if (json.object_items().at("machines").is_array())
+		{
+			for (const auto& va : json.object_items().at("machines").array_items()) {
+				if (va.is_object())
+					machines.push_back(Machine(va, recipeIdMap));
+				else
+					std::cout << "[ERROR] Wrong type for 'machine' (should be object) in machines : " << va.dump() << std::endl;
+			}
+		}
+		else
+			std::cout << "[ERROR] Wrong type for 'machines' (should be array) in database : " << json.object_items().at("machines").dump() << std::endl;
+	}
+	else {
+		std::cout << "[ERROR] did not found 'machines' in database" << std::endl;
 	}
 }
 
@@ -218,7 +314,7 @@ Machine::Machine(const json11::Json& json, const std::map<std::string, int>& rec
 	name = readString(json, "name", "Machine", "Machine");
 	iconeId = readInt(json, "iconeId", "Machine");
 
-	recipiesId = readMap(json, recipyIdMap, "recipies", "Machine", "recipies");
+	recipiesId = readMap(json, recipyIdMap, "recipes", "Machine", "recipes");
 }
 
 Consumable::Consumable(const json11::Json& json, const std::map<std::string, int>& itemIdMap) {
@@ -252,8 +348,8 @@ Modifier::Modifier(const json11::Json& json, const std::map<std::string, int>& i
 
 	name = readString(json, "name", "Modifier", "Modifier");
 	iconeId = readInt(json, "iconeId", "Modifier");
-	speedModifiers = readFloat(json, "speedModifiers", "Modifier", 1.0);
-	outputModifiers = readFloat(json, "outputModifiers", "Modifier", 1.0);
+	speedModifier = readFloat(json, "speedModifier", "Modifier", 1.0);
+	outputModifier = readFloat(json, "outputModifier", "Modifier", 1.0);
 	idlePower = readFloat(json, "idlePower", "Modifier", 0.0f);
 	workingPower = readFloat(json, "workingPower", "Modifier", 0.0f);
 
@@ -282,5 +378,5 @@ Recipe::Recipe(const json11::Json& json, const std::map<std::string, int>& itemI
 	modifierCategoriesId = readMap(json, modifierCategoryIdMap, "modifierCategories", "Recipe", "modifierCategories");
 
 	inputsId = readList(json, itemIdMap, "inputs", "Recipe", "items");
-	outputsId = readList(json, itemIdMap, "outputss", "Recipe", "items");
+	outputsId = readList(json, itemIdMap, "outputs", "Recipe", "items");
 }

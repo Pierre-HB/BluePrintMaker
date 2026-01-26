@@ -22,8 +22,8 @@ struct Consumable {//2
 struct Modifier {//3
 	std::string name;
 	int iconeId;
-	float speedModifiers = 1.0f;
-	float outputModifiers = 1.0f;
+	float speedModifier = 1.0f;
+	float outputModifier = 1.0f;
 	float idlePower = 0.0f;
 	float workingPower = 0.0f;
 	std::vector<Consumable> consumables; //consumables ar items
@@ -89,7 +89,7 @@ public:
 
 public:
 	DataBase();
-	DataBase(const json11::Json& json);
+	DataBase(const std::string& filename);
 	~DataBase();
 
 	std::string getRessourceName(int ressourceId) const;
