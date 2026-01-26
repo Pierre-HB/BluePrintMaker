@@ -275,8 +275,40 @@ DataBase::DataBase(const std::string& filename) : textureId(0), textureSize(0, 0
 	else {
 		std::cout << "[ERROR] did not found 'machines' in database" << std::endl;
 	}
-
+	addSpecialMachines();
 	loadPlaceHolders();
+}
+
+static Machine createMAM(const DataBase* dataBase) {
+	std::vector<int> recipeId = std::vector<int>(dataBase->getNbRecipe());
+	for (int i = 0; i < recipeId.size(); i++)
+		recipeId[i] = i;
+	return Machine("MAM", 1, recipeId);
+}
+
+static Machine createMerger() {
+	return Machine("Merger", 2, std::vector<int>());
+}
+
+static Machine createSplitter() {
+	return Machine("Splitter", 3, std::vector<int>());
+}
+
+static Machine createInput() {
+	return Machine("Input", 4, std::vector<int>());
+}
+
+static Machine createOutput() {
+	return Machine("Output", 5, std::vector<int>());
+}
+
+void DataBase::addSpecialMachines() {
+	machines.push_back(createMAM(this));
+	machines.push_back(createMerger());
+	machines.push_back(createSplitter());
+	machines.push_back(createInput());
+	machines.push_back(createOutput());
+	nbSpecialMachine = 5;
 }
 
 void DataBase::loadPlaceHolders() {
@@ -289,6 +321,7 @@ void DataBase::loadPlaceHolders() {
 
 DataBase::DataBase() : textureId(0), textureSize(0, 0) {
 	loadIcones("logo2.png");
+	addSpecialMachines();
 	loadPlaceHolders();
 }
 
@@ -332,6 +365,10 @@ Machine::Machine(const json11::Json& json, const std::map<std::string, int>& rec
 Machine::Machine() {
 	name = "???";
 	iconeId = 0;
+}
+
+Machine::Machine(std::string name, int iconeId, std::vector<int> recipiesId) : name(name), iconeId(iconeId), recipiesId(recipiesId){
+
 }
 
 Consumable::Consumable(const json11::Json& json, const std::map<std::string, int>& itemIdMap) {

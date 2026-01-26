@@ -64,6 +64,7 @@ struct Machine {//6
 
 	Machine(const json11::Json& json, const std::map<std::string, int>& recipyIdMap);
 	Machine();
+	Machine(std::string name, int iconeId, std::vector<int> recipiesId);
 };
 
 template<typename T>
@@ -86,8 +87,12 @@ class DataBase {
 	std::vector<Recipe> recipes;
 	std::vector<Machine> machines;
 
+	int nbSpecialMachine;
+
 	void loadIcones(std::string filename);
+	void addSpecialMachines(); //create MAM, Merger, Splitter, Input and Output machines
 	void loadPlaceHolders(); //create empty item, machine, etc... to return when asking for out of bound objects
+	
 
 public:
 	ImTextureID textureId;
@@ -103,13 +108,17 @@ public:
 	const Modifier& getModifier(int modifierId) const;
 	const ModiferCategory& getModifierCategory(int modifierCategoryId) const;
 	const Recipe& getRecipe(int recipeId) const;
+
+	int getNbMachine() const;
+	int getNbSpecialMachine() const;
+	int getNbRecipe() const;
 };
 
-void drawDataBaseIcone(int ressourceId, const DataBase* data_base, ImVec2 size=ImVec2(16, 16));
+void drawDataBaseIcone(int ressourceId, const DataBase* data_base, ImVec2 size = ImVec2(16, 16));
 
 inline const Item& DataBase::getItem(int itemId) const {
 	if (itemId >= items.size())
-		itemId = items.size()-1;
+		itemId = items.size() - 1;
 	return items[itemId];
 }
 
@@ -117,6 +126,16 @@ inline const Machine& DataBase::getMachine(int machineId) const {
 	if (machineId >= machines.size())
 		machineId = machines.size() - 1;
 	return machines[machineId];
+}
+
+inline int DataBase::getNbMachine() const {
+	return machines.size()-nbSpecialMachine;
+}
+inline int DataBase::getNbSpecialMachine() const {
+	return nbSpecialMachine;
+}
+inline int DataBase::getNbRecipe() const {
+	return recipes.size();
 }
 
 inline const Modifier& DataBase::getModifier(int modifierId) const {

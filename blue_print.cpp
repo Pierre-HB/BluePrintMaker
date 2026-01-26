@@ -117,7 +117,7 @@ static const std::vector<Node> createRecipies() {
 	return recipies;
 }
 
-BluePrint::BluePrint(std::string name) : name(name), ioPanel(), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()), swapingNodeViewerId(-1), dataBase("dataBaseTest.json") {
+BluePrint::BluePrint(std::string name) : name(name), nodes(), nodeViewers(), links(), linkViewers(), recipies(createRecipies()), swapingNodeViewerId(-1), dataBase("dataBaseTest.json"), ioPanel(&dataBase) {
 }
 
 BluePrint::~BluePrint() {

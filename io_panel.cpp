@@ -1,6 +1,19 @@
 #include "io_panel.h"
 #include <iostream>
 
+static const std::vector<MenuElement*> createIOPanel(DataBase* dataBase) {
+    std::vector<MenuElement*> machine = std::vector<MenuElement*>();
+
+    int N = dataBase->getNbMachine();
+    int NS = dataBase->getNbSpecialMachine();
+    for (int i = N - 1; i < NS + N - 1; i++)
+        machine.push_back(new MenuElement(dataBase, i));
+    
+    for (int i = 0; i < N - 1; i++)
+        machine.push_back(new MenuElement(dataBase, i));
+        
+    return machine;
+}
 
 static const std::vector<MenuElement*> createIOPanel() {
     //TODO actually read the json ioPanel
@@ -22,20 +35,26 @@ static const std::vector<MenuElement*> createIOPanel() {
 /*
 Internal, private all purpose constructor
 */
-MenuElement::MenuElement(const char* name, std::vector<MenuElement*>childs, int type, const char* shortcut) : name(name), childs(childs), shortcut(shortcut), type(type), toggleOn(false) {
+MenuElement::MenuElement(const char* name, std::vector<MenuElement*>childs, int type, const char* shortcut, DataBase* dataBase) : name(name), childs(childs), shortcut(shortcut), type(type), toggleOn(false), dataBase(dataBase) {
 
 }
 
 /*
 Constructor for leaf elements in the right click menu
 */
-MenuElement::MenuElement(const char* name, int type, const char* shortcut) : MenuElement(name, std::vector<MenuElement*>(0), type, shortcut) {
+MenuElement::MenuElement(const char* name, int type, const char* shortcut) : MenuElement(name, std::vector<MenuElement*>(0), type, shortcut, nullptr) {
+}
+
+/*
+Constructor for custom leaf elements in the right click menu
+*/
+MenuElement::MenuElement(DataBase* dataBase, int type, const char* shortcut) : MenuElement("", std::vector<MenuElement*>(0), type, shortcut, dataBase) {
 }
 
 /*
 Constructor for node elements in the right click menu
 */
-MenuElement::MenuElement(const char* name, std::vector<MenuElement*> childs) : MenuElement(name, childs, -1, "") {
+MenuElement::MenuElement(const char* name, std::vector<MenuElement*> childs) : MenuElement(name, childs, -1, "", nullptr) {
 
 }
 
@@ -45,6 +64,11 @@ MenuElement::~MenuElement() {
 }
 
 void MenuElement::Draw() {
+    if (dataBase != nullptr) {//only available for leaf
+        if (ImGui::MenuItem(dataBase->getMachine(type).name.c_str(), shortcut))
+            toggleOn = true;
+        return;
+    }
     if (childs.size() == 0) {
         if (ImGui::MenuItem(name, shortcut))
             toggleOn = true;
@@ -72,7 +96,12 @@ void MenuElement::Update(int& nodeCreateType) {
     //TODO manage user shortcut here
 }
 
-IOPanel::IOPanel() : show(false), elements(createIOPanel()) {
+
+IOPanel::IOPanel() : show(false), elements() {
+
+}
+
+IOPanel::IOPanel(DataBase* dataBase) : show(false), elements(createIOPanel(dataBase)) {
 
 }
 

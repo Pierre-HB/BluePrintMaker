@@ -26,8 +26,6 @@ private:
 	//const char* name;
 	std::string name;
 
-	IOPanel ioPanel;
-
 	std::map<int, Node*> nodes;
 	std::map<int, NodeViewer*> nodeViewers;
 
@@ -64,7 +62,7 @@ private:
 	...
 	*/
 	DataBase dataBase;
-
+	IOPanel ioPanel;
 
 public:
 	

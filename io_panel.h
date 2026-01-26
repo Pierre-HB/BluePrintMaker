@@ -1,6 +1,7 @@
 #pragma once
 #include "imgui.h"
 #include <vector>
+#include "data_base.h"
 
 //struct UserEventManager {
 //	int nodeCreationQuerry; // type of node to create. CAN ONLY CREATE ONE NODE PER UPDATE
@@ -22,11 +23,14 @@ private:
 	int type;
 	bool toggleOn;
 
+	DataBase* dataBase;
+
 private:
-	MenuElement(const char* name, std::vector<MenuElement*> childs, int type, const char* shortcut);
+	MenuElement(const char* name, std::vector<MenuElement*> childs, int type, const char* shortcut, DataBase* dataBase);
 
 public:
 	MenuElement(const char* name, int type, const char* shortcut = "");
+	MenuElement(DataBase* dataBase, int type, const char* shortcut = "");
 	MenuElement(const char* name, std::vector<MenuElement*> childs);
 	~MenuElement();
 
@@ -45,6 +49,7 @@ private:
 
 public:
 	IOPanel();
+	IOPanel(DataBase* dataBase);
 	~IOPanel();
 	
 	void Draw() const;
