@@ -275,14 +275,21 @@ DataBase::DataBase(const std::string& filename) : textureId(0), textureSize(0, 0
 	else {
 		std::cout << "[ERROR] did not found 'machines' in database" << std::endl;
 	}
+
+	loadPlaceHolders();
+}
+
+void DataBase::loadPlaceHolders() {
+	items.push_back(Item());
+	modifiers.push_back(Modifier());
+	modifierCategories.push_back(ModiferCategory());
+	recipes.push_back(Recipe());
+	machines.push_back(Machine());
 }
 
 DataBase::DataBase() : textureId(0), textureSize(0, 0) {
 	loadIcones("logo2.png");
-}
-
-std::string DataBase::getRessourceName(int ressourceId) const {
-	return "test";
+	loadPlaceHolders();
 }
 
 void drawDataBaseIcone(int ressourceId, const DataBase* dataBase, ImVec2 size) {
@@ -297,7 +304,7 @@ void drawDataBaseIcone(int ressourceId, const DataBase* dataBase, ImVec2 size) {
 	int column = ressourceId % nb_icones_line;
 
 	ImVec2 iconeUV = ImVec2(1.0f / float(nb_icones_line), 1.0f / float(nb_icones_column));
-	ImVec2 uv0 = ImVec2(iconeUV.x*line, iconeUV.y*column);
+	ImVec2 uv0 = ImVec2(iconeUV.x*column, iconeUV.y* line);
 	ImVec2 uv1 = ImVec2(uv0.x + iconeUV.x, uv0.y + iconeUV.y);
 
 	ImGui::Image(dataBase->textureId, size, uv0, uv1);
@@ -310,11 +317,21 @@ Item::Item(const json11::Json& json) {
 	iconeId = readInt(json, "iconeId", "Item");
 }
 
+Item::Item() {
+	name = "???";
+	iconeId = 0;
+}
+
 Machine::Machine(const json11::Json& json, const std::map<std::string, int>& recipyIdMap) {
 	name = readString(json, "name", "Machine", "Machine");
 	iconeId = readInt(json, "iconeId", "Machine");
 
 	recipiesId = readMap(json, recipyIdMap, "recipes", "Machine", "recipes");
+}
+
+Machine::Machine() {
+	name = "???";
+	iconeId = 0;
 }
 
 Consumable::Consumable(const json11::Json& json, const std::map<std::string, int>& itemIdMap) {
@@ -356,12 +373,25 @@ Modifier::Modifier(const json11::Json& json, const std::map<std::string, int>& i
 	consumables = readConsumable(json, itemIdMap);
 }
 
+Modifier::Modifier() {
+	name = "???";
+	iconeId = 0;
+	speedModifier = 1;
+	outputModifier = 1;
+	idlePower = 0;
+	workingPower = 0;
+}
+
 ModiferCategory::ModiferCategory(const json11::Json& json, const std::map<std::string, int>& modifierIdMap) {
 	/*std::string name;
 	std::vector<int> modifiersId;*/
 	name = readString(json, "name", "ModifierCategory", "ModifierCategory");
 
 	modifiersId = readMap(json, modifierIdMap, "modifiers", "ModifierCategory", "modifiers");
+}
+
+ModiferCategory::ModiferCategory() {
+	name = "???";
 }
 
 Recipe::Recipe(const json11::Json& json, const std::map<std::string, int>& itemIdMap, const std::map<std::string, int>& modifierCategoryIdMap) {
@@ -379,4 +409,10 @@ Recipe::Recipe(const json11::Json& json, const std::map<std::string, int>& itemI
 
 	inputsId = readList(json, itemIdMap, "inputs", "Recipe", "items");
 	outputsId = readList(json, itemIdMap, "outputs", "Recipe", "items");
+}
+
+Recipe::Recipe() {
+	name = "???";
+	iconeId = 0;
+	time = 0.0f;
 }

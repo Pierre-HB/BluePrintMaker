@@ -52,11 +52,12 @@ struct NodeIOViewer {
 		else
 			ImNodes::BeginOutputAttribute(GetId());
 
-		ImGui::Text("NodeIO ressource : %d", nodeIO->ressource);
-		ImGui::Text(dataBase->getRessourceName(nodeIO->ressource).c_str());
-		drawDataBaseIcone(nodeIO->ressource, dataBase);
-		//look ate the lookUpTable for name and icone of ressource
-		//need acces to this LUT
+		//ImGui::Text("NodeIO ressource : %d", nodeIO->ressource);
+		const Item& item = dataBase->getItem(nodeIO->ressource);
+		drawDataBaseIcone(item.iconeId, dataBase);
+		ImGui::SameLine();
+		ImGui::Text(item.name.c_str());
+
 		if (isInput)
 			ImNodes::EndInputAttribute();
 		else

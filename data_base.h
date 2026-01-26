@@ -9,6 +9,7 @@ struct Item {//1
 	int iconeId;
 
 	Item(const json11::Json& json);
+	Item();
 };
 
 struct Consumable {//2
@@ -29,6 +30,7 @@ struct Modifier {//3
 	std::vector<Consumable> consumables; //consumables ar items
 
 	Modifier(const json11::Json& json, const std::map<std::string, int>& itemIdMap);
+	Modifier();
 };
 
 //MUST BE initialized AFTER modifiers
@@ -38,6 +40,7 @@ struct ModiferCategory {//4
 	//no need for icone, the icone of the selected modifier will be used
 
 	ModiferCategory(const json11::Json& json, const std::map<std::string, int>& modifierIdMap);
+	ModiferCategory();
 };
 
 //MUST BE initialized AFTER items and modifiers
@@ -50,6 +53,7 @@ struct Recipe {//5
 	std::vector<int> modifierCategoriesId;
 
 	Recipe(const json11::Json& json, const std::map<std::string, int>& itemIdMap, const std::map<std::string, int>& modifierCategoryIdMap);
+	Recipe();
 };
 
 //MUST BE initialized AFTER recipies
@@ -59,6 +63,7 @@ struct Machine {//6
 	std::vector<int> recipiesId;
 
 	Machine(const json11::Json& json, const std::map<std::string, int>& recipyIdMap);
+	Machine();
 };
 
 template<typename T>
@@ -76,12 +81,13 @@ const ImVec2 iconeSize = ImVec2(32, 32); //size of one icone in the spreadsheet
 class DataBase {
 
 	std::vector<Item> items;
-	std::vector<Machine> machines;
 	std::vector<Modifier> modifiers;
 	std::vector<ModiferCategory> modifierCategories;
 	std::vector<Recipe> recipes;
+	std::vector<Machine> machines;
 
 	void loadIcones(std::string filename);
+	void loadPlaceHolders(); //create empty item, machine, etc... to return when asking for out of bound objects
 
 public:
 	ImTextureID textureId;
@@ -92,10 +98,7 @@ public:
 	DataBase(const std::string& filename);
 	~DataBase();
 
-	std::string getRessourceName(int ressourceId) const;
-
 	const Item& getItem(int itemId) const;
-	
 	const Machine& getMachine(int machineId) const;
 	const Modifier& getModifier(int modifierId) const;
 	const ModiferCategory& getModifierCategory(int modifierCategoryId) const;
@@ -105,21 +108,31 @@ public:
 void drawDataBaseIcone(int ressourceId, const DataBase* data_base, ImVec2 size=ImVec2(16, 16));
 
 inline const Item& DataBase::getItem(int itemId) const {
+	if (itemId >= items.size())
+		itemId = items.size()-1;
 	return items[itemId];
 }
 
 inline const Machine& DataBase::getMachine(int machineId) const {
+	if (machineId >= machines.size())
+		machineId = machines.size() - 1;
 	return machines[machineId];
 }
 
 inline const Modifier& DataBase::getModifier(int modifierId) const {
+	if (modifierId >= modifiers.size())
+		modifierId = modifiers.size() - 1;
 	return modifiers[modifierId];
 }
 
 inline const ModiferCategory& DataBase::getModifierCategory(int modifierCategoryId) const {
+	if (modifierCategoryId >= modifierCategories.size())
+		modifierCategoryId = modifierCategories.size() - 1;
 	return modifierCategories[modifierCategoryId];
 }
 
 inline const Recipe& DataBase::getRecipe(int recipeId) const {
+	if (recipeId >= recipes.size())
+		recipeId = recipes.size() - 1;
 	return recipes[recipeId];
 }

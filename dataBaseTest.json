@@ -1,19 +1,19 @@
 {
-	"spreadsheet" : "logo2.png",
+	"spreadsheet" : "spreadsheet.png",
 	"items" : [
 		{
-			"iconeId" : 0,
+			"iconeId" : 1,
 			"name" : "Coal"
 		},
 		{
-			"iconeId" : 1,
+			"iconeId" : 2,
 			"name" : "Proliferator"
 		}
 	],
 	"modifiers" : [
 		{
 			"name" : "Assembler",
-			"iconeId" : 0,
+			"iconeId" : 3,
 			"speedModifier" : 1,
 			"outputModifier" : 1,
 			"idlePower" : 1,
@@ -31,7 +31,7 @@
 		},
 		{
 			"name" : "Proliferator",
-			"iconeId" : 0,
+			"iconeId" : 2,
 			"speedModifier" : 1,
 			"outputModifier" : 1.125,
 			"idlePower" : 0,
@@ -63,7 +63,7 @@
 	"recipes" : [
 		{
 			"name" : "Proliferator",
-			"iconeId" : 0,
+			"iconeId" : 2,
 			"inputs" : {
 				"Coal" : 1
 			},
@@ -80,7 +80,7 @@
 	"machines" : [
 		{
 			"name" : "Assembler",
-			"iconeId" : 0,
+			"iconeId" : 3,
 			"recipes" : [
 				"Proliferator"
 			]

@@ -8,7 +8,7 @@ void DataBase::loadIcones(std::string filename) {
 	int h;
 	int comp;
 
-	unsigned char* image = stbi_load(filename.c_str(), &w, &h, &comp, STBI_rgb);
+	unsigned char* image = stbi_load(filename.c_str(), &w, &h, &comp, STBI_rgb_alpha);
 
 	if (image == nullptr)
 		throw(std::string("Failed to load texture"));
