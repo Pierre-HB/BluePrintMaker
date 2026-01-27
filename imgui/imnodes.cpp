@@ -3023,6 +3023,7 @@ void Initialize(ImNodesContext* context)
     context->CurrentPinIdx = INT_MAX;
     context->CurrentNodeIdx = INT_MAX;
     context->CurrentLabelIdx = INT_MAX;
+    context->CurrentLinkIdx = INT_MAX;
 
     context->DefaultEditorCtx = EditorContextCreate();
     context->EditorCtx = context->DefaultEditorCtx;
@@ -4983,6 +4984,71 @@ void EditorLineHandler(ImNodesEditorContext& editor, const char* const line)
 {
     (void)sscanf(line, "panning=%f,%f", &editor.Panning.x, &editor.Panning.y);
 }
+void LineLineHandler(ImNodesEditorContext& editor, const char* const line)
+{
+    int id;
+    assert(MAX_CONTROL_PT_PER_CURVE == 6);//if MAX_CONTROL_PT_PER_CURVE != need to change the sscanf for deformation parsing.
+    float Deformations[2 * MAX_CONTROL_PT_PER_CURVE];
+    std::cout << "match link data" << std::endl;
+
+    if (sscanf(line, "[link.%i", &id) == 1)
+    {
+        const int link_idx = ObjectPoolFindOrCreateIndex(editor.Links, id);
+        GImNodes->CurrentLinkIdx = link_idx;
+        ImLinkData& link = editor.Links.Pool[link_idx];
+        link.Id = id;
+    }
+    //line is suppose to be "type=Bezier\n"
+    else if (strncmp(line + 5, "Bezier", 6) == 0)
+    {
+        ImLinkData& link = editor.Links.Pool[GImNodes->CurrentLinkIdx];
+        link.LinkType = ImNodesLinkType_Bezier;
+    }
+    else if (strncmp(line + 5, "Sloped", 6) == 0)
+    {
+        ImLinkData& link = editor.Links.Pool[GImNodes->CurrentLinkIdx];
+        link.LinkType = ImNodesLinkType_Sloped;
+    }
+    else if (sscanf(line, "deformations=[(%f, %f), (%f, %f), (%f, %f), (%f, %f), (%f, %f), (%f, %f)]", Deformations+0, Deformations+1, Deformations+2, Deformations+3, Deformations+4, Deformations+5, Deformations+6, Deformations+7, Deformations+8, Deformations+9, Deformations+10, Deformations+11) == 12){
+        
+        ImLinkData& link = editor.Links.Pool[GImNodes->CurrentLinkIdx];
+        for(int i = 0; i < MAX_CONTROL_PT_PER_CURVE; i++)
+        {
+            link.Deformations[i].x = Deformations[2 * i];
+            link.Deformations[i].y = Deformations[2*i+1];
+        }
+    }
+}
+void LabelLineHandler(ImNodesEditorContext& editor, const char* const line)
+{
+    int id;
+    ImVec2 deformation;
+    int parentId;
+    int parentType;
+
+    if (sscanf(line, "[label.%i", &id) == 1)
+    {
+        const int label_idx = ObjectPoolFindOrCreateIndex(editor.Labels, id);
+        GImNodes->CurrentLabelIdx = label_idx;
+        ImLabelData& label = editor.Labels.Pool[label_idx];
+        label.Id = id;
+    }
+    else if (sscanf(line, "deformation=%f,%f", &(deformation.x), &(deformation.y)) == 2)
+    {
+        ImLabelData& label = editor.Labels.Pool[GImNodes->CurrentLabelIdx];
+        label.Deformation = deformation;
+    }
+    else if (sscanf(line, "parentId=%i", &parentId) == 1)
+    {
+        ImLabelData& label = editor.Labels.Pool[GImNodes->CurrentLabelIdx];
+        label.parentId = parentId;
+    }
+    else if (sscanf(line, "parentType=%i", &parentType) == 1)
+    {
+        ImLabelData& label = editor.Labels.Pool[GImNodes->CurrentLabelIdx];
+        label.parentType = parentType;
+    }
+}
 } // namespace
 
 const char* SaveCurrentEditorStateToIniString(size_t* const data_size)
@@ -5000,7 +5066,6 @@ const char* SaveEditorStateToIniString(
     GImNodes->TextBuffer.clear();
     // TODO: check to make sure that the estimate is the upper bound of element
     GImNodes->TextBuffer.reserve(64 * editor.Nodes.Pool.size());
-
     GImNodes->TextBuffer.appendf(
         "[editor]\npanning=%i,%i\n", (int)editor.Panning.x, (int)editor.Panning.y);
 
@@ -5025,7 +5090,7 @@ const char* SaveEditorStateToIniString(
             else
                 GImNodes->TextBuffer.appendf("type=Bezier\n");
 
-            GImNodes->TextBuffer.appendf("deformations=[\n");
+            GImNodes->TextBuffer.appendf("deformations=[");
             for(int i = 0; i < MAX_CONTROL_PT_PER_CURVE-1; i++)
                 GImNodes->TextBuffer.appendf("(%i, %i), ", (int)link.Deformations[i].x, (int)link.Deformations[i].y);
             GImNodes->TextBuffer.appendf("(%i, %i)]\n", (int)link.Deformations[MAX_CONTROL_PT_PER_CURVE - 1].x, (int)link.Deformations[MAX_CONTROL_PT_PER_CURVE - 1].y);
@@ -5040,6 +5105,7 @@ const char* SaveEditorStateToIniString(
             GImNodes->TextBuffer.appendf("\n[label.%d]\n", label.Id);
             GImNodes->TextBuffer.appendf("deformation=%i,%i\n", (int)label.Deformation.x, (int)label.Deformation.y);
             GImNodes->TextBuffer.appendf("parentId=%i\n", label.parentId);
+            GImNodes->TextBuffer.appendf("parentType=%i\n", label.parentType);
         }
     }
 
@@ -5104,6 +5170,14 @@ void LoadEditorStateFromIniString(
             else if (strcmp(line + 1, "editor") == 0)
             {
                 line_handler = EditorLineHandler;
+            }
+            else if (strncmp(line + 1, "link", 4) == 0)
+            {
+                line_handler = LineLineHandler;
+            }
+            else if (strncmp(line + 1, "label", 5) == 0)
+            {
+                line_handler = LabelLineHandler;
             }
         }
 

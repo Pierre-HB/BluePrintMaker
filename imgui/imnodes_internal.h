@@ -528,6 +528,7 @@ struct ImNodesContext
     int CurrentPinIdx;
     int CurrentAttributeId;
     int CurrentLabelIdx;
+    int CurrentLinkIdx;
 
     ImOptionalIndex HoveredNodeIdx;
     ImOptionalIndex HoveredLinkIdx;

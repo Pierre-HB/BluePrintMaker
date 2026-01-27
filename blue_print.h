@@ -38,6 +38,8 @@ private:
 	GraphEvent swapingEvent;
 	int swapingNodeViewerId;
 
+	ImNodesEditorContext* editorContext;
+
 	//ImVector<int> links; //Get list of link caus wee need to render them after all nodes
 	//int ioPanel; //object for managing user input
 	/*
