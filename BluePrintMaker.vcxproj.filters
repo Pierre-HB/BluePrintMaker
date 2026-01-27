@@ -38,6 +38,9 @@
     <Filter Include="sources\blue_print\data_base">
       <UniqueIdentifier>{a788203f-9f8c-4666-b59d-72008e3a3a33}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ui\nfd">
+      <UniqueIdentifier>{76b9a5f5-0983-44c2-9a6b-6e294eab6660}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -96,6 +99,12 @@
     </ClCompile>
     <ClCompile Include="fileManager.cpp">
       <Filter>sources\blue_print</Filter>
+    </ClCompile>
+    <ClCompile Include="nfd\nfd_common.c">
+      <Filter>ui\nfd</Filter>
+    </ClCompile>
+    <ClCompile Include="nfd\nfd_win.cpp">
+      <Filter>ui\nfd</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +173,15 @@
     </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>sources\blue_print\data_base</Filter>
+    </ClInclude>
+    <ClInclude Include="nfd\nfd_common.h">
+      <Filter>ui\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="nfd\simple_exec.h">
+      <Filter>ui\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="nfd\nfd.h">
+      <Filter>ui\nfd</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

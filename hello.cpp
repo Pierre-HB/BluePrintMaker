@@ -6,7 +6,7 @@
 #include "smatrix.h"
 #include "rat.hpp"
 #include "blue_print.h"
-
+#include "nfd/nfd.h"
 
 static SMatrix<Rat> create_PB() {
 
@@ -617,6 +617,28 @@ void NodeEditorInitialize() {
 //bp = new BluePrint();
 
 
+int test_nfd()
+{
+    nfdchar_t* outPath = NULL;
+    //nfdresult_t result = NFD_OpenDialog(NULL, NULL, &outPath);
+    nfdresult_t result = NFD_SaveDialog(NULL, NULL, &outPath);
+
+    if (result == NFD_OKAY) {
+        puts("Success!");
+        puts(outPath);
+        free(outPath);
+    }
+    else if (result == NFD_CANCEL) {
+        puts("User pressed cancel.");
+    }
+    else {
+        printf("Error: %s\n", NFD_GetError());
+    }
+
+    return 0;
+}
+
+
 //void NodeEditorShow() { editor.show(); }
 void NodeEditorShow() {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -633,6 +655,7 @@ void NodeEditorShow() {
     }
     if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_S)) {
         bp->saveBluePrint("BluePrint.json");
+        test_nfd();
     }
     if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_O)) {
         delete bp;

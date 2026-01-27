@@ -179,6 +179,8 @@
     <ClCompile Include="json11.cpp" />
     <ClCompile Include="link.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="nfd\nfd_common.c" />
+    <ClCompile Include="nfd\nfd_win.cpp" />
     <ClCompile Include="node.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -198,6 +200,9 @@
     <ClInclude Include="io_panel.h" />
     <ClInclude Include="json11.hpp" />
     <ClInclude Include="link.h" />
+    <ClInclude Include="nfd\nfd.h" />
+    <ClInclude Include="nfd\nfd_common.h" />
+    <ClInclude Include="nfd\simple_exec.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="node_editor.h" />
     <ClInclude Include="num.hpp" />
