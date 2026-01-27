@@ -4,3 +4,4 @@ Release/
 imgui.ini
 README.md.backup
 BluePrint.json
+*.bp

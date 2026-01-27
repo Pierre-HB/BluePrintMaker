@@ -367,6 +367,7 @@ void PopStyleVar(int count = 1);
 void PushEvent(int id);
 bool GetPopedEvent(int* id);
 bool GetUnpopedEvent(int* id);
+void ClearEvent();
 
 
 

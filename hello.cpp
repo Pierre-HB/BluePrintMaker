@@ -646,20 +646,21 @@ void NodeEditorShow() {
     ImGui::SetNextWindowSize(viewport->Size);
     bp->Draw();
     bp->Update();
-    if (ImGui::IsKeyPressed(ImGuiKey_J))
+    /*if (ImGui::IsKeyPressed(ImGuiKey_J))
         bp->ToJson();
     if (ImGui::IsKeyPressed(ImGuiKey_K)) {
         json11::Json tmp = bp->ToJson();
         delete bp;
         bp = new BluePrint(tmp);
-    }
+    }*/
     if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_S)) {
-        bp->saveBluePrint("BluePrint.json");
-        test_nfd();
+        bp->saveBluePrint();
+        //bp->saveBluePrint("BluePrint.json");
     }
     if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_O)) {
         delete bp;
-        bp = BluePrint::CreateBluePrint("BluePrint.json");
+        bp = BluePrint::CreateBluePrint();
+        //bp = BluePrint::CreateBluePrint("BluePrint.json");
     }
         
 }

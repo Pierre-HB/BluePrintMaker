@@ -3,6 +3,34 @@
 #include "json11.hpp"
 #include <iostream>
 #include <fstream>
+#include "nfd/nfd.h"
+
+bool m_nfd(std::string& filename, const std::string& ext, const std::string& defaultPath, bool open) {
+	nfdchar_t* outPath = NULL;
+	const nfdchar_t* ext_char = ext == "" ? NULL : ext.c_str();
+	const nfdchar_t* defaultPath_char = defaultPath == "" ? NULL : defaultPath.c_str();
+	nfdresult_t result;
+	if (open)
+		result = NFD_OpenDialog(ext_char, defaultPath_char, &outPath);
+	else
+		result = NFD_SaveDialog(ext_char, defaultPath_char, &outPath);
+
+	if (result == NFD_OKAY) {
+		filename = outPath;
+		free(outPath);
+		return true;
+	}
+	return false;
+}
+
+bool FileDialogSave(std::string& filename, const std::string& ext = "", const std::string& defaultPath = "") {
+	return m_nfd(filename, ext, defaultPath, false);
+}
+
+bool FileDialogOpen(std::string& filename, const std::string& ext = "", const std::string& defaultPath = "") {
+	return m_nfd(filename, ext, defaultPath, true);
+}
+
 
 static std::string readFile(const std::string& filename) {
 	std::ifstream file(filename);
@@ -116,7 +144,11 @@ DataBase::DataBase(const std::string& filename) : textureId(0), textureSize(0, 0
 	loadPlaceHolders();
 }
 
-BluePrint* BluePrint::CreateBluePrint(const std::string& filename) {
+BluePrint* BluePrint::CreateBluePrint() {
+	std::string filename;
+	if (!FileDialogOpen(filename, "bp"))
+		return new BluePrint();
+
 	json11::Json json = file2json(filename);
 
 	bool corrupted = false;
@@ -127,16 +159,28 @@ BluePrint* BluePrint::CreateBluePrint(const std::string& filename) {
 	if (!checkJsonTypeAtKey(json.object_items(), "dataBaseFile", json11::Json::Type::STRING))
 		corrupted = true;
 
-
+	ImNodes::ClearEvent();
 	if (corrupted)
 	{
 		std::cout << "[ERROR] Corrupted file for blueprint" << std::endl;
 		return new BluePrint();
 	}
-
-	return new BluePrint(json);
+	return new BluePrint(json, filename);
 }
 
-void BluePrint::saveBluePrint(const std::string& filename) {
+void BluePrint::saveBluePrint() const {
+	if (filename == "") 		
+		return saveUnderBluePrint();
+
 	writeFile(filename, ToJson().dump());
+}
+
+void BluePrint::saveUnderBluePrint() const {
+	std::string newFilename;
+	if (!FileDialogSave(newFilename, "bp"))
+		return;//no filename and aborted file search
+	newFilename += ".bp";
+
+
+	writeFile(newFilename, ToJson().dump());
 }

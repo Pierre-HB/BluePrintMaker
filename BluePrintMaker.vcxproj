@@ -202,7 +202,6 @@
     <ClInclude Include="link.h" />
     <ClInclude Include="nfd\nfd.h" />
     <ClInclude Include="nfd\nfd_common.h" />
-    <ClInclude Include="nfd\simple_exec.h" />
     <ClInclude Include="node.h" />
     <ClInclude Include="node_editor.h" />
     <ClInclude Include="num.hpp" />

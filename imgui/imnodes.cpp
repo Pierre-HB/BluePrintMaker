@@ -4440,6 +4440,11 @@ bool GetUnpopedEvent(int* idx) {
     return false;
 }
 
+void ClearEvent()
+{
+    GImNodes->EventStack.clear();
+}
+
 void SetNodeScreenSpacePos(const int node_id, const ImVec2& screen_space_pos)
 {
     ImNodesEditorContext& editor = EditorContextGet();

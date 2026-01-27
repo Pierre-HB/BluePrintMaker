@@ -177,9 +177,6 @@
     <ClInclude Include="nfd\nfd_common.h">
       <Filter>ui\nfd</Filter>
     </ClInclude>
-    <ClInclude Include="nfd\simple_exec.h">
-      <Filter>ui\nfd</Filter>
-    </ClInclude>
     <ClInclude Include="nfd\nfd.h">
       <Filter>ui\nfd</Filter>
     </ClInclude>

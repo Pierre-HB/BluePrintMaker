@@ -117,7 +117,7 @@ static const std::vector<Node> createRecipes() {
 	return recipies;
 }
 
-BluePrint::BluePrint(std::string name, std::string dataBaseFile) : name(name), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase(dataBaseFile), ioPanel(&dataBase) {
+BluePrint::BluePrint(const std::string& name, const std::string& dataBaseFile, const std::string& bluePrintFile) : name(name), filename(bluePrintFile), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase(dataBaseFile), ioPanel(&dataBase) {
 
 }
 
@@ -443,7 +443,7 @@ json11::Json BluePrint::ToJson() const {
 	return jsonBluePrint;
 }
 
-BluePrint::BluePrint(const json11::Json& json) : BluePrint(json.object_items().at("name").string_value(), json.object_items().at("dataBaseFile").string_value()) {
+BluePrint::BluePrint(const json11::Json& json, const std::string& filename) : BluePrint(json.object_items().at("name").string_value(), json.object_items().at("dataBaseFile").string_value(), filename) {
 	//TODO
 	//initialize the Database with the adresse to the database given, in the json (if none, use a default adresse)
 	const json11::Json::object obj = json.object_items();
@@ -481,4 +481,9 @@ void BluePrint::LoadDataBase(const json11::Json& json){
 	//load recipes "RECIPES"
 
 
+}
+
+void BluePrint::clearStack() {
+	graphEvents.clear();
+	ImNodes::ClearEvent();
 }

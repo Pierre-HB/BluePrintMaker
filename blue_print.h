@@ -25,6 +25,7 @@ private:
 	
 	//const char* name;
 	std::string name;
+	std::string filename;
 
 	std::map<int, Node*> nodes;
 	std::map<int, NodeViewer*> nodeViewers;
@@ -63,14 +64,17 @@ private:
 	*/
 	DataBase dataBase;
 	IOPanel ioPanel;
+private:
+
+	void clearStack();
 
 public:
 	
 	BluePrint(std::string name);
-	BluePrint(std::string name, std::string dataBaseFile);
+	BluePrint(const std::string& name, const std::string& dataBaseFile, const std::string& bluePrintFile="");
 	BluePrint(const char* name) : BluePrint(std::string(name)) {};
 	BluePrint() : BluePrint("hello world") {};
-	BluePrint(const json11::Json& json);
+	BluePrint(const json11::Json& json, const std::string& filename);
 	~BluePrint();
 
 	void LoadDataBase(const json11::Json& json);
@@ -88,8 +92,9 @@ public:
 
 	json11::Json ToJson() const;
 
-	static BluePrint* CreateBluePrint(const std::string& filename);
-	void saveBluePrint(const std::string& filename);
+	static BluePrint* CreateBluePrint();
+	void saveBluePrint() const;
+	void saveUnderBluePrint() const;//don't use internal filename
 };
 
 template<typename T>
