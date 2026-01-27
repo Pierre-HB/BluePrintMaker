@@ -175,12 +175,28 @@ void BluePrint::saveBluePrint() const {
 	writeFile(filename, ToJson().dump());
 }
 
+static bool endsWith(const std::string& fullString,
+	const std::string& ending)
+{
+	// Check if the ending string is longer than the full
+	// string
+	if (ending.size() > fullString.size())
+		return false;
+
+	// Compare the ending of the full string with the target
+	// ending
+	return fullString.compare(fullString.size()
+		- ending.size(),
+		ending.size(), ending)
+		== 0;
+}
+
 void BluePrint::saveUnderBluePrint() const {
 	std::string newFilename;
 	if (!FileDialogSave(newFilename, "bp"))
 		return;//no filename and aborted file search
-	newFilename += ".bp";
-
+	if(!endsWith(newFilename, ".bp"))
+		newFilename += ".bp";
 
 	writeFile(newFilename, ToJson().dump());
 }

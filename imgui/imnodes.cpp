@@ -3669,13 +3669,16 @@ void BeginNodeEditor()
     GImNodes->ActiveSwappableAttribute = false;
     GImNodes->HoveredSwappableAttribute = false;
 
-    float oldZoom = editor.Zoom;
-    float mouseWheel = ImGui::GetIO().MouseWheel * GImNodes->Style.ZoomSensitivity;
-    if(mouseWheel > 0)
-        editor.Zoom *= mouseWheel;
-    if(mouseWheel < 0)
-        editor.Zoom /= abs(mouseWheel);
-    editor.Panning = GImNodes->MousePos - (GImNodes->MousePos - editor.Panning) * editor.Zoom / oldZoom;
+    if(ImGui::GetIO().KeyCtrl)
+    {
+        float oldZoom = editor.Zoom;
+        float mouseWheel = ImGui::GetIO().MouseWheel * GImNodes->Style.ZoomSensitivity;
+        if (mouseWheel > 0)
+            editor.Zoom *= mouseWheel;
+        if (mouseWheel < 0)
+            editor.Zoom /= abs(mouseWheel);
+        editor.Panning = GImNodes->MousePos - (GImNodes->MousePos - editor.Panning) * editor.Zoom / oldZoom;
+    }
     BeginZoom(editor);
 
     ImGui::BeginGroup();

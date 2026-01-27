@@ -176,9 +176,36 @@ void NodeViewer::Draw() {
 		Reset();
 	ImNodes::BeginNode(GetId());
 	//TODO Draw Title
-	//ImNodes::BeginNodeTitleBar();
-	//ImGui::Text("title");
-	//ImNodes::EndNodeTitleBar();
+	ImNodes::BeginNodeTitleBar();
+	ImGui::Text("title");//should be recipe name
+	//should be clickable
+	
+	const char* items[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
+	static int item_selected_idx = 0; // Here we store our selection data as an index.
+
+	// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
+	const char* combo_preview_value = items[item_selected_idx];
+
+	if (ImGui::BeginCombo("##combo 1", combo_preview_value))
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+		{
+			const bool is_selected = (item_selected_idx == n);
+			if (ImGui::Selectable(items[n], is_selected))
+				item_selected_idx = n;
+			ImGui::SameLine();
+			ImGui::Text("test");
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+	ImGui::SameLine();
+	ImGui::Text("test preview");
+
+	ImNodes::EndNodeTitleBar();
 
 	float width_input = 0;
 	float width_output = 0;
