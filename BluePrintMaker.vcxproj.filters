@@ -94,6 +94,9 @@
     <ClCompile Include="image_loader.cpp">
       <Filter>sources\blue_print\data_base</Filter>
     </ClCompile>
+    <ClCompile Include="fileManager.cpp">
+      <Filter>sources\blue_print</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="node_editor.h">

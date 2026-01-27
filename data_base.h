@@ -93,10 +93,11 @@ class DataBase {
 	void addSpecialMachines(); //create MAM, Merger, Splitter, Input and Output machines
 	void loadPlaceHolders(); //create empty item, machine, etc... to return when asking for out of bound objects
 	
-
+	std::string filename;
 public:
 	ImTextureID textureId;
 	ImVec2 textureSize;
+	
 
 public:
 	DataBase();
@@ -112,6 +113,7 @@ public:
 	int getNbMachine() const;
 	int getNbSpecialMachine() const;
 	int getNbRecipe() const;
+	std::string getFileName() const;
 };
 
 void drawDataBaseIcone(int ressourceId, const DataBase* data_base, ImVec2 size = ImVec2(16, 16));
@@ -138,6 +140,10 @@ inline int DataBase::getNbRecipe() const {
 	return recipes.size();
 }
 
+inline std::string DataBase::getFileName() const {
+	return filename;
+}
+
 inline const Modifier& DataBase::getModifier(int modifierId) const {
 	if (modifierId >= modifiers.size())
 		modifierId = modifiers.size() - 1;
@@ -155,3 +161,16 @@ inline const Recipe& DataBase::getRecipe(int recipeId) const {
 		recipeId = recipes.size() - 1;
 	return recipes[recipeId];
 }
+
+
+int readInt(const json11::Json& json, const std::string& key, const std::string& struct_name, int default_value = -1);
+
+float readFloat(const json11::Json& json, const std::string& key, const std::string& struct_name, float default_value = 1.0f);
+
+std::string readString(const json11::Json& json, const std::string& key, const std::string& struct_name, std::string default_value = "");
+
+std::vector<int> readMap(const json11::Json& json, const std::map<std::string, int>& idMap, const std::string& key, const std::string& struct_name, const std::string& mapName);
+
+std::vector<std::pair<int, int>> readList(const json11::Json& json, const std::map<std::string, int>& idMap, const std::string& key, const std::string& struct_name, const std::string& mapName);
+
+std::vector<Consumable> readConsumable(const json11::Json& json, const std::map<std::string, int>& itemIdMap);

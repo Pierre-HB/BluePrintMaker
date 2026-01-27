@@ -631,6 +631,13 @@ void NodeEditorShow() {
         delete bp;
         bp = new BluePrint(tmp);
     }
+    if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_S)) {
+        bp->saveBluePrint("BluePrint.json");
+    }
+    if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_O)) {
+        delete bp;
+        bp = BluePrint::CreateBluePrint("BluePrint.json");
+    }
         
 }
 

@@ -1,0 +1,142 @@
+#include "data_base.h"
+#include "blue_print.h"
+#include "json11.hpp"
+#include <iostream>
+#include <fstream>
+
+static std::string readFile(const std::string& filename) {
+	std::ifstream file(filename);
+	std::string line;
+	std::string content;
+	if (file.is_open()) {
+		while (std::getline(file, line))
+			content += line;
+	}
+	else {
+		std::cout << "[ERROR] Database not found" << std::endl;
+		return "";
+	}
+	file.close();
+	return content;
+}
+
+static void writeFile(const std::string& filename, const std::string& content) {
+	std::ofstream file(filename);
+	file << content;
+	file.close();
+}
+
+std::string type2string(json11::Json::Type type) {
+	switch (type)
+	{
+	case json11::Json::NUL:
+		return "null";
+	case json11::Json::NUMBER:
+		return "number";
+	case json11::Json::BOOL:
+		return "bool";
+	case json11::Json::STRING:
+		return "string";
+	case json11::Json::ARRAY:
+		return "array";
+	case json11::Json::OBJECT:
+		return "object";
+	}
+}
+
+static bool checkJsonType(const json11::Json& json, json11::Json::Type type, const std::string& warning = "[ERROR]") {
+
+	if (json.type() != type) {
+		std::cout << warning << " Wrong type for '" << json.dump() << "' (" << type2string(json.type())  << ") should be " << type2string(type) << "." << std::endl;
+		return false;
+	}
+	return true;
+}
+
+static bool checkJsonTypeAtKey(const json11::Json::object& json, const std::string& key, json11::Json::Type type, const std::string& warning="[ERROR]") {
+	if (json.count(key) == 0) {
+		std::cout << warning << " missing key '" << key << "' in " << json11::Json(json).dump() << std::endl;
+		return false;
+	}
+	return checkJsonType(json.at(key), type, warning + " For key '"+key+"'");
+}
+
+static json11::Json file2json(const std::string& filename) {
+	std::string content = readFile(filename);
+
+	//std::cout << "File content : \n" << content << std::endl;
+	std::string error;
+	json11::Json json = json11::Json::parse(content, error);
+
+	if (!checkJsonType(json, json11::Json::Type::OBJECT)) 
+		std::cout << "[ERROR] in Database" << std::endl << error << std::endl;
+	
+	return json;
+}
+
+DataBase::DataBase(const std::string& filename) : textureId(0), textureSize(0, 0), filename(filename), nbSpecialMachine(0) {
+
+
+	json11::Json json = file2json(filename);
+
+	std::string fileSpreadSheet = readString(json, "spreadsheet", "DataBase", "logo2.png");
+
+	loadIcones(fileSpreadSheet);
+
+	if(checkJsonTypeAtKey(json.object_items(), "items", json11::Json::Type::ARRAY))
+		for (const auto& va : json.object_items().at("items").array_items())
+			if(checkJsonType(va, json11::Json::OBJECT, "[ERROR] in 'items'"))
+				items.push_back(Item(va));
+	std::map<std::string, int> itemIdMap = createIdMap(items);
+
+	if(checkJsonTypeAtKey(json.object_items(), "modifiers", json11::Json::Type::ARRAY))
+		for (const auto& va : json.object_items().at("modifiers").array_items())
+			if (checkJsonType(va, json11::Json::OBJECT, "[ERROR] in 'modifiers'"))
+				modifiers.push_back(Modifier(va, itemIdMap));
+	std::map<std::string, int> modifierIdMap = createIdMap(modifiers);
+
+	if(checkJsonTypeAtKey(json.object_items(), "modifierCategories", json11::Json::Type::ARRAY))
+		for (const auto& va : json.object_items().at("modifierCategories").array_items())
+			if (checkJsonType(va, json11::Json::OBJECT, "[ERROR] in 'modifierCategories'"))
+				modifierCategories.push_back(ModiferCategory(va, modifierIdMap));
+	std::map<std::string, int> modifierCategoryIdMap = createIdMap(modifierCategories);
+
+	if(checkJsonTypeAtKey(json.object_items(), "recipes", json11::Json::Type::ARRAY))
+		for (const auto& va : json.object_items().at("recipes").array_items())
+			if (checkJsonType(va, json11::Json::OBJECT, "[ERROR] in 'recipes'"))
+				recipes.push_back(Recipe(va, itemIdMap, modifierCategoryIdMap));
+	std::map<std::string, int> recipeIdMap = createIdMap(recipes);
+
+	if(checkJsonTypeAtKey(json.object_items(), "machines", json11::Json::Type::ARRAY))
+		for (const auto& va : json.object_items().at("machines").array_items())
+			if (checkJsonType(va, json11::Json::OBJECT, "[ERROR] in 'machines'"))
+				machines.push_back(Machine(va, recipeIdMap));
+
+	addSpecialMachines();
+	loadPlaceHolders();
+}
+
+BluePrint* BluePrint::CreateBluePrint(const std::string& filename) {
+	json11::Json json = file2json(filename);
+
+	bool corrupted = false;
+	if (!checkJsonType(json, json11::Json::Type::OBJECT))
+		corrupted = true;
+	if (!checkJsonTypeAtKey(json.object_items(), "name", json11::Json::Type::STRING))
+		corrupted = true;
+	if (!checkJsonTypeAtKey(json.object_items(), "dataBaseFile", json11::Json::Type::STRING))
+		corrupted = true;
+
+
+	if (corrupted)
+	{
+		std::cout << "[ERROR] Corrupted file for blueprint" << std::endl;
+		return new BluePrint();
+	}
+
+	return new BluePrint(json);
+}
+
+void BluePrint::saveBluePrint(const std::string& filename) {
+	writeFile(filename, ToJson().dump());
+}

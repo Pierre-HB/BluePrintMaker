@@ -163,6 +163,7 @@
   <ItemGroup>
     <ClCompile Include="blue_print.cpp" />
     <ClCompile Include="data_base.cpp" />
+    <ClCompile Include="fileManager.cpp" />
     <ClCompile Include="graph_event.cpp" />
     <ClCompile Include="hello.cpp" />
     <ClCompile Include="image_loader.cpp" />

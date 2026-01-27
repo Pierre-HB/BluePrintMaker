@@ -67,6 +67,7 @@ private:
 public:
 	
 	BluePrint(std::string name);
+	BluePrint(std::string name, std::string dataBaseFile);
 	BluePrint(const char* name) : BluePrint(std::string(name)) {};
 	BluePrint() : BluePrint("hello world") {};
 	BluePrint(const json11::Json& json);
@@ -86,6 +87,9 @@ public:
 	void DeleteLinks(const std::vector<int>& linkIds, GraphEvent* Event = nullptr);
 
 	json11::Json ToJson() const;
+
+	static BluePrint* CreateBluePrint(const std::string& filename);
+	void saveBluePrint(const std::string& filename);
 };
 
 template<typename T>
