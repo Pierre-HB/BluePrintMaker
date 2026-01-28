@@ -3380,37 +3380,108 @@ void CreateContextFont(ImNodesContext* ctx) {
         ctx->fontChanges.push_back(ctx->fontSizes[i] * alpha);
 
     ImVector<int> resr_ids = ImVector<int>();
-    for (int i = 0; i < ctx->fonts.size(); i++)
+    bool addRect = true;
+    if(addRect)
     {
-        resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', 13, 13, 13 + 1));
-        //rect_ids[1] = io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'b', 13, 13, 13 + 1);
+        for (int i = 0; i < ctx->fonts.size(); i++)
+        {
+            float alpha = 4;
+            resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', 13 * alpha, 13 * alpha, 13 * alpha + 1));
+            //rect_ids[1] = io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'b', 13, 13, 13 + 1);
+        }
     }
 
         // Build atlas
     io.Fonts->Build();
-    for (int i = 0; i < ctx->fonts.size(); i++)
-    {
-        // Retrieve texture in RGBA format
-        unsigned char* tex_pixels = nullptr;
-        int tex_width, tex_height;
-        io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
+    int index_a = 0;
+    int index_b = 0;
+    int index_c = 0;
+    for (int i = 0; i < ctx->fonts[0]->Glyphs.size(); i++) {
+        if (ctx->fonts[0]->Glyphs[i].Codepoint == 97)
+            index_a = i;
+        if (ctx->fonts[0]->Glyphs[i].Codepoint == 98)
+            index_b = i;
+        if (ctx->fonts[0]->Glyphs[i].Codepoint == 99)
+            index_c = i;
+    }
 
-        int rect_id = resr_ids[i];
-        if (const ImFontAtlasCustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id))
+    {
+        ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_a];
+        float X = glyph.V1 - glyph.V0;
+        float Y = glyph.U1 - glyph.U0;
+
+        //ctx->fonts[0]->Glyphs[index_a].U1 += Y;
+        //ctx->fonts[0]->Glyphs[index_a].V1 += X;
+
+        //ctx->fonts[0]->Glyphs[index_a].V1 += X;
+
+        //SUPER DIRTY, hard set the size of my custom glyph to match the size of the font dispite it'ss true size.
+        ctx->fonts[0]->Glyphs[index_a].X0 = 0;
+        ctx->fonts[0]->Glyphs[index_a].Y0 = 0;
+        ctx->fonts[0]->Glyphs[index_a].X1 = 13;
+        ctx->fonts[0]->Glyphs[index_a].Y1 = 13;
+
+        std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X * Y) << std::endl;
+        std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
+    }
+    
+    if(addRect)
+    {
+        for (int i = 0; i < ctx->fonts.size(); i++)
         {
-            // Fill the custom rectangle with red pixels (in reality you would draw/copy your bitmap data here!)
-            for (int y = 0; y < rect->Height; y++)
+            // Retrieve texture in RGBA format
+            unsigned char* tex_pixels = nullptr;
+            int tex_width, tex_height;
+            io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
+
+            int rect_id = resr_ids[i];
+            if (const ImFontAtlasCustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id))
             {
-                ImU32* p = (ImU32*)tex_pixels + (rect->Y + y) * tex_width + (rect->X);
-                for (int x = rect->Width; x > 0; x--)
-                    *p++ = IM_COL32(255, 0, 0, 255);
+                // Fill the custom rectangle with red pixels (in reality you would draw/copy your bitmap data here!)
+                for (int y = 0; y < rect->Height; y++)
+                {
+                    ImU32* p = (ImU32*)tex_pixels + (rect->Y + y) * tex_width + (rect->X);
+                    for (int x = rect->Width; x > 0; x--)
+                        *p++ = IM_COL32((x + y) % 2 == 0 ? 255 : 0, 0, 0, 255);
+                }
+                std::cout << "adding rectangangle of size " << rect->Width << ", " << rect->Height << std::endl;
+                std::cout << "tex_pixel : " << tex_width << ", " << tex_height << std::endl;
             }
         }
     }
-    std::cout << "loaded " << ctx->fonts.size() << " fonts" << std::endl;
-    for (auto s : ctx->fontSizes)
-        std::cout << s << std::endl;
-    std::cout << "---" << std::endl;
+
+    {
+        ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_a];
+        float X = glyph.V0 - glyph.V1;
+        float Y = glyph.U0 - glyph.U1;
+        std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X*Y) << std::endl;
+        std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
+    }
+    {
+        ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_b];
+        float X = glyph.V0 - glyph.V1;
+        float Y = glyph.U0 - glyph.U1;
+        std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X * Y) << " (" << (X * Y*0.25) << ")" << std::endl;
+        std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
+    }
+    {
+        ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_c];
+        float X = glyph.V0 - glyph.V1;
+        float Y = glyph.U0 - glyph.U1;
+        std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X * Y) << " (" << (X * Y * 0.25) << ")" << std::endl;
+        std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
+    }
+    //Glyphs
+
+    /*struct ImFontGlyph
+{
+    unsigned int    Colored : 1;        // Flag to indicate glyph is colored and should generally ignore tinting (make it usable with no shift on little-endian as this is used in loops)
+    unsigned int    Visible : 1;        // Flag to indicate glyph has no visible pixels (e.g. space). Allow early out when rendering.
+    unsigned int    Codepoint : 30;     // 0x0000..0x10FFFF
+    float           AdvanceX;           // Distance to next character (= data from font + ImFontConfig::GlyphExtraSpacing.x baked in)
+    float           X0, Y0, X1, Y1;     // Glyph corners
+    float           U0, V0, U1, V1;     // Texture coordinates
+};*/
 }
 
 ImNodesContext* CreateContext()
