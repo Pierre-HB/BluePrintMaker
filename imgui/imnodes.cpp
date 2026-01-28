@@ -3362,6 +3362,36 @@ void CreateContextFont(ImNodesContext* ctx) {
     float alpha = sqrtf(raison);
     for (int i = 0; i < ctx->fontSizes.size() - 1; i++)
         ctx->fontChanges.push_back(ctx->fontSizes[i] * alpha);
+
+    ImVector<int> resr_ids = ImVector<int>();
+    for (int i = 0; i < ctx->fonts.size() - 1; i++)
+    {
+        resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', 13, 13, 13 + 1));
+        //rect_ids[1] = io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'b', 13, 13, 13 + 1);
+    }
+
+        // Build atlas
+    io.Fonts->Build();
+    for (int i = 0; i < ctx->fonts.size() - 1; i++)
+    {
+        // Retrieve texture in RGBA format
+        unsigned char* tex_pixels = nullptr;
+        int tex_width, tex_height;
+        io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
+
+        int rect_id = resr_ids[i];
+        if (const ImFontAtlasCustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id))
+        {
+            // Fill the custom rectangle with red pixels (in reality you would draw/copy your bitmap data here!)
+            for (int y = 0; y < rect->Height; y++)
+            {
+                ImU32* p = (ImU32*)tex_pixels + (rect->Y + y) * tex_width + (rect->X);
+                for (int x = rect->Width; x > 0; x--)
+                    *p++ = IM_COL32(255, 0, 0, 255);
+            }
+        }
+        
+    }
 }
 
 ImNodesContext* CreateContext()
