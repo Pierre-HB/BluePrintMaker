@@ -3334,6 +3334,11 @@ void CreateContextFont(ImNodesContext* ctx) {
     float raison = 1.2f;
     float min_size = 0.5f;
     float max_size = 3.0f;
+    min_size = 0.99;
+    max_size = 1.01;
+    raison = 2;
+    ImFontConfig conf = ImFontConfig();
+    conf.RasterizerDensity = 4.0f;//don't use several fonts anymore, increase DPI instead
 
     const float BASE_FONT_SIZE = 13.0f; //Base font size from ImGui
     float current_value = 1.0f;
@@ -3343,6 +3348,17 @@ void CreateContextFont(ImNodesContext* ctx) {
 
     current_value *= raison;
     ImGuiIO& io = ImGui::GetIO();
+    
+    //{
+    //    memset(this, 0, sizeof(*this));
+    //    FontDataOwnedByAtlas = true;
+    //    OversampleH = 0; // Auto == 1 or 2 depending on size
+    //    OversampleV = 0; // Auto == 1
+    //    GlyphMaxAdvanceX = FLT_MAX;
+    //    RasterizerMultiply = 1.0f;
+    //    RasterizerDensity = 1.0f;
+    //    EllipsisChar = 0;
+    //}
 
     while (current_value <= max_size) {
         //all possible built in fonts:
@@ -3353,7 +3369,7 @@ void CreateContextFont(ImNodesContext* ctx) {
         //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Karla-Regular.ttf", BASE_FONT_SIZE * current_value));
         //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/DroidSans.ttf", BASE_FONT_SIZE * current_value));
 
-        ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Cousine-Regular.ttf", BASE_FONT_SIZE * current_value));
+        ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Cousine-Regular.ttf", BASE_FONT_SIZE * current_value, &conf));
         ctx->fontSizes.push_back(current_value);
         current_value *= raison;
     }
@@ -3364,7 +3380,7 @@ void CreateContextFont(ImNodesContext* ctx) {
         ctx->fontChanges.push_back(ctx->fontSizes[i] * alpha);
 
     ImVector<int> resr_ids = ImVector<int>();
-    for (int i = 0; i < ctx->fonts.size() - 1; i++)
+    for (int i = 0; i < ctx->fonts.size(); i++)
     {
         resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', 13, 13, 13 + 1));
         //rect_ids[1] = io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'b', 13, 13, 13 + 1);
@@ -3372,7 +3388,7 @@ void CreateContextFont(ImNodesContext* ctx) {
 
         // Build atlas
     io.Fonts->Build();
-    for (int i = 0; i < ctx->fonts.size() - 1; i++)
+    for (int i = 0; i < ctx->fonts.size(); i++)
     {
         // Retrieve texture in RGBA format
         unsigned char* tex_pixels = nullptr;
@@ -3390,8 +3406,11 @@ void CreateContextFont(ImNodesContext* ctx) {
                     *p++ = IM_COL32(255, 0, 0, 255);
             }
         }
-        
     }
+    std::cout << "loaded " << ctx->fonts.size() << " fonts" << std::endl;
+    for (auto s : ctx->fontSizes)
+        std::cout << s << std::endl;
+    std::cout << "---" << std::endl;
 }
 
 ImNodesContext* CreateContext()
