@@ -3328,6 +3328,20 @@ ImNodesStyle::ImNodesStyle()
 {
 }
 
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "../stb_image.h"
+#include "../stb_image.h"
+struct ImNodeGlyph {
+    int Codepoint;
+    int X0;
+    int Y0;
+    int X1;
+    int Y1;
+};
+
+//offsetForGlyphs = CreateFont(const char* images, int image_width, int glyph_width, int glyph_height, int offsetForGlyphs=256, "TTF"="...") //images iss the output of stbi in rgba
+
+
 namespace IMNODES_NAMESPACE
 {
 void CreateContextFont(ImNodesContext* ctx) {
@@ -3374,30 +3388,72 @@ void CreateContextFont(ImNodesContext* ctx) {
         current_value *= raison;
     }
 
+    const ImWchar* glyphsRange = ctx->fonts[0]->ConfigData->GlyphRanges;
+    if (glyphsRange != NULL)
+    {
+        int it = 0;
+        while (glyphsRange[it] != 0)
+            it++;
+        std::cout << "loop around " << it << " glyphs" << std::endl;
+    }
+    else
+        std::cout << "NULL glyph range" << std::endl;
+    std::cout << "estimate : " << ctx->fonts[0]->ConfigData->GlyphRanges << " glyphs" << std::endl;
+
+    
     //ensure that when swaping fonts, the blur level is the same
     float alpha = sqrtf(raison);
     for (int i = 0; i < ctx->fontSizes.size() - 1; i++)
         ctx->fontChanges.push_back(ctx->fontSizes[i] * alpha);
 
+
+    int w;
+    int h;
+    int comp;
+
+    unsigned char* image = stbi_load("icones/proliferator80.png", &w, &h, &comp, STBI_rgb_alpha);
+
+
     ImVector<int> resr_ids = ImVector<int>();
     bool addRect = true;
+    //ImWchar prol = '\xff';
+    //ImWchar prol = "\xee\x01\x01";
+    
+    //ImWchar prol = 255;
+    ImWchar prol = 'a';
     if(addRect)
     {
         for (int i = 0; i < ctx->fonts.size(); i++)
         {
             float alpha = 4;
-            resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', 13 * alpha, 13 * alpha, 13 * alpha + 1));
+            //resr_ids.push_back(io.Fonts->AddCustomRectRegular(w, h));
+            resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], prol, w, h, 13));
+            //resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', w, h, 13));
+
+            //resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', 13 * alpha, 13 * alpha, 13 * alpha + 1));
             //rect_ids[1] = io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'b', 13, 13, 13 + 1);
         }
     }
 
         // Build atlas
     io.Fonts->Build();
+    
+    int maxCodePoint = 0;
+    for (int i = 0; i < ctx->fonts[0]->Glyphs.size(); i++) {
+        std::cout << ctx->fonts[0]->Glyphs[i].Codepoint << std::endl;
+        if (maxCodePoint < ctx->fonts[0]->Glyphs[i].Codepoint)
+            maxCodePoint = ctx->fonts[0]->Glyphs[i].Codepoint;
+    }
+    std::cout << "=== \nLoaded font as " << ctx->fonts[0]->Glyphs.size() << " glyphs, max is " << maxCodePoint << std::endl;
+    /*for (int i = 0; i < ctx->fonts[0]->IndexLookup.size(); i++) {
+        std::cout << ctx->fonts[0]->IndexLookup[i] << ", " << ctx->fonts[0]->Glyphs[i].Codepoint << std::endl;
+    }
+    std::cout << "=== \nLoaded font as " << ctx->fonts[0]->IndexLookup.size() << " glyphs." << std::endl;*/
     int index_a = 0;
     int index_b = 0;
     int index_c = 0;
     for (int i = 0; i < ctx->fonts[0]->Glyphs.size(); i++) {
-        if (ctx->fonts[0]->Glyphs[i].Codepoint == 97)
+        if (ctx->fonts[0]->Glyphs[i].Codepoint == prol)
             index_a = i;
         if (ctx->fonts[0]->Glyphs[i].Codepoint == 98)
             index_b = i;
@@ -3420,7 +3476,7 @@ void CreateContextFont(ImNodesContext* ctx) {
         ctx->fonts[0]->Glyphs[index_a].Y0 = 0;
         ctx->fonts[0]->Glyphs[index_a].X1 = 13;
         ctx->fonts[0]->Glyphs[index_a].Y1 = 13;
-
+        //ctx->fonts[0]->Glyphs[index_a].Codepoint = 101;//set unicode
         std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X * Y) << std::endl;
         std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
     }
@@ -3442,14 +3498,16 @@ void CreateContextFont(ImNodesContext* ctx) {
                 {
                     ImU32* p = (ImU32*)tex_pixels + (rect->Y + y) * tex_width + (rect->X);
                     for (int x = rect->Width; x > 0; x--)
-                        *p++ = IM_COL32((x + y) % 2 == 0 ? 255 : 0, 0, 0, 255);
+                        //*p++ = IM_COL32(image[y * 4 * w + x * 4 + 0], image[y * 4 * w + x * 4 + 1], image[y * 4 * w + x * 4 + 2], 255);
+                    *p++ = IM_COL32(image[y*4*w + x*4+0], image[y * 4 * w + x * 4 + 1], image[y * 4 * w + x * 4 + 2], image[y * 4 * w + x * 4 + 3]);
+                        //*p++ = IM_COL32((x + y) % 2 == 0 ? 255 : 0, 0, 0, 255);
                 }
                 std::cout << "adding rectangangle of size " << rect->Width << ", " << rect->Height << std::endl;
                 std::cout << "tex_pixel : " << tex_width << ", " << tex_height << std::endl;
             }
         }
     }
-
+    stbi_image_free(image);
     {
         ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_a];
         float X = glyph.V0 - glyph.V1;

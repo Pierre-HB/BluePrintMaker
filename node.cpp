@@ -177,10 +177,11 @@ void NodeViewer::Draw() {
 	ImNodes::BeginNode(GetId());
 	//TODO Draw Title
 	ImNodes::BeginNodeTitleBar();
-	ImGui::Text("title");//should be recipe name
+	ImGui::Text("titlééée");//should be recipe name
 	//should be clickable
-	
-	const char* items[] = { "AAAAaaa", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
+	//257 = 256+1 = FF+01 = 101
+	//97 = 0x61
+	const char* items[] = { "AAAA\x61 aaa \xee\x01\x01", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO"};
 	static int item_selected_idx = 0; // Here we store our selection data as an index.
 
 	// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
