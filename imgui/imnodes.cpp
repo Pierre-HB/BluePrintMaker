@@ -3339,11 +3339,58 @@ struct ImNodeGlyph {
     int Y1;
 };
 
-//offsetForGlyphs = CreateFont(const char* images, int image_width, int glyph_width, int glyph_height, int offsetForGlyphs=256, "TTF"="...") //images iss the output of stbi in rgba
+//CreateFont(const char* images, int image_width, int glyph_width, int glyph_height, int offsetForGlyphs=256, "TTF"="...") //images iss the output of stbi in rgba
 
 
 namespace IMNODES_NAMESPACE
 {
+
+    /*
+    * Introduce glyphs in the font. glyphs can be writen using "\U0000xxxx" ("xxxx" beeing the hexadecimal code for a glyph.
+    * Code for glyph range from offsetForGlyphs (by default "\U00000100") to offsetForGlyphs+nbGlyph
+    *
+    *
+    *
+    *
+    */
+void static CreateFont(ImNodesContext* ctx, const char* image, int imageWidth, int glyphWidth, int glyphHeight, int nbGlyph, const char* fontFile = "imgui/misc/fonts/Cousine-Regular.ttf", int offsetForGlyphs = 256) {
+
+    ImFontConfig fontConfig = ImFontConfig();
+    fontConfig.RasterizerDensity = 4.0f;
+    static const ImWchar ranges[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0,
+    };
+    fontConfig.GlyphRanges = ranges; //ensure no use of character greater than 255
+
+    const float BASE_FONT_SIZE = 13.0f; //Base font size from ImGui
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImFont* font = io.Fonts->AddFontFromFileTTF(fontFile, BASE_FONT_SIZE, &fontConfig);
+    ImVector<int> glyphIds = ImVector<int>();
+    for(int i = 0; i < nbGlyph; i++)
+        glyphIds.push_back(io.Fonts->AddCustomRectFontGlyph(font, offsetForGlyphs+i, glyphWidth, glyphHeight, glyphWidth));
+
+    io.Fonts->Build();
+
+    unsigned char* tex_pixels = nullptr;
+    int tex_width, tex_height;
+    io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
+
+    for (int i = 0; i < nbGlyph; i++) {
+        int glyphId = glyphIds[i];
+        if (const ImFontAtlasCustomRect* glyph = io.Fonts->GetCustomRectByIndex(glyphId)) {
+            for (int y = 0; y < glyph->Height; y++)
+            {
+                ImU32* p = (ImU32*)tex_pixels + (glyph->Y + y) * tex_width + (glyph->X);
+                for (int x = glyph->Width; x > 0; x--)
+                    *p++ = IM_COL32(image[y * 4 * imageWidth + x * 4 + 0], image[y * 4 * imageWidth + x * 4 + 1], image[y * 4 * imageWidth + x * 4 + 2], image[y * 4 * imageWidth + x * 4 + 3]);
+            }
+        }
+    }
+}
+
 void CreateContextFont(ImNodesContext* ctx) {
     float raison = 1.2f;
     float min_size = 0.5f;
@@ -3353,6 +3400,12 @@ void CreateContextFont(ImNodesContext* ctx) {
     raison = 2;
     ImFontConfig conf = ImFontConfig();
     conf.RasterizerDensity = 4.0f;//don't use several fonts anymore, increase DPI instead
+    static const ImWchar ranges[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0,
+    };
+    conf.GlyphRanges = ranges;
 
     const float BASE_FONT_SIZE = 13.0f; //Base font size from ImGui
     float current_value = 1.0f;
@@ -3421,6 +3474,8 @@ void CreateContextFont(ImNodesContext* ctx) {
     
     //ImWchar prol = 255;
     ImWchar prol = 'a';
+    prol = 257;
+    prol = 0x0101;//hexa code for 257  string : "\U00000101"
     if(addRect)
     {
         for (int i = 0; i < ctx->fonts.size(); i++)

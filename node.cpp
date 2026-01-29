@@ -177,7 +177,7 @@ void NodeViewer::Draw() {
 	ImNodes::BeginNode(GetId());
 	//TODO Draw Title
 	ImNodes::BeginNodeTitleBar();
-	ImGui::Text("titlééée");//should be recipe name
+	ImGui::Text("titlééée\U00000061 \U00000101");//should be recipe name
 	//should be clickable
 	//257 = 256+1 = FF+01 = 101
 	//97 = 0x61
