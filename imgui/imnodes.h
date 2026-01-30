@@ -319,12 +319,17 @@ void            DestroyContext(ImNodesContext* ctx = NULL); // NULL = destroy cu
 ImNodesContext* GetCurrentContext();
 void            SetCurrentContext(ImNodesContext* ctx);
 
+ImFont* GetContextFont(ImNodesContext* ctx);
+
 ImNodesEditorContext* EditorContextCreate();
 void                  EditorContextFree(ImNodesEditorContext*);
 void                  EditorContextSet(ImNodesEditorContext*);
 ImVec2                EditorContextGetPanning();
 void                  EditorContextResetPanning(const ImVec2& pos);
 void                  EditorContextMoveToNode(const int node_id);
+
+//add a set of glyphs in the font of the context, return their ImWchar to print them
+ImVector<ImWchar> AddFontGlyphs(ImFont* font, const unsigned char* image, int imageWidth, int glyphWidth, int glyphHeight, int nbGlyphs);
 
 ImNodesIO& GetIO();
 

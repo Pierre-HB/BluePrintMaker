@@ -56,8 +56,6 @@ struct NodeIOViewer {
 
 		//ImGui::Text("NodeIO ressource : %d", nodeIO->ressource);
 		const Item& item = dataBase->getItem(nodeIO->ressource);
-		drawDataBaseIcone(item.iconeId, dataBase);
-		ImGui::SameLine();
 		ImGui::Text(item.name.c_str());
 		ImGui::SameLine();
 		ImGui::Text("%.2f", nodeIO->quantity);

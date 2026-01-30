@@ -1,5 +1,7 @@
 {
 	"spreadsheet" : "spreadsheet.png",
+	"iconeWidth" : 32,
+	"iconeHeight" : 32,
 	"items" : [
 		{
 			"iconeId" : 1,

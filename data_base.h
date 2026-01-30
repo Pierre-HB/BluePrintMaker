@@ -89,20 +89,21 @@ class DataBase {
 
 	int nbSpecialMachine;
 
-	void loadIcones(std::string filename);
 	void addSpecialMachines(); //create MAM, Merger, Splitter, Input and Output machines
 	void loadPlaceHolders(); //create empty item, machine, etc... to return when asking for out of bound objects
 	
 	std::string filename;
-public:
-	ImTextureID textureId;
-	ImVec2 textureSize;
-	
+	std::string spreadsheetFilename;
+	int iconeWidth;
+	int iconeHeight;
+	ImVector<std::string> iconeStrings;	
 
 public:
 	DataBase();
 	DataBase(const std::string& filename);
 	~DataBase();
+
+	void CreateIcones(ImFont* font);
 
 	const Item& getItem(int itemId) const;
 	const Machine& getMachine(int machineId) const;
@@ -115,8 +116,6 @@ public:
 	int getNbRecipe() const;
 	std::string getFileName() const;
 };
-
-void drawDataBaseIcone(int ressourceId, const DataBase* data_base, ImVec2 size = ImVec2(16, 16));
 
 inline const Item& DataBase::getItem(int itemId) const {
 	if (itemId >= items.size())

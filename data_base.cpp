@@ -4,7 +4,7 @@
 
 //===================================================================
 
-static int readInt(const json11::Json& json, const std::string& key, const std::string& struct_name, int default_value) {
+int readInt(const json11::Json& json, const std::string& key, const std::string& struct_name, int default_value) {
 	if (json.object_items().count(key)) {
 		if (json.object_items().at(key).is_number())
 			return json.object_items().at(key).int_value();
@@ -319,29 +319,9 @@ void DataBase::loadPlaceHolders() {
 	machines.push_back(Machine());
 }
 
-DataBase::DataBase() : DataBase("logo2.png") {
+DataBase::DataBase() {
 
 }
-
-void drawDataBaseIcone(int ressourceId, const DataBase* dataBase, ImVec2 size) {
-
-	if (dataBase->textureSize.x == 0)
-		return;
-
-	int nb_icones_line = int(dataBase->textureSize.x) / int(iconeSize.x); //supposed to be power of 2
-	int nb_icones_column =  int(dataBase->textureSize.y)/ int(iconeSize.y); //supposed to be power of 2
-
-	int line = ressourceId / nb_icones_line;
-	int column = ressourceId % nb_icones_line;
-
-	ImVec2 iconeUV = ImVec2(1.0f / float(nb_icones_line), 1.0f / float(nb_icones_column));
-	ImVec2 uv0 = ImVec2(iconeUV.x*column, iconeUV.y* line);
-	ImVec2 uv1 = ImVec2(uv0.x + iconeUV.x, uv0.y + iconeUV.y);
-
-	ImGui::Image(dataBase->textureId, size, uv0, uv1);
-}
-
-
 
 Item::Item(const json11::Json& json) {
 	name = readString(json, "name", "Item", "Item");

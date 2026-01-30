@@ -3328,96 +3328,69 @@ ImNodesStyle::ImNodesStyle()
 {
 }
 
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "../stb_image.h"
-#include "../stb_image.h"
-struct ImNodeGlyph {
-    int Codepoint;
-    int X0;
-    int Y0;
-    int X1;
-    int Y1;
-};
-
-//CreateFont(const char* images, int image_width, int glyph_width, int glyph_height, int offsetForGlyphs=256, "TTF"="...") //images iss the output of stbi in rgba
-
 
 namespace IMNODES_NAMESPACE
 {
-
-    /*
-    * Introduce glyphs in the font. glyphs can be writen using "\U0000xxxx" ("xxxx" beeing the hexadecimal code for a glyph.
-    * Code for glyph range from offsetForGlyphs (by default "\U00000100") to offsetForGlyphs+nbGlyph
-    *
-    *
-    *
-    *
-    */
-//#include <codecvt>
-ImVector<const char*> static CreateFont(ImNodesContext* ctx, const char* image, int imageWidth, int glyphWidth, int glyphHeight, const ImVector<ImWchar>& glyphChars, const char* fontFile = "imgui/misc/fonts/Cousine-Regular.ttf") {
-
-    ImFontConfig fontConfig = ImFontConfig();
-    fontConfig.RasterizerDensity = 4.0f;
-    static const ImWchar ranges[] =
-    {
-        0x0020, 0x00FF, // Basic Latin + Latin Supplement
-        0,
-    };
-    fontConfig.GlyphRanges = ranges; //ensure no use of character greater than 255
+ImVector<ImWchar> AddFontGlyphs(ImFont* font, const unsigned char* image, int imageWidth, int glyphWidth, int glyphHeight, int nbGlyphs) {
+    int maxCodepoint = 0;
+    for (int i = 0; i < font->Glyphs.size(); i++)
+        if (maxCodepoint < font->Glyphs[i].Codepoint)
+            maxCodepoint = font->Glyphs[i].Codepoint;
+    maxCodepoint += 1; //first not use codepoint
 
     const float BASE_FONT_SIZE = 13.0f; //Base font size from ImGui
     ImGuiIO& io = ImGui::GetIO();
 
-    ImFont* font = io.Fonts->AddFontFromFileTTF(fontFile, BASE_FONT_SIZE, &fontConfig);
     ImVector<int> glyphIds = ImVector<int>();
-    for(int i = 0; i < glyphChars.size(); i++)
-        glyphIds.push_back(io.Fonts->AddCustomRectFontGlyph(font, glyphChars[i], glyphWidth, glyphHeight, glyphWidth));
+    ImVector<ImWchar> glyphImWchar;
+    for(int i = 0; i < nbGlyphs; i++) {
+        glyphIds.push_back(io.Fonts->AddCustomRectFontGlyph(font, maxCodepoint + i, glyphWidth, glyphHeight, glyphWidth));
+        glyphImWchar.push_back(maxCodepoint + i);
+    }
 
     io.Fonts->Build();
 
     unsigned char* tex_pixels = nullptr;
     int tex_width, tex_height;
     io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
+    //TODO if several blueprint use the SAME font/glyphs, make sure the fonts are not duplicated in the texture
+    
+    for (int i = 0; i < font->Glyphs.size(); i++) {
+        if (font->Glyphs[i].Codepoint >= maxCodepoint) {
+            font->Glyphs[i].X0 = 0;
+            font->Glyphs[i].Y0 = 0;
+            font->Glyphs[i].X1 = BASE_FONT_SIZE;
+            font->Glyphs[i].Y1 = BASE_FONT_SIZE;
+            font->Glyphs[i].AdvanceX = BASE_FONT_SIZE;
+        }
+    }
 
-    ImVector<const char*> glyphString;
-    for (int i = 0; i < glyphChars.size(); i++) {
+    int glyphX = 0;
+    int glyphY = 0;
+    for (int i = 0; i < nbGlyphs; i++) {
         int glyphId = glyphIds[i];
         if (const ImFontAtlasCustomRect* glyph = io.Fonts->GetCustomRectByIndex(glyphId)) {
-            //maybe glyphId is not the good id, nead to search for the glyph with the right unicode
-            font->Glyphs[glyphId].X0 = 0;
-            font->Glyphs[glyphId].Y0 = 0;
-            font->Glyphs[glyphId].X1 = 13;
-            font->Glyphs[glyphId].Y1 = 13;
-
-            /*wchar_t utf16_string[2];
-            utf16_string[0] = 257;
-            utf16_string[1] = 0;
-            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;*/
-
-            //convert.to_bytes()
-
-            /*std::string utf8_string = convert.to_bytes({ wchar_t (offsetForGlyphs+i), wchar_t (0)});
-
-
-            glyphString.push_back();*/
 
             for (int y = 0; y < glyph->Height; y++)
             {
                 ImU32* p = (ImU32*)tex_pixels + (glyph->Y + y) * tex_width + (glyph->X);
                 for (int x = glyph->Width; x > 0; x--)
-                    *p++ = IM_COL32(image[y * 4 * imageWidth + x * 4 + 0], image[y * 4 * imageWidth + x * 4 + 1], image[y * 4 * imageWidth + x * 4 + 2], image[y * 4 * imageWidth + x * 4 + 3]);
+                {
+                    const int pixel = (y+ glyphY*glyphHeight) * 4 * imageWidth + (x+glyphX*glyphWidth) * 4;
+                    *p++ = IM_COL32(image[pixel + 0], image[pixel + 1], image[pixel + 2], image[pixel + 3]);
+                }
             }
         }
+        glyphX++;
+        if (glyphX * glyphWidth >= imageWidth) {
+            glyphY++;
+            glyphX = 0;
+        }
     }
+    return glyphImWchar;
 }
 
 void CreateContextFont(ImNodesContext* ctx) {
-    float raison = 1.2f;
-    float min_size = 0.5f;
-    float max_size = 3.0f;
-    min_size = 0.99;
-    max_size = 1.01;
-    raison = 2;
     ImFontConfig conf = ImFontConfig();
     conf.RasterizerDensity = 4.0f;//don't use several fonts anymore, increase DPI instead
     static const ImWchar ranges[] =
@@ -3426,197 +3399,11 @@ void CreateContextFont(ImNodesContext* ctx) {
         0,
     };
     conf.GlyphRanges = ranges;
-
-    const float BASE_FONT_SIZE = 13.0f; //Base font size from ImGui
-    float current_value = 1.0f;
-
-    while (current_value > min_size)
-        current_value /= raison;
-
-    current_value *= raison;
+    const static float BASE_FONT_SIZE = 13.0f;
     ImGuiIO& io = ImGui::GetIO();
-    
-    //{
-    //    memset(this, 0, sizeof(*this));
-    //    FontDataOwnedByAtlas = true;
-    //    OversampleH = 0; // Auto == 1 or 2 depending on size
-    //    OversampleV = 0; // Auto == 1
-    //    GlyphMaxAdvanceX = FLT_MAX;
-    //    RasterizerMultiply = 1.0f;
-    //    RasterizerDensity = 1.0f;
-    //    EllipsisChar = 0;
-    //}
 
-    while (current_value <= max_size) {
-        //all possible built in fonts:
-        //
-        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/ProggyClean.ttf", BASE_FONT_SIZE * current_value));
-        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/ProggyTiny.ttf", BASE_FONT_SIZE * current_value));
-        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Roboto-Medium.ttf", BASE_FONT_SIZE * current_value));
-        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Karla-Regular.ttf", BASE_FONT_SIZE * current_value));
-        //ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/DroidSans.ttf", BASE_FONT_SIZE * current_value));
-
-        ctx->fonts.push_back(io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Cousine-Regular.ttf", BASE_FONT_SIZE * current_value, &conf));
-        ctx->fontSizes.push_back(current_value);
-        current_value *= raison;
-    }
-
-    const ImWchar* glyphsRange = ctx->fonts[0]->ConfigData->GlyphRanges;
-    if (glyphsRange != NULL)
-    {
-        int it = 0;
-        while (glyphsRange[it] != 0)
-            it++;
-        std::cout << "loop around " << it << " glyphs" << std::endl;
-    }
-    else
-        std::cout << "NULL glyph range" << std::endl;
-    std::cout << "estimate : " << ctx->fonts[0]->ConfigData->GlyphRanges << " glyphs" << std::endl;
-
-    
-    //ensure that when swaping fonts, the blur level is the same
-    float alpha = sqrtf(raison);
-    for (int i = 0; i < ctx->fontSizes.size() - 1; i++)
-        ctx->fontChanges.push_back(ctx->fontSizes[i] * alpha);
-
-
-    int w;
-    int h;
-    int comp;
-
-    unsigned char* image = stbi_load("icones/proliferator80.png", &w, &h, &comp, STBI_rgb_alpha);
-
-
-    ImVector<int> resr_ids = ImVector<int>();
-    bool addRect = true;
-    //ImWchar prol = '\xff';
-    //ImWchar prol = "\xee\x01\x01";
-    
-    //ImWchar prol = 255;
-    ImWchar prol = 'a';
-    prol = 257;
-    prol = 0x0101;//hexa code for 257  string : "\U00000101"
-    if(addRect)
-    {
-        for (int i = 0; i < ctx->fonts.size(); i++)
-        {
-            float alpha = 4;
-            //resr_ids.push_back(io.Fonts->AddCustomRectRegular(w, h));
-            resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], prol, w, h, 13));
-            //resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], "\U00000063", w, h, 13));
-
-            //resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', w, h, 13));
-
-            //resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', 13 * alpha, 13 * alpha, 13 * alpha + 1));
-            //rect_ids[1] = io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'b', 13, 13, 13 + 1);
-        }
-    }
-
-        // Build atlas
+    ctx->font = io.Fonts->AddFontFromFileTTF("imgui/misc/fonts/Cousine-Regular.ttf", BASE_FONT_SIZE, &conf);
     io.Fonts->Build();
-    
-    int maxCodePoint = 0;
-    for (int i = 0; i < ctx->fonts[0]->Glyphs.size(); i++) {
-        std::cout << ctx->fonts[0]->Glyphs[i].Codepoint << std::endl;
-        if (maxCodePoint < ctx->fonts[0]->Glyphs[i].Codepoint)
-            maxCodePoint = ctx->fonts[0]->Glyphs[i].Codepoint;
-    }
-    std::cout << "=== \nLoaded font as " << ctx->fonts[0]->Glyphs.size() << " glyphs, max is " << maxCodePoint << std::endl;
-    /*for (int i = 0; i < ctx->fonts[0]->IndexLookup.size(); i++) {
-        std::cout << ctx->fonts[0]->IndexLookup[i] << ", " << ctx->fonts[0]->Glyphs[i].Codepoint << std::endl;
-    }
-    std::cout << "=== \nLoaded font as " << ctx->fonts[0]->IndexLookup.size() << " glyphs." << std::endl;*/
-    int index_a = 0;
-    int index_b = 0;
-    int index_c = 0;
-    for (int i = 0; i < ctx->fonts[0]->Glyphs.size(); i++) {
-        if (ctx->fonts[0]->Glyphs[i].Codepoint == prol)
-            index_a = i;
-        if (ctx->fonts[0]->Glyphs[i].Codepoint == 98)
-            index_b = i;
-        if (ctx->fonts[0]->Glyphs[i].Codepoint == 99)
-            index_c = i;
-    }
-
-    {
-        ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_a];
-        float X = glyph.V1 - glyph.V0;
-        float Y = glyph.U1 - glyph.U0;
-
-        //ctx->fonts[0]->Glyphs[index_a].U1 += Y;
-        //ctx->fonts[0]->Glyphs[index_a].V1 += X;
-
-        //ctx->fonts[0]->Glyphs[index_a].V1 += X;
-
-        //SUPER DIRTY, hard set the size of my custom glyph to match the size of the font dispite it'ss true size.
-        ctx->fonts[0]->Glyphs[index_a].X0 = 0;
-        ctx->fonts[0]->Glyphs[index_a].Y0 = 0;
-        ctx->fonts[0]->Glyphs[index_a].X1 = 13;
-        ctx->fonts[0]->Glyphs[index_a].Y1 = 13;
-        //ctx->fonts[0]->Glyphs[index_a].Codepoint = 101;//set unicode
-        std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X * Y) << std::endl;
-        std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
-    }
-    
-    if(addRect)
-    {
-        for (int i = 0; i < ctx->fonts.size(); i++)
-        {
-            // Retrieve texture in RGBA format
-            unsigned char* tex_pixels = nullptr;
-            int tex_width, tex_height;
-            io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
-
-            int rect_id = resr_ids[i];
-            if (const ImFontAtlasCustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id))
-            {
-                // Fill the custom rectangle with red pixels (in reality you would draw/copy your bitmap data here!)
-                for (int y = 0; y < rect->Height; y++)
-                {
-                    ImU32* p = (ImU32*)tex_pixels + (rect->Y + y) * tex_width + (rect->X);
-                    for (int x = rect->Width; x > 0; x--)
-                        //*p++ = IM_COL32(image[y * 4 * w + x * 4 + 0], image[y * 4 * w + x * 4 + 1], image[y * 4 * w + x * 4 + 2], 255);
-                    *p++ = IM_COL32(image[y*4*w + x*4+0], image[y * 4 * w + x * 4 + 1], image[y * 4 * w + x * 4 + 2], image[y * 4 * w + x * 4 + 3]);
-                        //*p++ = IM_COL32((x + y) % 2 == 0 ? 255 : 0, 0, 0, 255);
-                }
-                std::cout << "adding rectangangle of size " << rect->Width << ", " << rect->Height << std::endl;
-                std::cout << "tex_pixel : " << tex_width << ", " << tex_height << std::endl;
-            }
-        }
-    }
-    stbi_image_free(image);
-    {
-        ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_a];
-        float X = glyph.V0 - glyph.V1;
-        float Y = glyph.U0 - glyph.U1;
-        std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X*Y) << std::endl;
-        std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
-    }
-    {
-        ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_b];
-        float X = glyph.V0 - glyph.V1;
-        float Y = glyph.U0 - glyph.U1;
-        std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X * Y) << " (" << (X * Y*0.25) << ")" << std::endl;
-        std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
-    }
-    {
-        ImFontGlyph glyph = ctx->fonts[0]->Glyphs[index_c];
-        float X = glyph.V0 - glyph.V1;
-        float Y = glyph.U0 - glyph.U1;
-        std::cout << "gyph : " << glyph.Codepoint << ", uv0 : " << glyph.U0 << ", " << glyph.V0 << ", uv1 : " << glyph.U1 << ", " << glyph.V1 << ", X : " << X << ", Y : " << Y << ", area : " << (X * Y) << " (" << (X * Y * 0.25) << ")" << std::endl;
-        std::cout << "X0 : " << glyph.X0 << ", Y0 : " << glyph.Y0 << ", X1 : " << glyph.X1 << ", Y1 : " << glyph.Y1 << std::endl;
-    }
-    //Glyphs
-
-    /*struct ImFontGlyph
-{
-    unsigned int    Colored : 1;        // Flag to indicate glyph is colored and should generally ignore tinting (make it usable with no shift on little-endian as this is used in loops)
-    unsigned int    Visible : 1;        // Flag to indicate glyph has no visible pixels (e.g. space). Allow early out when rendering.
-    unsigned int    Codepoint : 30;     // 0x0000..0x10FFFF
-    float           AdvanceX;           // Distance to next character (= data from font + ImFontConfig::GlyphExtraSpacing.x baked in)
-    float           X0, Y0, X1, Y1;     // Glyph corners
-    float           U0, V0, U1, V1;     // Texture coordinates
-};*/
 }
 
 ImNodesContext* CreateContext()
@@ -3624,6 +3411,7 @@ ImNodesContext* CreateContext()
     ImNodesContext* ctx = IM_NEW(ImNodesContext)();
     ImGui::GetIO().Fonts->AddFontDefault(); // To ensure a default font is set for other ImGui window
     CreateContextFont(ctx);
+    //CreateFont(ctx, nullptr, 0, 0, 0, ImVector<ImWchar>());
     if (GImNodes == NULL)
         SetCurrentContext(ctx);
     Initialize(ctx);
@@ -3643,6 +3431,8 @@ void DestroyContext(ImNodesContext* ctx)
 ImNodesContext* GetCurrentContext() { return GImNodes; }
 
 void SetCurrentContext(ImNodesContext* ctx) { GImNodes = ctx; }
+
+ImFont* GetContextFont(ImNodesContext* ctx) { return ctx->font; }
 
 ImNodesEditorContext* EditorContextCreate()
 {
@@ -4234,24 +4024,27 @@ float GetZoom() {
 }
 
 void BeginZoom(const ImNodesEditorContext& editor) {
-    IM_ASSERT(GImNodes->fonts.size() > 0);
+    IM_ASSERT(GImNodes->font != nullptr);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, editor.BaseItemSpacing * editor.Zoom);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, editor.BaseItemInnerSpacing * editor.Zoom);
 
     ImGuiIO& io = ImGui::GetIO();
-    for (int i = 0; i < GImNodes->fontChanges.size(); i++) {
-        if (GImNodes->fontChanges[i] >= editor.Zoom) {
-            io.FontGlobalScale = editor.Zoom / GImNodes->fontSizes[i];
-            ImGui::PushFont(GImNodes->fonts[i]);
-            
-            return;
-        }
-    }
-    //Always select the bigger fonts if needed
-    int i = GImNodes->fonts.size() - 1;
-    io.FontGlobalScale = editor.Zoom / GImNodes->fontSizes[i];
-    ImGui::PushFont(GImNodes->fonts[i]);
+    io.FontGlobalScale = editor.Zoom;
+    ImGui::PushFont(GImNodes->font);
+
+    //for (int i = 0; i < GImNodes->fontChanges.size(); i++) {
+    //    if (GImNodes->fontChanges[i] >= editor.Zoom) {
+    //        io.FontGlobalScale = editor.Zoom / GImNodes->fontSizes[i];
+    //        ImGui::PushFont(GImNodes->fonts[i]);
+    //        
+    //        return;
+    //    }
+    //}
+    ////Always select the bigger fonts if needed
+    //int i = GImNodes->fonts.size() - 1;
+    //io.FontGlobalScale = editor.Zoom / GImNodes->fontSizes[i];
+    //ImGui::PushFont(GImNodes->fonts[i]);
 }
 
 void EndZoom() {

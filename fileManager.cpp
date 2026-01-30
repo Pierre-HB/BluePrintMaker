@@ -102,14 +102,13 @@ static json11::Json file2json(const std::string& filename) {
 	return json;
 }
 
-DataBase::DataBase(const std::string& filename) : textureId(0), textureSize(0, 0), filename(filename), nbSpecialMachine(0) {
-
+DataBase::DataBase(const std::string& filename) : filename(filename), nbSpecialMachine(0) {
 
 	json11::Json json = file2json(filename);
 
-	std::string fileSpreadSheet = readString(json, "spreadsheet", "DataBase", "logo2.png");
-
-	loadIcones(fileSpreadSheet);
+	spreadsheetFilename = readString(json, "spreadsheet", "DataBase", "logo2.png");
+	iconeWidth = readInt(json, "iconeWidth", "DataBase", 64);
+	iconeHeight = readInt(json, "iconeHeight", "DataBase", 64);
 
 	if(checkJsonTypeAtKey(json.object_items(), "items", json11::Json::Type::ARRAY))
 		for (const auto& va : json.object_items().at("items").array_items())

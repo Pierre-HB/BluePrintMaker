@@ -573,9 +573,7 @@ struct ImNodesContext
     bool TranslationModifierY;
     bool TranslationModifierNoGridSnapping;
 
-    ImVector<ImFont*> fonts;
-    ImVector<float> fontSizes; // size of font
-    ImVector<float> fontChanges;// zoom level intervals for fonts
+    ImFont* font;
 };
 
 namespace IMNODES_NAMESPACE

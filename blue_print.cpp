@@ -119,6 +119,8 @@ static const std::vector<Node> createRecipes() {
 
 BluePrint::BluePrint(const std::string& name, const std::string& dataBaseFile, const std::string& bluePrintFile) : name(name), filename(bluePrintFile), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase(dataBaseFile), ioPanel(&dataBase), editorContext(ImNodes::EditorContextCreate()){
 	ImNodes::EditorContextSet(editorContext);
+
+	dataBase.CreateIcones(ImNodes::GetContextFont(ImNodes::GetCurrentContext()));
 }
 
 BluePrint::BluePrint(std::string name) : BluePrint(name, "dataBaseTest.json") {

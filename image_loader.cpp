@@ -2,39 +2,33 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
+#include <codecvt>
 
-void DataBase::loadIcones(std::string filename) {
+static std::string ImWchar2String(const ImWchar& c) {
+	static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
+	return convert.to_bytes({ wchar_t(c), wchar_t(0) });
+}
+
+DataBase::~DataBase() {
+
+}
+
+void DataBase::CreateIcones(ImFont* font) {
+
+	int maxItemId = 0;
+	for (Item& item : items)
+		if (maxItemId < item.iconeId)
+			maxItemId = item.iconeId;
+
+	maxItemId += 1;
 	int w;
 	int h;
 	int comp;
 
-	unsigned char* image = stbi_load(filename.c_str(), &w, &h, &comp, STBI_rgb_alpha);
+	unsigned char* image = stbi_load(spreadsheetFilename.c_str(), &w, &h, &comp, STBI_rgb_alpha);
 
-	if (image == nullptr)
-		throw(std::string("Failed to load texture"));
+	ImVector<ImWchar> glyphChars = ImNodes::AddFontGlyphs(font, image, w, iconeWidth, iconeHeight, maxItemId);
 
-	GLuint m_texture;
-	glGenTextures(1, &m_texture);
-	textureId = m_texture;
-	textureSize.x = w;
-	textureSize.y = h;
-
-	glBindTexture(GL_TEXTURE_2D, m_texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	if (comp == 3)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	else if (comp == 4)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	stbi_image_free(image);
-}
-
-DataBase::~DataBase() {
-	GLuint m_texture = textureId;
-	glDeleteTextures(1, &m_texture);
+	for (int i = 0; i < glyphChars.size(); i++)
+		iconeStrings.push_back(ImWchar2String(glyphChars[i]));
 }
