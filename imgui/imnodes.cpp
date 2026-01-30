@@ -3353,7 +3353,8 @@ namespace IMNODES_NAMESPACE
     *
     *
     */
-void static CreateFont(ImNodesContext* ctx, const char* image, int imageWidth, int glyphWidth, int glyphHeight, int nbGlyph, const char* fontFile = "imgui/misc/fonts/Cousine-Regular.ttf", int offsetForGlyphs = 256) {
+//#include <codecvt>
+ImVector<const char*> static CreateFont(ImNodesContext* ctx, const char* image, int imageWidth, int glyphWidth, int glyphHeight, const ImVector<ImWchar>& glyphChars, const char* fontFile = "imgui/misc/fonts/Cousine-Regular.ttf") {
 
     ImFontConfig fontConfig = ImFontConfig();
     fontConfig.RasterizerDensity = 4.0f;
@@ -3369,8 +3370,8 @@ void static CreateFont(ImNodesContext* ctx, const char* image, int imageWidth, i
 
     ImFont* font = io.Fonts->AddFontFromFileTTF(fontFile, BASE_FONT_SIZE, &fontConfig);
     ImVector<int> glyphIds = ImVector<int>();
-    for(int i = 0; i < nbGlyph; i++)
-        glyphIds.push_back(io.Fonts->AddCustomRectFontGlyph(font, offsetForGlyphs+i, glyphWidth, glyphHeight, glyphWidth));
+    for(int i = 0; i < glyphChars.size(); i++)
+        glyphIds.push_back(io.Fonts->AddCustomRectFontGlyph(font, glyphChars[i], glyphWidth, glyphHeight, glyphWidth));
 
     io.Fonts->Build();
 
@@ -3378,9 +3379,28 @@ void static CreateFont(ImNodesContext* ctx, const char* image, int imageWidth, i
     int tex_width, tex_height;
     io.Fonts->GetTexDataAsRGBA32(&tex_pixels, &tex_width, &tex_height);
 
-    for (int i = 0; i < nbGlyph; i++) {
+    ImVector<const char*> glyphString;
+    for (int i = 0; i < glyphChars.size(); i++) {
         int glyphId = glyphIds[i];
         if (const ImFontAtlasCustomRect* glyph = io.Fonts->GetCustomRectByIndex(glyphId)) {
+            //maybe glyphId is not the good id, nead to search for the glyph with the right unicode
+            font->Glyphs[glyphId].X0 = 0;
+            font->Glyphs[glyphId].Y0 = 0;
+            font->Glyphs[glyphId].X1 = 13;
+            font->Glyphs[glyphId].Y1 = 13;
+
+            /*wchar_t utf16_string[2];
+            utf16_string[0] = 257;
+            utf16_string[1] = 0;
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;*/
+
+            //convert.to_bytes()
+
+            /*std::string utf8_string = convert.to_bytes({ wchar_t (offsetForGlyphs+i), wchar_t (0)});
+
+
+            glyphString.push_back();*/
+
             for (int y = 0; y < glyph->Height; y++)
             {
                 ImU32* p = (ImU32*)tex_pixels + (glyph->Y + y) * tex_width + (glyph->X);
@@ -3483,6 +3503,8 @@ void CreateContextFont(ImNodesContext* ctx) {
             float alpha = 4;
             //resr_ids.push_back(io.Fonts->AddCustomRectRegular(w, h));
             resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], prol, w, h, 13));
+            //resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], "\U00000063", w, h, 13));
+
             //resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', w, h, 13));
 
             //resr_ids.push_back(io.Fonts->AddCustomRectFontGlyph(ctx->fonts[i], 'a', 13 * alpha, 13 * alpha, 13 * alpha + 1));

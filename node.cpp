@@ -170,6 +170,20 @@ NodeViewer::NodeViewer(const NodeViewer& nodeViewer, const Node* node) : NodeVie
 	//Reset();
 }
 
+void print_bits(char c) {
+	for (int i = 0; i < 8; i++)
+	{
+		std::cout << ((c & 1) == 1) ? "1" : "0";
+		c = c >> 1;
+	}
+}
+#include <codecvt>
+
+static std::string ImWchar2String(const ImWchar& c) {
+	static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
+	return convert.to_bytes({wchar_t(c), wchar_t(0)});
+}
+
 // View, only draw data
 void NodeViewer::Draw() {
 	if (input_ref.size() != node->GetInputs().size() || output_ref.size() != node->GetOutputs().size())
@@ -177,11 +191,36 @@ void NodeViewer::Draw() {
 	ImNodes::BeginNode(GetId());
 	//TODO Draw Title
 	ImNodes::BeginNodeTitleBar();
-	ImGui::Text("titlééée\U00000061 \U00000101");//should be recipe name
+	ImGui::Text(("titlééée\U00000061 \U00000101"+ ImWchar2String(257)).c_str());//should be recipe name
+	ImGui::Text("%stitlééée\U00000061 \U00000101");//should be recipe name
+
+	// 
+	//wchar_t const* utf16_string = L"Hello, World!";
+	wchar_t utf16_string[2];
+	utf16_string[0] = 257;
+	utf16_string[1] = 0;
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
+
+	std::string utf8_string = convert.to_bytes(utf16_string);
+	//const char* utf8_string_ = convert.to_bytes(utf16_string);
+
+	wchar_t t = 101;
+	ImGui::Text(("Proliferator : "+utf8_string).c_str());
+	std::string test = "\U000001ff";
+	const char* tmp = test.c_str();
+	std::cout << "TEST : " << unsigned short(tmp[0]) << ", " << unsigned short(tmp[1]) << std::endl;
+	print_bits(tmp[0]);
+	std::cout << ".";
+	print_bits(tmp[1]);
+	std::cout << std::endl;
+	//\U00000100 -> 00100011.00000001 => 00100_011.000000_01 -> 001.00000000
+	//\U00000101 -> 00100011.10000001 => 00100_011.100000_01 -> 001.00100000
+	//\U00000102 -> 00100011.01000001 => 00100_011.010000_01
+	//\U000001ff -> 11100011.11111101 => 11100_011.111111_01
 	//should be clickable
 	//257 = 256+1 = FF+01 = 101
 	//97 = 0x61
-	const char* items[] = { "AAAA\x61 aaa \xee\x01\x01", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO"};
+	const char* items[] = { "\U00000101 AAAA\x61 aaa \xee\x01\x01", "\U00000101 BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO"};
 	static int item_selected_idx = 0; // Here we store our selection data as an index.
 
 	// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
