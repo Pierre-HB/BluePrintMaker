@@ -143,7 +143,7 @@ DataBase::DataBase(const std::string& filename) : filename(filename), nbSpecialM
 	loadPlaceHolders();
 }
 
-BluePrint* BluePrint::CreateBluePrint() {
+BluePrint* BluePrint::CreateBluePrint(DataBase* dataBase) {
 	std::string filename;
 	if (!FileDialogOpen(filename, "bp"))
 		return new BluePrint();
@@ -164,7 +164,7 @@ BluePrint* BluePrint::CreateBluePrint() {
 		std::cout << "[ERROR] Corrupted file for blueprint" << std::endl;
 		return new BluePrint();
 	}
-	return new BluePrint(json, filename);
+	return new BluePrint(dataBase, filename, json);
 }
 
 void BluePrint::saveBluePrint() const {

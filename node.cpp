@@ -23,15 +23,15 @@ Node::Node(const Node& node, int(*CreateId)() ) : Node(node) {
 }
 
 //create node from dataBase
-Node::Node(const DataBase* dataBase, int type, int(*CreateId)()) : type(type) {
-	if (dataBase->getMachine(type).recipiesId.size() == 0) {
+Node::Node(const DataBase* dataBase, int machineId, int(*CreateId)()) : machineId(machineId) {
+	if (dataBase->getMachine(machineId).recipiesId.size() == 0) {
 		//special machine : merger or sorter or input or output
 		id = CreateId();
 		specialNode = true;
 		return;
 	}
 	specialNode = false;
-	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(type).recipiesId[0]);
+	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(machineId).recipiesId[0]);
 
 	state = std::vector<int>(recipe.modifierCategoriesId.size(), -1);
 	std::vector<int> newState = std::vector<int>(recipe.modifierCategoriesId.size(), 0);
@@ -60,7 +60,7 @@ void Node::Update() {
 }
 
 void Node::changeState(const DataBase* dataBase, const std::vector<int> newState, int(*CreateId)()) {
-	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(type).recipiesId[newState[0]]);
+	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(machineId).recipiesId[newState[0]]);
 
 	if (newState[0] != state[0]) {
 		inputs.clear();
@@ -76,18 +76,18 @@ void Node::changeState(const DataBase* dataBase, const std::vector<int> newState
 		int itemId = recipe.outputsId[i].first;
 		int itemQuantity = recipe.outputsId[i].second;
 		outputs[i].quantity = itemQuantity;
-		outputs[i].ressource = itemId;
+		outputs[i].itemId = itemId;
 	}
 	for (int i = 0; i < recipe.inputsId.size(); i++) {
 		int itemId = recipe.inputsId[i].first;
 		int itemQuantity = recipe.inputsId[i].second;
 		inputs[i].quantity = itemQuantity;
-		inputs[i].ressource = itemId;
+		inputs[i].itemId = itemId;
 	}
 	time = recipe.time;
 	idlePower = 0.0;
 	workingPower = 0.0;
-	name = recipe.name;
+	//name = recipe.name;
 
 	
 	for (int j = 0; j < recipe.modifierCategoriesId.size(); j++) {
@@ -139,7 +139,7 @@ static std::vector<NodeIO> JsonToVector(const json11::Json::array& json) {
 }
 
 json11::Json Node::ToJson() const {
-	return json11::Json({ {"inputs", VectorToJson(inputs)}, {"outputs", VectorToJson(outputs)}, {"id", id}});
+	return json11::Json({ {"inputs", VectorToJson(inputs)}, {"outputs", VectorToJson(outputs)}, {"id", id}, {"machineId", machineId} });
 }
 
 Node::Node(const json11::Json& json) {
@@ -147,6 +147,7 @@ Node::Node(const json11::Json& json) {
 	inputs = JsonToVector(obj.at("inputs").array_items());
 	outputs = JsonToVector(obj.at("outputs").array_items());
 	id = obj.at("id").int_value();
+	machineId = obj.at("machineId").int_value();
 }
 
 //============================== Viewer ==============================//

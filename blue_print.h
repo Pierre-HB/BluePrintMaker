@@ -46,7 +46,7 @@ private:
 	asking to create node for now
 	*/
 
-	const std::vector<Node> recipes;
+	const std::vector<Node> recipes;//TODO remove
 	/*
 	recipies[0] = splitter
 	recipies[1] = merger
@@ -64,19 +64,20 @@ private:
 	ressources[2] = coal ?
 	...
 	*/
-	DataBase dataBase;
+	DataBase* dataBase;
 	IOPanel ioPanel;
 private:
 
 	void clearStack();
-
+	void LoadJson(const json11::Json& json);
 public:
-	
-	BluePrint(std::string name);
-	BluePrint(const std::string& name, const std::string& dataBaseFile, const std::string& bluePrintFile="");
-	BluePrint(const char* name) : BluePrint(std::string(name)) {};
-	BluePrint() : BluePrint("hello world") {};
-	BluePrint(const json11::Json& json, const std::string& filename);
+
+	// empty blueprint for placeholder
+	BluePrint();
+	// new blueprint from a database
+	BluePrint(DataBase* dataBase);
+	// blueprint from an old save
+	BluePrint(DataBase* dataBase, const std::string& filename, const json11::Json& json);
 	~BluePrint();
 
 	void LoadDataBase(const json11::Json& json);
@@ -94,7 +95,7 @@ public:
 
 	json11::Json ToJson() const;
 
-	static BluePrint* CreateBluePrint();
+	static BluePrint* CreateBluePrint(DataBase* dataBase);
 	void saveBluePrint() const;
 	void saveUnderBluePrint() const;//don't use internal filename
 };

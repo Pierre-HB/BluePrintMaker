@@ -8,18 +8,18 @@
 
 struct NodeIO {
 	int id;
-	int ressource;
+	int itemId;
 	float quantity;
 	//int proliferator_lvl;
 	//int proliferator_lvl2;
 	//int proliferator_lvl3;
 	//std::list<NodeIO*> connectedIO;
 
-	NodeIO() : id(), ressource(), quantity() {}
-	NodeIO(int id) : id(id), ressource(), quantity() {}
-	NodeIO(int id, int ressource) : id(id), ressource(ressource), quantity() {}
-	NodeIO(int id, int ressource, float quantity) : id(id), ressource(ressource), quantity(quantity) {}
-	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), ressource(json.object_items().at("ressource").int_value()), quantity(json.object_items().at("quantity").number_value()) {}
+	NodeIO() : id(), itemId(), quantity() {}
+	NodeIO(int id) : id(id), itemId(), quantity() {}
+	NodeIO(int id, int itemId) : id(id), itemId(itemId), quantity() {}
+	NodeIO(int id, int itemId, float quantity) : id(id), itemId(itemId), quantity(quantity) {}
+	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), itemId(json.object_items().at("itemId").int_value()), quantity(json.object_items().at("quantity").number_value()) {}
 
 	int GetId() const {
 		return id;
@@ -31,7 +31,7 @@ struct NodeIO {
 	}
 
 	json11::Json ToJson() const {
-		return json11::Json({ {"id", id}, {"ressource", ressource}, {"quantity", quantity}});
+		return json11::Json({ {"id", id}, {"itemId", itemId}, {"quantity", quantity}});
 	}
 };
 
@@ -55,7 +55,7 @@ struct NodeIOViewer {
 			ImNodes::BeginOutputAttribute(GetId());
 
 		//ImGui::Text("NodeIO ressource : %d", nodeIO->ressource);
-		const Item& item = dataBase->getItem(nodeIO->ressource);
+		const Item& item = dataBase->getItem(nodeIO->itemId);
 		ImGui::Text(item.name.c_str());
 		ImGui::SameLine();
 		ImGui::Text("%.2f", nodeIO->quantity);
@@ -74,11 +74,11 @@ protected:
 	std::vector<NodeIO> inputs;
 	std::vector<NodeIO> outputs;
 	//name ?
-	std::string name;
+	//std::string name;
+	int machineId;
 	float time;
 	float idlePower;
 	float workingPower;
-	int type;
 	std::vector<int> state; //for the selected recipe and the selected modifier
 	bool specialNode;//true for merger, splitter, intput and output
 
@@ -91,6 +91,8 @@ public:
 	Node(const json11::Json& json);
 	void Overide(const Node& node, int(*CreateId)());
 
+	json11::Json ToJson() const;
+
 	void Update();
 
 	void changeState(const DataBase* dataBase, const std::vector<int> newState, int(*CreateId)());
@@ -102,8 +104,6 @@ public:
 
 	void AddInputs(NodeIO nodeIO);
 	void AddOutputs(NodeIO nodeIO);
-
-	json11::Json ToJson() const;
 
 private:
 	void SetIOIds(int(*CreateId)());

@@ -117,14 +117,17 @@ static const std::vector<Node> createRecipes() {
 	return recipies;
 }
 
-BluePrint::BluePrint(const std::string& name, const std::string& dataBaseFile, const std::string& bluePrintFile) : name(name), filename(bluePrintFile), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase(dataBaseFile), ioPanel(&dataBase), editorContext(ImNodes::EditorContextCreate()){
-	ImNodes::EditorContextSet(editorContext);
+BluePrint::BluePrint(DataBase* dataBase) : name("Blueprint"), filename(""), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase(dataBase), ioPanel(dataBase), editorContext(ImNodes::EditorContextCreate()) {
 
-	dataBase.CreateIcones(ImNodes::GetContextFont(ImNodes::GetCurrentContext()));
 }
 
-BluePrint::BluePrint(std::string name) : BluePrint(name, "dataBaseTest.json") {
+BluePrint::BluePrint() : BluePrint(nullptr) {
 
+}
+
+BluePrint::BluePrint(DataBase* dataBase, const std::string& _filename, const json11::Json& json) : BluePrint(dataBase) {
+	filename = _filename;
+	LoadJson(json);
 }
 
 BluePrint::~BluePrint() {
@@ -161,11 +164,11 @@ void BluePrint::Draw() const {
 }
 
 int BluePrint::CreateNewNode(int type) {
-	Node* node = new Node(&dataBase, type, CreateId);
+	Node* node = new Node(dataBase, type, CreateId);
 	//Node* node = new Node(BluePrint::recipes[type], CreateId);
 	ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
 	nodes.insert(std::make_pair(node->GetId(), node));
-	NodeViewer* nodeViewer = new NodeViewer(node, &dataBase);
+	NodeViewer* nodeViewer = new NodeViewer(node, dataBase);
 	nodeViewers.insert(std::make_pair(nodeViewer->GetId(), nodeViewer));
 
 	int eventId = CreateId();
@@ -200,7 +203,7 @@ int BluePrint::CreateNewLink(int input_attr_id, int output_attr_id) {
 	ImNodes::CreateLink(link->GetId());
 
 	links.insert(std::make_pair(link->GetId(), link));
-	LinkViewer* new_linkViewer = new LinkViewer(link, &dataBase);
+	LinkViewer* new_linkViewer = new LinkViewer(link, dataBase);
 	linkViewers.insert(std::make_pair(new_linkViewer->GetId(), new_linkViewer));
 
 	int eventId = CreateId();
@@ -439,7 +442,7 @@ json11::Json BluePrint::ToJson() const {
 		{"links", MapToJson(links)},
 		{"linkViewers", MapToJson(linkViewers)},
 		{"name", name},
-		{"dataBaseFile", dataBase.getFileName()},
+		{"dataBaseFile", dataBase->getFileName()},
 		{"ui", ImNodes::SaveCurrentEditorStateToIniString()} });
 
 	std::cout << "json of bluePrint : " << jsonBluePrint.dump() << std::endl;
@@ -447,7 +450,7 @@ json11::Json BluePrint::ToJson() const {
 	return jsonBluePrint;
 }
 
-BluePrint::BluePrint(const json11::Json& json, const std::string& filename) : BluePrint(json.object_items().at("name").string_value(), json.object_items().at("dataBaseFile").string_value(), filename) {
+void BluePrint::LoadJson(const json11::Json& json) {
 	//TODO
 	//initialize the Database with the adresse to the database given, in the json (if none, use a default adresse)
 	const json11::Json::object obj = json.object_items();
@@ -457,14 +460,14 @@ BluePrint::BluePrint(const json11::Json& json, const std::string& filename) : Bl
 	links = JsonToMap<Link>(obj.at("links").array_items());
 
 
-	nodeViewers = JsonToMap<Node, NodeViewer>(nodes, obj.at("nodeViewers").array_items(), &dataBase);
-	linkViewers = JsonToMap<Link, LinkViewer>(links, obj.at("linkViewers").array_items(), &dataBase);
-	
+	nodeViewers = JsonToMap<Node, NodeViewer>(nodes, obj.at("nodeViewers").array_items(), dataBase);
+	linkViewers = JsonToMap<Link, LinkViewer>(links, obj.at("linkViewers").array_items(), dataBase);
+
 
 	for (const auto& [key, node] : nodes) {
 		idSeed = std::max(idSeed, node->GetId());
 		const std::vector<NodeIO>& inputs = node->GetInputs();
-		for(const NodeIO& nodeIO : node->GetInputs())
+		for (const NodeIO& nodeIO : node->GetInputs())
 			idSeed = std::max(idSeed, nodeIO.GetId());
 		for (const NodeIO& nodeIO : node->GetOutputs())
 			idSeed = std::max(idSeed, nodeIO.GetId());
