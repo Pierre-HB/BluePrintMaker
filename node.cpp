@@ -12,7 +12,7 @@ Node::Node(int id) : id(id) {
 }
 
 //copy a node
-Node::Node(const Node& node) : id(node.id), inputs(node.inputs), outputs(node.outputs) {
+Node::Node(const Node& node) : id(node.id), inputs(node.inputs), outputs(node.outputs), machineId(node.machineId), time(node.time), idlePower(node.idlePower), workingPower(node.workingPower), state(node.state), specialNode(node.specialNode) {
 
 }
 
@@ -33,11 +33,10 @@ Node::Node(const DataBase* dataBase, int machineId, int(*CreateId)()) : machineI
 	specialNode = false;
 	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(machineId).recipiesId[0]);
 
-	state = std::vector<int>(recipe.modifierCategoriesId.size(), -1);
-	std::vector<int> newState = std::vector<int>(recipe.modifierCategoriesId.size(), 0);
+	state = std::vector<int>(recipe.modifierCategoriesId.size(), 0);
 
 	id = CreateId();
-	changeState(dataBase, newState, CreateId);
+	changeState(dataBase, 0, 0, CreateId);
 }
 
 //change all node parameter to mimic a targeted node. Don't change Node::id
@@ -45,6 +44,17 @@ void Node::Overide(const Node& node, int(*CreateId)()) {
 	inputs = std::vector<NodeIO>(node.GetInputs());
 	outputs = std::vector<NodeIO>(node.GetOutputs());
 	SetIOIds(CreateId);
+}
+//change all node parameter to mimic a targeted node. Don't change Node::id or NodeIO::id
+void Node::Overide(const Node& node) {
+	inputs = std::vector<NodeIO>(node.GetInputs());
+	outputs = std::vector<NodeIO>(node.GetOutputs());
+	machineId = node.machineId;
+	time = node.time;
+	idlePower = node.idlePower;
+	workingPower = node.workingPower;
+	state = std::vector<int>(node.state);
+	specialNode = node.specialNode;
 }
 
 void Node::SetIOIds(int(*CreateId)()) {
@@ -59,16 +69,21 @@ void Node::Update() {
 	//TODO overide nodes if needed
 }
 
-void Node::changeState(const DataBase* dataBase, const std::vector<int> newState, int(*CreateId)()) {
-	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(machineId).recipiesId[newState[0]]);
-
-	if (newState[0] != state[0]) {
+void Node::changeState(const DataBase* dataBase, int stateChannel, int newState, int(*CreateId)()) {
+	state[stateChannel] = newState;
+	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(machineId).recipiesId[state[0]]);
+	if (stateChannel == 0) {
+		//changed recipe, need to reset the entire node
 		inputs.clear();
 		outputs.clear();
 		for (int i = 0; i < recipe.inputsId.size(); i++)
 			inputs.push_back(NodeIO(CreateId()));
 		for (int i = 0; i < recipe.outputsId.size(); i++)
 			outputs.push_back(NodeIO(CreateId()));
+		state.clear();
+		state.push_back(newState);
+		for (int i = 0; i < recipe.modifierCategoriesId.size(); i++)
+			state.push_back(0);
 	}
 	
 	//Asume outputs and outputs already in place
@@ -92,7 +107,7 @@ void Node::changeState(const DataBase* dataBase, const std::vector<int> newState
 	
 	for (int j = 0; j < recipe.modifierCategoriesId.size(); j++) {
 		int modifierCategory = recipe.modifierCategoriesId[j];
-		int modifierId = dataBase->getModifierCategory(modifierCategory).modifiersId[newState[j]];
+		int modifierId = dataBase->getModifierCategory(modifierCategory).modifiersId[state[j+1]];
 		const Modifier& modifier = dataBase->getModifier(modifierId);
 
 		idlePower += modifier.idlePower;
@@ -101,11 +116,18 @@ void Node::changeState(const DataBase* dataBase, const std::vector<int> newState
 		for(int i = 0; i < recipe.outputsId.size(); i++)
 			outputs[i].quantity *= modifier.outputModifier;
 	}
-	state = std::vector<int>(newState);
 }
 
 int Node::GetId() const {
 	return id;
+}
+
+int Node::GetMachineId() const {
+	return machineId;
+}
+
+int Node::GetState(int i) const {
+	return state[i];
 }
 
 const std::vector<NodeIO>& Node::GetInputs() const {
@@ -138,22 +160,43 @@ static std::vector<NodeIO> JsonToVector(const json11::Json::array& json) {
 	return arr;
 }
 
+static std::vector<int> JsonToVectorInt(const json11::Json::array& arr) {
+	std::vector<int> v;
+	for (const auto& a : arr)
+		v.push_back(a.int_value());
+	return v;
+}
+
 json11::Json Node::ToJson() const {
-	return json11::Json({ {"inputs", VectorToJson(inputs)}, {"outputs", VectorToJson(outputs)}, {"id", id}, {"machineId", machineId} });
+	return json11::Json({ 
+		{"inputs", VectorToJson(inputs)},
+		{"outputs", VectorToJson(outputs)},
+		{"id", id},
+		{"machineId", machineId},
+		{"time", time},
+		{"idlePower", idlePower},
+		{"workingPower", workingPower},
+		{"state", state},
+		{"specialNode", specialNode} });
 }
 
 Node::Node(const json11::Json& json) {
 	const json11::Json::object obj = json.object_items();
 	inputs = JsonToVector(obj.at("inputs").array_items());
 	outputs = JsonToVector(obj.at("outputs").array_items());
+	state = JsonToVectorInt(obj.at("state").array_items());
 	id = obj.at("id").int_value();
 	machineId = obj.at("machineId").int_value();
+	time = obj.at("time").number_value();
+	idlePower = obj.at("idlePower").int_value();
+	workingPower = obj.at("workingPower").int_value();
+	specialNode = obj.at("specialNode").bool_value();
 }
 
 //============================== Viewer ==============================//
 
 
-NodeViewer::NodeViewer(const Node* node, const DataBase* dataBase) : node(node), input_ref(), output_ref(), input_perm(), output_perm(), size(1.0f, 1.0f), dataBase(dataBase){
+NodeViewer::NodeViewer(const Node* node, const DataBase* dataBase, NodeUpdator* nodeUpdator) : node(node), input_ref(), output_ref(), input_perm(), output_perm(), size(1.0f, 1.0f), dataBase(dataBase), nodeUpdator(nodeUpdator){
 	Reset();
 }
 
@@ -171,77 +214,44 @@ NodeViewer::NodeViewer(const NodeViewer& nodeViewer, const Node* node) : NodeVie
 	//Reset();
 }
 
-void print_bits(char c) {
-	for (int i = 0; i < 8; i++)
-	{
-		std::cout << ((c & 1) == 1) ? "1" : "0";
-		c = c >> 1;
-	}
-}
-#include <codecvt>
-
-static std::string ImWchar2String(const ImWchar& c) {
-	static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
-	return convert.to_bytes({wchar_t(c), wchar_t(0)});
-}
-
 // View, only draw data
 void NodeViewer::Draw() {
 	if (input_ref.size() != node->GetInputs().size() || output_ref.size() != node->GetOutputs().size())
 		Reset();
+	//TODO check also if recipe as change with same nb of inout/output
+
+	const Machine& machine = dataBase->getMachine(node->GetMachineId());
+	const Recipe& recipe = dataBase->getRecipe(machine.recipiesId[node->GetState(0)]);
 	ImNodes::BeginNode(GetId());
 	//TODO Draw Title
 	ImNodes::BeginNodeTitleBar();
-	ImGui::Text("title\U000000ff\U00000100\U00000101\U00000102\U00000103");//should be recipe name
-	ImGui::Text("%stitlééée\U00000061 \U00000101");//should be recipe name
+	ImGui::Text((recipe.iconeString+ recipe.iconeString).c_str());//should be recipe name
+	ImGui::SameLine();
+	ImGui::Text((recipe.name+ recipe.iconeString).c_str());//should be recipe name
 
-	// 
-	//wchar_t const* utf16_string = L"Hello, World!";
-	wchar_t utf16_string[2];
-	utf16_string[0] = 257;
-	utf16_string[1] = 0;
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
 
-	std::string utf8_string = convert.to_bytes(utf16_string);
-	//const char* utf8_string_ = convert.to_bytes(utf16_string);
 
-	wchar_t t = 101;
-	ImGui::Text(("Proliferator : "+utf8_string).c_str());
-	std::string test = "\U000001ff";
-	const char* tmp = test.c_str();
-	//std::cout << "TEST : " << unsigned short(tmp[0]) << ", " << unsigned short(tmp[1]) << std::endl;
-	/*print_bits(tmp[0]);
-	std::cout << ".";
-	print_bits(tmp[1]);
-	std::cout << std::endl;*/
-	//\U00000100 -> 00100011.00000001 => 00100_011.000000_01 -> 001.00000000
-	//\U00000101 -> 00100011.10000001 => 00100_011.100000_01 -> 001.00100000
-	//\U00000102 -> 00100011.01000001 => 00100_011.010000_01
-	//\U000001ff -> 11100011.11111101 => 11100_011.111111_01
-	//should be clickable
-	//257 = 256+1 = FF+01 = 101
-	//97 = 0x61
-	const char* items[] = { "\U00000100\U00000101\U00000102 AAAA\x61 aaa \xee\x01\x01", "\U00000101 BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO"};
-	static int item_selected_idx = 0; // Here we store our selection data as an index.
 
-	// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
-	const char* combo_preview_value = items[item_selected_idx];
-
-	if (ImGui::BeginCombo("##combo 1", combo_preview_value))
+	int newRecipe = node->GetState(0);
+	if (ImGui::BeginCombo("##combo 1", machine.recipeNames[newRecipe].c_str(), ImGuiComboFlags_WidthFitPreview))
 	{
-		for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+		for (int n = 0; n < machine.recipeNames.size(); n++)
 		{
-			const bool is_selected = (item_selected_idx == n);
-			if (ImGui::Selectable(items[n], is_selected))
-				item_selected_idx = n;
-			ImGui::SameLine();
-			ImGui::Text("test");
+			const bool is_selected = (newRecipe == n);
+			if (ImGui::Selectable(machine.recipeNames[n].c_str(), is_selected))
+				newRecipe = n;
 
 			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
 		}
 		ImGui::EndCombo();
+		if (newRecipe != node->GetState(0)) {
+			nodeUpdator->nodeId = node->GetId();
+			nodeUpdator->stateChannel = 0;
+			nodeUpdator->newState = newRecipe;
+			std::cout << "set new recipe. nodeId : " << nodeUpdator->nodeId << ", stateChannel : " << nodeUpdator->stateChannel << ", new state : " << nodeUpdator->newState << std::endl;
+		}
 	}
 	ImGui::SameLine();
 	ImGui::Text("test preview");
@@ -384,18 +394,12 @@ json11::Json NodeViewer::ToJson() const {
 	return json11::Json({ 
 		{"input_perm", input_perm}, 
 		{"output_perm", output_perm}, 
-		{"id", node->GetId()}, 
+		{"id", node->GetId()},
 		{"size", json11::Json::array{ size.x, size.y }}});
 }
 
-static std::vector<int> JsonToVectorInt(const json11::Json::array& arr) {
-	std::vector<int> v;
-	for (const auto& a : arr)
-		v.push_back(a.int_value());
-	return v;
-}
 
-NodeViewer::NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json, const DataBase* dataBase) : node(nodes.at(json.object_items().at("id").int_value())), dataBase(dataBase) {
+NodeViewer::NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json, const DataBase* dataBase, NodeUpdator* nodeUpdator) : node(nodes.at(json.object_items().at("id").int_value())), dataBase(dataBase), nodeUpdator(nodeUpdator){
 	const json11::Json::object obj = json.object_items();
 
 	input_perm = JsonToVectorInt(obj.at("input_perm").array_items());

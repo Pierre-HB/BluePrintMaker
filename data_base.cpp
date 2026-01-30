@@ -323,6 +323,33 @@ DataBase::DataBase() {
 
 }
 
+void DataBase::precomputeComboText() {
+
+	for (Machine& machine : machines) {
+		machine.recipeNames = std::vector<std::string>(machine.recipiesId.size());
+		for (int j = 0; j < machine.recipiesId.size(); j++) {
+			const Recipe& recipe = getRecipe(machine.recipiesId[j]);
+			machine.recipeNames[j] = recipe.iconeString + recipe.name;
+		}
+	}
+	for (Recipe& recipe : recipes) {
+
+		recipe.modifierNames = std::vector<std::vector<std::string>>(recipe.modifierCategoriesId.size());
+
+		for (int i = 0; i < recipe.modifierCategoriesId.size(); i++) {
+			
+			const ModiferCategory& mc = getModifierCategory(recipe.modifierCategoriesId[i]);
+
+			recipe.modifierNames[i] = std::vector<std::string>(mc.modifiersId.size());
+
+			for (int j = 0; j < mc.modifiersId.size(); j++) {
+				const Modifier& modifier = getModifier(j);
+				recipe.modifierNames[i][j] = modifier.iconeString;
+			}
+		}
+	}
+}
+
 Item::Item(const json11::Json& json) {
 	name = readString(json, "name", "Item", "Item");
 	iconeId = readInt(json, "iconeId", "Item");

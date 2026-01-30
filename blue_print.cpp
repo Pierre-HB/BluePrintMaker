@@ -118,7 +118,8 @@ static const std::vector<Node> createRecipes() {
 }
 
 BluePrint::BluePrint(DataBase* dataBase) : name("Blueprint"), filename(""), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase(dataBase), ioPanel(dataBase), editorContext(ImNodes::EditorContextCreate()) {
-
+	nodeUpdator = new NodeUpdator();
+	linkUpdator = new LinkUpdator();
 }
 
 BluePrint::BluePrint() : BluePrint(nullptr) {
@@ -140,6 +141,9 @@ BluePrint::~BluePrint() {
 		delete link;
 	for (const auto& [id, linkViewer] : linkViewers)
 		delete linkViewer;
+
+	delete nodeUpdator;
+	delete linkUpdator;
 
 	ImNodes::EditorContextFree(editorContext);
 }
@@ -168,7 +172,7 @@ int BluePrint::CreateNewNode(int type) {
 	//Node* node = new Node(BluePrint::recipes[type], CreateId);
 	ImNodes::SetNodeScreenSpacePos(node->GetId(), ImGui::GetIO().MousePos);
 	nodes.insert(std::make_pair(node->GetId(), node));
-	NodeViewer* nodeViewer = new NodeViewer(node, dataBase);
+	NodeViewer* nodeViewer = new NodeViewer(node, dataBase, nodeUpdator);
 	nodeViewers.insert(std::make_pair(nodeViewer->GetId(), nodeViewer));
 
 	int eventId = CreateId();
@@ -203,7 +207,7 @@ int BluePrint::CreateNewLink(int input_attr_id, int output_attr_id) {
 	ImNodes::CreateLink(link->GetId());
 
 	links.insert(std::make_pair(link->GetId(), link));
-	LinkViewer* new_linkViewer = new LinkViewer(link, dataBase);
+	LinkViewer* new_linkViewer = new LinkViewer(link, dataBase, linkUpdator);
 	linkViewers.insert(std::make_pair(new_linkViewer->GetId(), new_linkViewer));
 
 	int eventId = CreateId();
@@ -287,7 +291,31 @@ void BluePrint::Update() {
 	if (nodeCreateType != -1)
 		CreateNewNode(nodeCreateType);
 	
-	int node_swap_recipy;
+	if (nodeUpdator->update()) {
+		Node* node = nodes[nodeUpdator->nodeId];
+		NodeViewer* nodeViewer = nodeViewers[nodeUpdator->nodeId];
+
+		Node* nodePrev = new Node(*node);//copy node
+		NodeViewer* nodeViewerPrev = new NodeViewer(*nodeViewer);//copy nodeViewer
+		node->changeState(dataBase, nodeUpdator->stateChannel, nodeUpdator->newState, CreateId);
+		if (nodeUpdator->stateChannel == 0)
+			nodeViewer->Reset();
+		
+		nodeUpdator->reset();
+		Node* nodeNext = new Node(*node);//copy node
+		NodeViewer* nodeViewerNext = new NodeViewer(*nodeViewer);//copy nodeViewer
+
+		int eventId = CreateId();
+		graphEvents.push(GraphEvent(eventId, NODE_UPDATE, nodePrev, nodeNext, nodeViewerPrev, nodeViewerNext)); //copy node by passing it's referrence
+		ImNodes::PushEvent(eventId);
+	}
+
+	/*if (linkUpdator->update()) {
+		linkUpdator->reset();
+	}*/
+
+	/*for (const auto& [id, linkViewer] : linkViewers)
+		linkViewer->Update();*/
 	//id of node, recipe target
 		
 
@@ -386,7 +414,19 @@ void BluePrint::Update() {
 			}
 			case ATTRIUTE_SWAP:
 			{
-				nodeViewers[dest->swapedNodeViewerId]->CopyPerm(*dest->nodeViewerDatas[0]);
+				nodeViewers[dest->targetedId]->CopyPerm(*dest->nodeViewerDatas[0]);
+				break;
+			}
+			case NODE_UPDATE:
+			{
+				delete nodes[dest->nodeDatas[0]->GetId()];
+				nodes[dest->nodeDatas[0]->GetId()] = new Node(*dest->nodeDatas[0]);
+
+				std::cout << "new state 0 : " << nodes[dest->nodeDatas[0]->GetId()]->GetState(0) << std::endl;
+
+				delete nodeViewers[dest->nodeDatas[0]->GetId()];
+				nodeViewers[dest->nodeDatas[0]->GetId()] = new NodeViewer(*dest->nodeViewerDatas[0], nodes[dest->nodeDatas[0]->GetId()]);
+
 				break;
 			}
 			default:
@@ -424,7 +464,17 @@ void BluePrint::Update() {
 			}
 			case ATTRIUTE_SWAP:
 			{
-				nodeViewers[dest->swapedNodeViewerId]->CopyPerm(*dest->nodeViewerDatas[1]);
+				nodeViewers[dest->targetedId]->CopyPerm(*dest->nodeViewerDatas[1]);
+				break;
+			}
+			case NODE_UPDATE:
+			{
+				delete nodes[dest->nodeDatas[1]->GetId()];
+				nodes[dest->nodeDatas[1]->GetId()] = new Node(*dest->nodeDatas[1]);
+
+				delete nodeViewers[dest->nodeDatas[1]->GetId()];
+				nodeViewers[dest->nodeDatas[1]->GetId()] = new NodeViewer(*dest->nodeViewerDatas[1], nodes[dest->nodeDatas[1]->GetId()]);
+
 				break;
 			}
 			default:
@@ -460,8 +510,8 @@ void BluePrint::LoadJson(const json11::Json& json) {
 	links = JsonToMap<Link>(obj.at("links").array_items());
 
 
-	nodeViewers = JsonToMap<Node, NodeViewer>(nodes, obj.at("nodeViewers").array_items(), dataBase);
-	linkViewers = JsonToMap<Link, LinkViewer>(links, obj.at("linkViewers").array_items(), dataBase);
+	nodeViewers = JsonToMap<Node, NodeViewer>(nodes, obj.at("nodeViewers").array_items(), dataBase, nodeUpdator);
+	linkViewers = JsonToMap<Link, LinkViewer>(links, obj.at("linkViewers").array_items(), dataBase, linkUpdator);
 
 
 	for (const auto& [key, node] : nodes) {

@@ -6,6 +6,23 @@
 #include "json11.hpp"
 #include "data_base.h"
 
+//Node viwer will write states in this SHARED struct
+struct NodeUpdator {
+	int nodeId = -1;
+	int stateChannel = -1;
+	int newState = -1;
+
+	void reset() {
+		nodeId = -1;
+		stateChannel = -1;
+		newState = -1;
+	}
+
+	bool update() {
+		return nodeId != -1;
+	}
+};
+
 struct NodeIO {
 	int id;
 	int itemId;
@@ -90,14 +107,17 @@ public:
 	Node(const DataBase* dataBase, int type, int(*CreateId)());
 	Node(const json11::Json& json);
 	void Overide(const Node& node, int(*CreateId)());
+	void Overide(const Node& node);
 
 	json11::Json ToJson() const;
 
 	void Update();
 
-	void changeState(const DataBase* dataBase, const std::vector<int> newState, int(*CreateId)());
+	void changeState(const DataBase* dataBase, int stateChannel, int newState, int(*CreateId)());
 
 	int GetId() const;
+	int GetMachineId() const;
+	int GetState(int i) const;
 
 	const std::vector<NodeIO>& GetInputs() const;
 	const std::vector<NodeIO>& GetOutputs() const;
@@ -122,10 +142,11 @@ protected:
 	ImVec2 size;
 
 	const DataBase* dataBase;
+	NodeUpdator* nodeUpdator;
 public:
-	NodeViewer(const Node* node, const DataBase* dataBase);
+	NodeViewer(const Node* node, const DataBase* dataBase, NodeUpdator* nodeUpdator);
 	NodeViewer(const NodeViewer& nodeViewer, const Node* node);
-	NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json, const DataBase* dataBase);
+	NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json, const DataBase* dataBase, NodeUpdator* nodeUpdator);
 
 	void Draw(); //ImNodes API
 
@@ -145,10 +166,11 @@ public:
 	void CopyPerm(const NodeViewer& other);
 
 	json11::Json ToJson() const;
+	void Reset();
 private:
 	//if the ref node changed (more or less input/outpu), reset all pins.
 	//TODO a child NodeSplitterMergerViwer that only reset if the number of inputs/outputs decreased, keep same order if just one pin was added
-	void Reset();
+	
 };
 
 //IMNode is the Viewer model

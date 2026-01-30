@@ -5,17 +5,24 @@ GraphEvent::GraphEvent() : GraphEvent(-1, NONE) {
 
 }
 
-GraphEvent::GraphEvent(int id, GraphEventType type) : id(id), type(type), swapedNodeViewerId(-1){
+GraphEvent::GraphEvent(int id, GraphEventType type) : id(id), type(type), targetedId(-1){
 
 }
 
-GraphEvent::GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* nodeViewer) : id(id), type(type), swapedNodeViewerId(-1) {
+GraphEvent::GraphEvent(int id, GraphEventType type, Node* nodePrev, Node* nodeNext, NodeViewer* nodeViewerPrev, NodeViewer* nodeViewerNext) : id(id), type(type), targetedId(-1) {
+	nodeDatas.push_back(nodePrev);
+	nodeDatas.push_back(nodeNext);
+	nodeViewerDatas.push_back(nodeViewerPrev);
+	nodeViewerDatas.push_back(nodeViewerNext);
+}
+
+GraphEvent::GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* nodeViewer) : id(id), type(type), targetedId(-1) {
 	nodeDatas.push_back(node);
 	nodeViewerDatas.push_back(nodeViewer);
 	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node->GetId()));
 }
 
-GraphEvent::GraphEvent(int id, GraphEventType type, Link* link, LinkViewer* linkViewer) : id(id), type(type), swapedNodeViewerId(-1) {
+GraphEvent::GraphEvent(int id, GraphEventType type, Link* link, LinkViewer* linkViewer) : id(id), type(type), targetedId(-1) {
 	linkDatas.push_back(link);
 	linkViewerDatas.push_back(linkViewer);
 	linkImNodesDatas.push_back(ImNodes::GetLinkData(link->GetId()));
@@ -29,7 +36,7 @@ GraphEvent::GraphEvent(int id, GraphEventType type, const Link& link, const Link
 
 }
 
-GraphEvent::GraphEvent(int id, int swapedNodeViewerId, const NodeViewer& nodeViewer) : id(id), swapedNodeViewerId(swapedNodeViewerId), type(ATTRIUTE_SWAP) {
+GraphEvent::GraphEvent(int id, int targetedId, const NodeViewer& nodeViewer) : id(id), targetedId(targetedId), type(ATTRIUTE_SWAP) {
 	nodeViewerDatas.push_back(new NodeViewer(nodeViewer));
 }
 
@@ -115,7 +122,7 @@ GraphEvent& GraphEvent::operator=(GraphEvent&& m) noexcept {
 
 	GraphEvent::type = m.type;
 
-	GraphEvent::swapedNodeViewerId = m.swapedNodeViewerId;
+	GraphEvent::targetedId = m.targetedId;
 
 	m.nodeImNodesDatas.clear();
 	m.linkImNodesDatas.clear();
@@ -124,7 +131,7 @@ GraphEvent& GraphEvent::operator=(GraphEvent&& m) noexcept {
 	m.nodeViewerDatas.clear();
 	m.linkDatas.clear();
 	m.linkViewerDatas.clear();
-	m.swapedNodeViewerId = -1;
+	m.targetedId = -1;
 
 	return *this;
 }

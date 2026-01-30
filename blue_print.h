@@ -29,9 +29,11 @@ private:
 
 	std::map<int, Node*> nodes;
 	std::map<int, NodeViewer*> nodeViewers;
+	NodeUpdator* nodeUpdator;
 
 	std::map<int, Link*> links;
 	std::map<int, LinkViewer*> linkViewers;
+	LinkUpdator* linkUpdator;
 
 	BiFIFO<GraphEvent, 1024> graphEvents;
 
@@ -124,10 +126,10 @@ std::map<int, T*> JsonToMap(const json11::Json::array json) {
 	return m;
 }
 
-template<typename T, typename TV>
-std::map<int, TV*> JsonToMap(std::map<int, T*>& m, const json11::Json::array json, const DataBase* dataBase) {
+template<typename T, typename TV, typename TU>
+std::map<int, TV*> JsonToMap(std::map<int, T*>& m, const json11::Json::array json, const DataBase* dataBase, TU* updater) {
 	std::map<int, TV*> mv;
 	for (const auto& a : json)
-		mv[a.object_items().at("id").int_value()] = new TV(m, a, dataBase);
+		mv[a.object_items().at("id").int_value()] = new TV(m, a, dataBase, updater);
 	return mv;
 }

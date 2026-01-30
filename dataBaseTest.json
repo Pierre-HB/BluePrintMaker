@@ -2,14 +2,22 @@
 	"spreadsheet" : "spreadsheet.png",
 	"iconeWidth" : 32,
 	"iconeHeight" : 32,
-	"items" : [
+	"items": [
 		{
-			"iconeId" : 1,
-			"name" : "Coal"
+			"iconeId": 1,
+			"name": "Coal"
 		},
 		{
-			"iconeId" : 2,
-			"name" : "Proliferator"
+			"iconeId": 4,
+			"name": "Proliferator II"
+		},
+		{
+			"iconeId": 5,
+			"name": "Diamond"
+		},
+		{
+			"iconeId": 2,
+			"name": "Proliferator I"
 		}
 	],
 	"modifiers" : [
@@ -40,7 +48,7 @@
 			"workingPower" : 0,
 			"consumables" : [
 				{
-					"item" : "Proliferator",
+					"item" : "Proliferator I",
 					"inputConsumtion" : 0.125,
 					"outputConsumtion" : 0.125
 				}
@@ -64,16 +72,32 @@
 	],
 	"recipes" : [
 		{
-			"name" : "Proliferator",
-			"iconeId" : 2,
-			"inputs" : {
-				"Coal" : 1
+			"name": "Proliferator I",
+			"iconeId": 2,
+			"inputs": {
+				"Coal": 1
 			},
-			"outputs" : {
-				"Proliferator" : 1
+			"outputs": {
+				"Proliferator I": 1
 			},
-			"time" : 0.5,
-			"modifierCategories" : [
+			"time": 0.5,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Proliferator II",
+			"iconeId": 4,
+			"inputs": {
+				"Proliferator I": 2,
+				"Diamond": 1
+			},
+			"outputs": {
+				"Proliferator II": 1
+			},
+			"time": 1,
+			"modifierCategories": [
 				"Assembler",
 				"Proliferator"
 			]
@@ -83,8 +107,9 @@
 		{
 			"name" : "Assembler",
 			"iconeId" : 3,
-			"recipes" : [
-				"Proliferator"
+			"recipes": [
+				"Proliferator I",
+				"Proliferator II"
 			]
 		}
 	]

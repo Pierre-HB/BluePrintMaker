@@ -7,6 +7,7 @@
 struct Item {//1
 	std::string name;
 	int iconeId;
+	std::string iconeString;
 
 	Item(const json11::Json& json);
 	Item();
@@ -23,6 +24,7 @@ struct Consumable {//2
 struct Modifier {//3
 	std::string name;
 	int iconeId;
+	std::string iconeString;
 	float speedModifier = 1.0f;
 	float outputModifier = 1.0f;
 	float idlePower = 0.0f;
@@ -47,10 +49,12 @@ struct ModiferCategory {//4
 struct Recipe {//5
 	std::string name;
 	int iconeId;
+	std::string iconeString;
 	std::vector<std::pair<int, int>> inputsId;
 	std::vector<std::pair<int, int>> outputsId;
 	float time;
 	std::vector<int> modifierCategoriesId;
+	std::vector<std::vector<std::string>> modifierNames; // precomputed modifier icones for ImGui combo
 
 	Recipe(const json11::Json& json, const std::map<std::string, int>& itemIdMap, const std::map<std::string, int>& modifierCategoryIdMap);
 	Recipe();
@@ -60,7 +64,9 @@ struct Recipe {//5
 struct Machine {//6
 	std::string name;
 	int iconeId;
+	std::string iconeString;
 	std::vector<int> recipiesId;
+	std::vector<std::string> recipeNames; //precomputed for ImGui display
 
 	Machine(const json11::Json& json, const std::map<std::string, int>& recipyIdMap);
 	Machine();
@@ -97,6 +103,8 @@ class DataBase {
 	int iconeWidth;
 	int iconeHeight;
 	ImVector<std::string> iconeStrings;	
+
+	void precomputeComboText();
 
 public:
 	DataBase();

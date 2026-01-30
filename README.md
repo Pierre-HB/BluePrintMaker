@@ -34,6 +34,7 @@ C++ project to automaticcaly generate blueprints for the game Dyson Sphere Progr
 # Bug
  - When creating two node, linking them, moving one control point of the link and undoing everything WITHOUT CLIKING AWAY (the control points are still selected), the link (actually, the control points) does not desapear.
  - icone not ajusting to zoom
+ - need to remove link when changing the recipe.
 
 # Note
 - if I want several windows with independant blueprint, I might take a look at the ImGui::BeginChild call in the ImNodes::BeginNodeEditor(). I may also use several context and switch between them

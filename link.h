@@ -3,6 +3,17 @@
 #include "json11.hpp"
 #include "data_base.h"
 
+struct LinkUpdator {
+
+	bool update() {
+		return false;
+	}
+
+	void reset() {
+
+	}
+};
+
 class Link {
 private:
 	int id;
@@ -34,11 +45,12 @@ class LinkViewer {
 private:
 	const Link* link;
 	const DataBase* dataBase;
+	LinkUpdator* linkUpdator;
 
 public:
-	LinkViewer(Link* link, const DataBase* dataBase);
+	LinkViewer(Link* link, const DataBase* dataBase, LinkUpdator* linkUpdator);
 	LinkViewer(const LinkViewer& linkViewer, const Link* link);
-	LinkViewer(std::map<int, Link*>& links, const json11::Json& json, const DataBase* dataBase);
+	LinkViewer(std::map<int, Link*>& links, const json11::Json& json, const DataBase* dataBase, LinkUpdator* linkUpdator);
 	
 	void Draw() const;
 

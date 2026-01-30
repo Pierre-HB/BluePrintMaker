@@ -53,7 +53,7 @@ Link::Link(const json11::Json& json) {
 //============================== Viewer ==============================//
 
 
-LinkViewer::LinkViewer(Link* link, const DataBase* dataBase) : link(link), dataBase(dataBase) {
+LinkViewer::LinkViewer(Link* link, const DataBase* dataBase, LinkUpdator* linkUpdator) : link(link), dataBase(dataBase), linkUpdator(linkUpdator) {
 
 }
 
@@ -74,6 +74,6 @@ json11::Json LinkViewer::ToJson() const {
 	return json11::Json::object{ { "id", link->GetId() } };
 }
 
-LinkViewer::LinkViewer(std::map<int, Link*>& links, const json11::Json& json, const DataBase* dataBase) : link(links.at(json.object_items().at("id").int_value())), dataBase(dataBase){
+LinkViewer::LinkViewer(std::map<int, Link*>& links, const json11::Json& json, const DataBase* dataBase, LinkUpdator* linkUpdator) : link(links.at(json.object_items().at("id").int_value())), dataBase(dataBase), linkUpdator(linkUpdator) {
 
 }
