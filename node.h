@@ -73,7 +73,7 @@ struct NodeIOViewer {
 
 		//ImGui::Text("NodeIO ressource : %d", nodeIO->ressource);
 		const Item& item = dataBase->getItem(nodeIO->itemId);
-		ImGui::Text(item.name.c_str());
+		ImGui::Text((item.iconeString+" "+item.name).c_str());
 		ImGui::SameLine();
 		ImGui::Text("%.2f", nodeIO->quantity);
 
@@ -118,6 +118,7 @@ public:
 	int GetId() const;
 	int GetMachineId() const;
 	int GetState(int i) const;
+	int GetStateSize() const;
 
 	const std::vector<NodeIO>& GetInputs() const;
 	const std::vector<NodeIO>& GetOutputs() const;

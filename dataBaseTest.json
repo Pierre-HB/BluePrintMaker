@@ -40,17 +40,32 @@
 			"consumables" : []
 		},
 		{
-			"name" : "Proliferator",
-			"iconeId" : 2,
-			"speedModifier" : 1,
-			"outputModifier" : 1.125,
-			"idlePower" : 0,
-			"workingPower" : 0,
-			"consumables" : [
+			"name": "Proliferator I",
+			"iconeId": 2,
+			"speedModifier": 1,
+			"outputModifier": 1.125,
+			"idlePower": 0,
+			"workingPower": 0,
+			"consumables": [
 				{
-					"item" : "Proliferator I",
-					"inputConsumtion" : 0.125,
-					"outputConsumtion" : 0.125
+					"item": "Proliferator I",
+					"inputConsumtion": 0.083,
+					"outputConsumtion": 0
+				}
+			]
+		},
+		{
+			"name": "Proliferator II",
+			"iconeId": 4,
+			"speedModifier": 1,
+			"outputModifier": 1.2,
+			"idlePower": 0,
+			"workingPower": 0,
+			"consumables": [
+				{
+					"item": "Proliferator II",
+					"inputConsumtion": 0.041,
+					"outputConsumtion": 0
 				}
 			]
 		}
@@ -64,9 +79,10 @@
 		},
 		{
 			"name" : "Proliferator",
-			"modifiers" : [
+			"modifiers": [
 				"None",
-				"Proliferator"
+				"Proliferator I",
+				"Proliferator II"
 			]
 		}
 	],

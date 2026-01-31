@@ -22,7 +22,7 @@ int readInt(const json11::Json& json, const std::string& key, const std::string&
 static float readFloat(const json11::Json& json, const std::string& key, const std::string& struct_name, float default_value) {
 	if (json.object_items().count(key)) {
 		if (json.object_items().at(key).is_number())
-			return json.object_items().at(key).int_value();
+			return json.object_items().at(key).number_value();
 		else {
 			std::cout << "[WARNING] Wrong type for '" << key << "' (should be float) for " << struct_name << " : " << json.dump() << std::endl;
 			return default_value;
@@ -329,7 +329,7 @@ void DataBase::precomputeComboText() {
 		machine.recipeNames = std::vector<std::string>(machine.recipiesId.size());
 		for (int j = 0; j < machine.recipiesId.size(); j++) {
 			const Recipe& recipe = getRecipe(machine.recipiesId[j]);
-			machine.recipeNames[j] = recipe.iconeString + recipe.name;
+			machine.recipeNames[j] = recipe.iconeString + " " + recipe.name;
 		}
 	}
 	for (Recipe& recipe : recipes) {
@@ -343,7 +343,7 @@ void DataBase::precomputeComboText() {
 			recipe.modifierNames[i] = std::vector<std::string>(mc.modifiersId.size());
 
 			for (int j = 0; j < mc.modifiersId.size(); j++) {
-				const Modifier& modifier = getModifier(j);
+				const Modifier& modifier = getModifier(mc.modifiersId[j]);
 				recipe.modifierNames[i][j] = modifier.iconeString;
 			}
 		}

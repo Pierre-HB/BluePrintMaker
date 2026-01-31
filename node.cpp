@@ -115,6 +115,7 @@ void Node::changeState(const DataBase* dataBase, int stateChannel, int newState,
 		time *= modifier.speedModifier;
 		for(int i = 0; i < recipe.outputsId.size(); i++)
 			outputs[i].quantity *= modifier.outputModifier;
+		std::cout << "Output quantity modifier : " << modifier.outputModifier << std::endl;
 	}
 }
 
@@ -128,6 +129,10 @@ int Node::GetMachineId() const {
 
 int Node::GetState(int i) const {
 	return state[i];
+}
+
+int Node::GetStateSize() const {
+	return state.size();
 }
 
 const std::vector<NodeIO>& Node::GetInputs() const {
@@ -225,11 +230,6 @@ void NodeViewer::Draw() {
 	ImNodes::BeginNode(GetId());
 	//TODO Draw Title
 	ImNodes::BeginNodeTitleBar();
-	ImGui::Text((recipe.iconeString+ recipe.iconeString).c_str());//should be recipe name
-	ImGui::SameLine();
-	ImGui::Text((recipe.name+ recipe.iconeString).c_str());//should be recipe name
-
-
 
 
 	int newRecipe = node->GetState(0);
@@ -241,7 +241,6 @@ void NodeViewer::Draw() {
 			if (ImGui::Selectable(machine.recipeNames[n].c_str(), is_selected))
 				newRecipe = n;
 
-			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
 			if (is_selected)
 				ImGui::SetItemDefaultFocus();
 		}
@@ -250,11 +249,36 @@ void NodeViewer::Draw() {
 			nodeUpdator->nodeId = node->GetId();
 			nodeUpdator->stateChannel = 0;
 			nodeUpdator->newState = newRecipe;
-			std::cout << "set new recipe. nodeId : " << nodeUpdator->nodeId << ", stateChannel : " << nodeUpdator->stateChannel << ", new state : " << nodeUpdator->newState << std::endl;
 		}
 	}
-	ImGui::SameLine();
-	ImGui::Text("test preview");
+
+	const int nbState = node->GetStateSize()-1;
+	for (int i = 0; i < nbState; i++) {
+		ImGui::SameLine();
+
+		int newState = node->GetState(i+1);
+		char comboName[16];
+		
+		sprintf(comboName, "##combo -%i", i);
+		if (ImGui::BeginCombo(comboName, recipe.modifierNames[i][newState].c_str(), ImGuiComboFlags_WidthFitPreview))
+		{
+			for (int n = 0; n < recipe.modifierNames[i].size(); n++)
+			{
+				const bool is_selected = (newState == n);
+				if (ImGui::Selectable(recipe.modifierNames[i][n].c_str(), is_selected))
+					newState = n;
+
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+			if (newState != node->GetState(i+1)) {
+				nodeUpdator->nodeId = node->GetId();
+				nodeUpdator->stateChannel = i+1;
+				nodeUpdator->newState = newState;
+			}
+		}
+	}
 
 	ImNodes::EndNodeTitleBar();
 
@@ -262,6 +286,8 @@ void NodeViewer::Draw() {
 	float width_output = 0;
 	float height_column = 0;
 	float height_total = 0;
+
+	//g.Style.CellPadding.x
 
 	if (ImGui::BeginTable("table1", 2, ImGuiTableFlags_SizingFixedFit, size))
 	{

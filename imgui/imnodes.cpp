@@ -3637,9 +3637,9 @@ void StyleColorsBluePrint(ImNodesStyle* dest)
     dest->Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(25, 89, 161, 150);
     dest->Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(25, 89, 161, 150);
 
-    dest->Colors[ImNodesCol_TitleBar] = IM_COL32(25, 89, 161, 0);
-    dest->Colors[ImNodesCol_TitleBarHovered] = IM_COL32(45, 109, 181, 0);
-    dest->Colors[ImNodesCol_TitleBarSelected] = IM_COL32(45, 109, 181, 0);
+    dest->Colors[ImNodesCol_TitleBar] = IM_COL32(30, 107, 193, 100);
+    dest->Colors[ImNodesCol_TitleBarHovered] = IM_COL32(54, 131, 217, 100);
+    dest->Colors[ImNodesCol_TitleBarSelected] = IM_COL32(54, 131, 217, 100);
 
     dest->Colors[ImNodesCol_Pin] = IM_COL32(200, 200, 200, 255);
     dest->Colors[ImNodesCol_PinHovered] = IM_COL32(255, 255, 255, 255);
@@ -4028,6 +4028,7 @@ void BeginZoom(const ImNodesEditorContext& editor) {
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, editor.BaseItemSpacing * editor.Zoom);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, editor.BaseItemInnerSpacing * editor.Zoom);
+    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, editor.BaseInbetweenItemSpacing * editor.Zoom);
 
     ImGuiIO& io = ImGui::GetIO();
     io.FontGlobalScale = editor.Zoom;
@@ -4050,7 +4051,7 @@ void BeginZoom(const ImNodesEditorContext& editor) {
 void EndZoom() {
     ImGuiIO& io = ImGui::GetIO();
     io.FontGlobalScale = 1.0f; 
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(3);
     ImGui::PopFont();
 }
 
