@@ -2597,15 +2597,37 @@ inline ImVec2 GetNodeContentOrigin(const ImNodeData& node)
     return GridSpaceToEditorSpace(editor, node.Origin) + title_bar_height + node.LayoutStyle.Padding*editor.Zoom;
 }
 
+inline ImVec2 GetNodeFooterEnd(const ImNodeData& node)
+{
+    const ImNodesEditorContext& editor = EditorContextGet();
+    const ImVec2 footer_height =
+        ImVec2(0.f, node.FooterContentRect.GetHeight() + 2.0f * node.LayoutStyle.Padding.y * editor.Zoom);
+    return GridSpaceToEditorSpace(editor, node.Origin) + footer_height + node.LayoutStyle.Padding * editor.Zoom;
+}
+
 inline ImRect GetNodeTitleRect(const ImNodeData& node)
 {
     ImRect expanded_title_rect = node.TitleBarContentRect;
-    expanded_title_rect.Expand(node.LayoutStyle.Padding);
+    ImNodesEditorContext& editor = EditorContextGet();
+    expanded_title_rect.Expand(node.LayoutStyle.Padding * editor.Zoom);
 
     return ImRect(
         expanded_title_rect.Min,
         expanded_title_rect.Min + ImVec2(node.Rect.GetWidth(), 0.f) +
             ImVec2(0.f, expanded_title_rect.GetHeight()));
+}
+
+inline ImRect GetNodeFootRect(const ImNodeData& node)
+{
+    ImRect expanded_foot_rect = node.FooterContentRect;
+    
+    ImNodesEditorContext& editor = EditorContextGet();
+    expanded_foot_rect.Expand(node.LayoutStyle.Padding * editor.Zoom);
+
+    return ImRect(
+        expanded_foot_rect.Min,
+        expanded_foot_rect.Min + ImVec2(node.Rect.GetWidth(), 0.f) +
+        ImVec2(0.f, expanded_foot_rect.GetHeight()));
 }
 
 void DrawGrid(ImNodesEditorContext& editor, const ImVec2& canvas_size)
@@ -2789,16 +2811,19 @@ void DrawNode(ImNodesEditorContext& editor, const int node_idx)
 
     ImU32 node_background = node.ColorStyle.Background;
     ImU32 titlebar_background = node.ColorStyle.Titlebar;
+    ImU32 footer_background = node.ColorStyle.Footer;
 
     if (editor.SelectedNodeIndices.contains(node_idx))
     {
         node_background = node.ColorStyle.BackgroundSelected;
         titlebar_background = node.ColorStyle.TitlebarSelected;
+        footer_background = node.ColorStyle.FooterSelected;
     }
     else if (node_hovered)
     {
         node_background = node.ColorStyle.BackgroundHovered;
         titlebar_background = node.ColorStyle.TitlebarHovered;
+        footer_background = node.ColorStyle.FooterHovered;
     }
 
     {
@@ -2828,6 +2853,29 @@ void DrawNode(ImNodesEditorContext& editor, const int node_idx)
 
 #endif
         }
+
+        // footer:
+        if (node.FooterContentRect.GetHeight() > 0.f)
+        {
+            ImRect foot_bar_rect = GetNodeFootRect(node);
+
+#if IMGUI_VERSION_NUM < 18200
+            GImNodes->CanvasDrawList->AddRectFilled(
+                foot_bar_rect.Min,
+                foot_bar_rect.Max,
+                titlebar_background,
+                node.LayoutStyle.CornerRounding,
+                ImDrawCornerFlags_Top);
+#else
+            GImNodes->CanvasDrawList->AddRectFilled(
+                foot_bar_rect.Min,
+                foot_bar_rect.Max,
+                footer_background,
+                node.LayoutStyle.CornerRounding * editor.Zoom,
+                ImDrawFlags_RoundCornersBottom);
+
+#endif
+    }
 
         if ((GImNodes->Style.Flags & ImNodesStyleFlags_NodeOutline) != 0)
         {
@@ -3399,6 +3447,7 @@ void CreateContextFont(ImNodesContext* ctx) {
         0,
     };
     conf.GlyphRanges = ranges;
+    //conf.GlyphExtraSpacing = ImVec2(1, 1);
     const static float BASE_FONT_SIZE = 13.0f;
     ImGuiIO& io = ImGui::GetIO();
 
@@ -3640,6 +3689,10 @@ void StyleColorsBluePrint(ImNodesStyle* dest)
     dest->Colors[ImNodesCol_TitleBar] = IM_COL32(30, 107, 193, 100);
     dest->Colors[ImNodesCol_TitleBarHovered] = IM_COL32(54, 131, 217, 100);
     dest->Colors[ImNodesCol_TitleBarSelected] = IM_COL32(54, 131, 217, 100);
+
+    dest->Colors[ImNodesCol_Footer] = IM_COL32(30, 107, 193, 100);
+    dest->Colors[ImNodesCol_FooterHovered] = IM_COL32(54, 131, 217, 100);
+    dest->Colors[ImNodesCol_FooterSelected] = IM_COL32(54, 131, 217, 100);
 
     dest->Colors[ImNodesCol_Pin] = IM_COL32(200, 200, 200, 255);
     dest->Colors[ImNodesCol_PinHovered] = IM_COL32(255, 255, 255, 255);
@@ -4074,6 +4127,9 @@ void BeginNode(const int node_id)
     node.ColorStyle.Titlebar = GImNodes->Style.Colors[ImNodesCol_TitleBar];
     node.ColorStyle.TitlebarHovered = GImNodes->Style.Colors[ImNodesCol_TitleBarHovered];
     node.ColorStyle.TitlebarSelected = GImNodes->Style.Colors[ImNodesCol_TitleBarSelected];
+    node.ColorStyle.Footer = GImNodes->Style.Colors[ImNodesCol_Footer];
+    node.ColorStyle.FooterHovered = GImNodes->Style.Colors[ImNodesCol_FooterHovered];
+    node.ColorStyle.FooterSelected = GImNodes->Style.Colors[ImNodesCol_FooterSelected];
     node.LayoutStyle.CornerRounding = GImNodes->Style.NodeCornerRounding;
     node.LayoutStyle.Padding = GImNodes->Style.NodePadding;
     node.LayoutStyle.BorderThickness = GImNodes->Style.NodeBorderThickness;
@@ -4129,18 +4185,38 @@ void BeginNodeTitleBar()
     ImGui::BeginGroup();
 }
 
+void BeginNodeFooter()
+{
+    IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Node);
+    
+    ImNodesEditorContext& editor = EditorContextGet();
+    ImNodeData& node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
+    ImGui::SetCursorPos(ImGui::GetCursorPos()+ImVec2(0, 2.0f * node.LayoutStyle.Padding.y * editor.Zoom));
+    
+    ImGui::BeginGroup();
+}
+
 void EndNodeTitleBar()
 {
     IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Node);
     ImGui::EndGroup();
 
     ImNodesEditorContext& editor = EditorContextGet();
-    ImNodeData&           node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
+    ImNodeData& node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
     node.TitleBarContentRect = GetItemRect();
-
-    ImGui::ItemAdd(GetNodeTitleRect(node), ImGui::GetID("title_bar"));
+    //ImGui::ItemAdd(GetNodeTitleRect(node), ImGui::GetID("title_bar"));
 
     ImGui::SetCursorPos(GetNodeContentOrigin(node));
+}
+
+void EndNodeFooter()
+{
+    IM_ASSERT(GImNodes->CurrentScope == ImNodesScope_Node);
+    ImGui::EndGroup();
+
+    ImNodesEditorContext& editor = EditorContextGet();
+    ImNodeData& node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
+    node.FooterContentRect = GetItemRect();
 }
 
 void BeginInputAttribute(const int id, const ImNodesPinShape shape)

@@ -127,6 +127,10 @@ int Node::GetMachineId() const {
 	return machineId;
 }
 
+float Node::GetTime() const {
+	return time;
+}
+
 int Node::GetState(int i) const {
 	return state[i];
 }
@@ -317,6 +321,10 @@ void NodeViewer::Draw() {
 		ImGui::EndTable();
 		size = ImVec2(width_input + width_output+ ImGui::GetStyle().CellPadding.x, height_total);
 	}
+
+	ImNodes::BeginNodeFooter();
+	ImGui::Text(std::format("nb machines : {}  -  time : {}s", "?", node->GetTime()).c_str());
+	ImNodes::EndNodeFooter();
 
 	ImNodes::EndNode();	
 }

@@ -5,6 +5,7 @@
 #include <iostream>
 #include "json11.hpp"
 #include "data_base.h"
+#include <format>
 
 //Node viwer will write states in this SHARED struct
 struct NodeUpdator {
@@ -70,12 +71,8 @@ struct NodeIOViewer {
 			ImNodes::BeginInputAttribute(GetId());
 		else
 			ImNodes::BeginOutputAttribute(GetId());
-
-		//ImGui::Text("NodeIO ressource : %d", nodeIO->ressource);
 		const Item& item = dataBase->getItem(nodeIO->itemId);
-		ImGui::Text((item.iconeString+" "+item.name).c_str());
-		ImGui::SameLine();
-		ImGui::Text("%.2f", nodeIO->quantity);
+		ImGui::Text((item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity)).c_str());
 
 		if (isInput)
 			ImNodes::EndInputAttribute();
@@ -117,6 +114,7 @@ public:
 
 	int GetId() const;
 	int GetMachineId() const;
+	float GetTime() const;
 	int GetState(int i) const;
 	int GetStateSize() const;
 

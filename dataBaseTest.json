@@ -18,26 +18,39 @@
 		{
 			"iconeId": 2,
 			"name": "Proliferator I"
-		}
-	],
-	"modifiers" : [
-		{
-			"name" : "Assembler",
-			"iconeId" : 3,
-			"speedModifier" : 1,
-			"outputModifier" : 1,
-			"idlePower" : 1,
-			"workingPower" : 12,
-			"consumables" : []
 		},
 		{
-			"name" : "None",
-			"iconeId" : 0,
-			"speedModifier" : 1,
-			"outputModifier" : 1,
-			"idlePower" : 0,
-			"workingPower" : 0,
-			"consumables" : []
+			"iconeId": 6,
+			"name": "Energetic Graphite"
+		}
+	],
+	"modifiers": [
+		{
+			"name": "Assembler",
+			"iconeId": 3,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 1,
+			"workingPower": 12,
+			"consumables": []
+		},
+		{
+			"name": "Smelter",
+			"iconeId": 7,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 1,
+			"workingPower": 12,
+			"consumables": []
+		},
+		{
+			"name": "None",
+			"iconeId": 0,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 0,
+			"workingPower": 0,
+			"consumables": []
 		},
 		{
 			"name": "Proliferator I",
@@ -70,15 +83,21 @@
 			]
 		}
 	],
-	"modifierCategories" : [
+	"modifierCategories": [
 		{
-			"name" : "Assembler",
-			"modifiers" : [
+			"name": "Assembler",
+			"modifiers": [
 				"Assembler"
 			]
 		},
 		{
-			"name" : "Proliferator",
+			"name": "Smelter",
+			"modifiers": [
+				"Smelter"
+			]
+		},
+		{
+			"name": "Proliferator",
 			"modifiers": [
 				"None",
 				"Proliferator I",
@@ -115,6 +134,36 @@
 			"time": 1,
 			"modifierCategories": [
 				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Diamond",
+			"iconeId": 5,
+			"inputs": {
+				"Energetic Graphite": 1
+			},
+			"outputs": {
+				"Diamond": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Energetic Graphite",
+			"iconeId": 6,
+			"inputs": {
+				"Coal" :  2
+			},
+			"outputs": {
+				"Energetic Graphite": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Smelter",
 				"Proliferator"
 			]
 		}

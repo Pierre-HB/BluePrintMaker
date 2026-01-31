@@ -33,6 +33,9 @@ enum ImNodesCol_
     ImNodesCol_TitleBar,
     ImNodesCol_TitleBarHovered,
     ImNodesCol_TitleBarSelected,
+    ImNodesCol_Footer,
+    ImNodesCol_FooterHovered,
+    ImNodesCol_FooterSelected,
     ImNodesCol_Link,
     ImNodesCol_LinkHovered,
     ImNodesCol_LinkSelected,
@@ -389,6 +392,9 @@ ImVec2 GetNodeDimensions(int id);
 // layout of the node will be incorrect.
 void BeginNodeTitleBar();
 void EndNodeTitleBar();
+
+void BeginNodeFooter();
+void EndNodeFooter();
 
 // Attributes are ImGui UI elements embedded within the node. Attributes can have pin shapes
 // rendered next to them. Links are created between pins.
