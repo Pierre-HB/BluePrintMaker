@@ -418,7 +418,7 @@ void BeginStaticAttribute(int id);
 void EndStaticAttribute();
 
 // Push a single AttributeFlags value. By default, only AttributeFlags_None is set.
-void PushAttributeFlag(ImNodesAttributeFlags flag);
+void PushAttributeFlag(ImNodesAttributeFlags flag, bool enabled = true);
 void PopAttributeFlag();
 
 // Render a link between attributes.

@@ -4,6 +4,15 @@
 #include "json11.hpp"
 #include <string>
 
+enum MACHINE_TYPE {
+	MACHINE_REGULAR,
+	MACHINE_INPUT,
+	MACHINE_OUTPUT,
+	MACHINE_SPLITTER,
+	MACHINE_MERGER,
+	MACHINE_BLACKBOX,
+};
+
 struct Item {//1
 	std::string name;
 	int iconeId;
@@ -67,10 +76,11 @@ struct Machine {//6
 	std::string iconeString;
 	std::vector<int> recipiesId;
 	std::vector<std::string> recipeNames; //precomputed for ImGui display
+	MACHINE_TYPE type;
 
 	Machine(const json11::Json& json, const std::map<std::string, int>& recipyIdMap);
 	Machine();
-	Machine(std::string name, int iconeId, std::vector<int> recipiesId);
+	Machine(std::string name, int iconeId, std::vector<int> recipiesId, MACHINE_TYPE type);
 };
 
 template<typename T>

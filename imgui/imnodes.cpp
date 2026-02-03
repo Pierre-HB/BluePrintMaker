@@ -4264,9 +4264,12 @@ void EndStaticAttribute()
     EndSwappableAttribute();
 }
 
-void PushAttributeFlag(const ImNodesAttributeFlags flag)
+void PushAttributeFlag(const ImNodesAttributeFlags flag, bool enabled)
 {
-    GImNodes->CurrentAttributeFlags |= flag;
+    if (enabled)
+        GImNodes->CurrentAttributeFlags |= flag;
+    else
+        GImNodes->CurrentAttributeFlags &= ~flag;
     GImNodes->AttributeFlagStack.push_back(GImNodes->CurrentAttributeFlags);
 }
 

@@ -12,32 +12,51 @@ struct NodeUpdator {
 	int nodeId = -1;
 	int stateChannel = -1;
 	int newState = -1;
+	int nodeIOId = -1;
+	float data = -1;
 
 	void reset() {
 		nodeId = -1;
 		stateChannel = -1;
 		newState = -1;
+		nodeIOId = -1;
+		data = -1;
 	}
 
-	bool update() {
+	bool updateNode() {
 		return nodeId != -1;
 	}
+	bool updateNodeIO() {
+		return nodeIOId != -1;
+	}
+};
+
+enum NODE_IO_TYPE {
+	ITEM,//regular item
+	IO,//io with throuput specified by the user
+	LOCK_IO,//io with guessed througput
+	SPLITTER,//splitter
+
 };
 
 struct NodeIO {
 	int id;
 	int itemId;
-	float quantity;
+	float quantity;//serve also for throuput value and splitter
 	//int proliferator_lvl;
 	//int proliferator_lvl2;
 	//int proliferator_lvl3;
 	//std::list<NodeIO*> connectedIO;
+	NODE_IO_TYPE type; //for NodeIOViewer
+	//type ? regular, io, merger
 
-	NodeIO() : id(), itemId(), quantity() {}
-	NodeIO(int id) : id(id), itemId(), quantity() {}
-	NodeIO(int id, int itemId) : id(id), itemId(itemId), quantity() {}
-	NodeIO(int id, int itemId, float quantity) : id(id), itemId(itemId), quantity(quantity) {}
+	NodeIO() : id(), itemId(), quantity(), type(NODE_IO_TYPE::ITEM) {}
+	NodeIO(int id) : id(id), itemId(), quantity(), type(NODE_IO_TYPE::ITEM) {}
+	NodeIO(int id, int itemId) : id(id), itemId(itemId), quantity(), type(NODE_IO_TYPE::ITEM) {}
+	NodeIO(int id, int itemId, float quantity) : id(id), itemId(itemId), quantity(quantity), type(NODE_IO_TYPE::ITEM) {}
+	NodeIO(int id, int itemId, float quantity, NODE_IO_TYPE type) : id(id), itemId(itemId), quantity(quantity), type(type) {}
 	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), itemId(json.object_items().at("itemId").int_value()), quantity(json.object_items().at("quantity").number_value()) {}
+	//TODO save and load type 
 
 	int GetId() const {
 		return id;
@@ -66,19 +85,7 @@ struct NodeIOViewer {
 		return nodeIO->id;
 	}
 
-	void Draw() const {
-		if(isInput)
-			ImNodes::BeginInputAttribute(GetId());
-		else
-			ImNodes::BeginOutputAttribute(GetId());
-		const Item& item = dataBase->getItem(nodeIO->itemId);
-		ImGui::Text((item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity)).c_str());
-
-		if (isInput)
-			ImNodes::EndInputAttribute();
-		else
-			ImNodes::EndOutputAttribute();
-	}
+	void Draw();
 };
 
 // MODEL class
@@ -110,16 +117,22 @@ public:
 
 	void Update();
 
-	void changeState(const DataBase* dataBase, int stateChannel, int newState, int(*CreateId)());
+	void ChangeState(const DataBase* dataBase, int stateChannel, int newState, int(*CreateId)());
 
 	int GetId() const;
 	int GetMachineId() const;
 	float GetTime() const;
 	int GetState(int i) const;
 	int GetStateSize() const;
+	bool GetSpecial() const;
 
 	const std::vector<NodeIO>& GetInputs() const;
 	const std::vector<NodeIO>& GetOutputs() const;
+
+	void UpdateIO(int ioId, float newData);
+	void InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input);
+	void InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase);
+	//void InitNodeAsSplitter(const DataBase* dataBase);
 
 	void AddInputs(NodeIO nodeIO);
 	void AddOutputs(NodeIO nodeIO);
@@ -142,6 +155,17 @@ protected:
 
 	const DataBase* dataBase;
 	NodeUpdator* nodeUpdator;
+
+	void DrawMachine();
+	void DrawMachineTitle();
+	void DrawMachineContent();
+	void DrawMachineFooter();
+
+	void DrawInput();
+	void DrawInputTitle();
+	void DrawInputContent();
+
+	//void DrawSplitter();
 public:
 	NodeViewer(const Node* node, const DataBase* dataBase, NodeUpdator* nodeUpdator);
 	NodeViewer(const NodeViewer& nodeViewer, const Node* node);

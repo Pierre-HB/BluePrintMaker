@@ -283,23 +283,23 @@ static Machine createMAM(const DataBase* dataBase) {
 	std::vector<int> recipeId = std::vector<int>(dataBase->getNbRecipe());
 	for (int i = 0; i < recipeId.size(); i++)
 		recipeId[i] = i;
-	return Machine("MAM", 1, recipeId);
+	return Machine("MAM", 1, recipeId, MACHINE_TYPE::MACHINE_REGULAR);
 }
 
 static Machine createMerger() {
-	return Machine("Merger", 2, std::vector<int>());
+	return Machine("Merger", 2, std::vector<int>(), MACHINE_TYPE::MACHINE_MERGER);
 }
 
 static Machine createSplitter() {
-	return Machine("Splitter", 3, std::vector<int>());
+	return Machine("Splitter", 3, std::vector<int>(), MACHINE_TYPE::MACHINE_SPLITTER);
 }
 
 static Machine createInput() {
-	return Machine("Input", 4, std::vector<int>());
+	return Machine("Input", 4, std::vector<int>(), MACHINE_TYPE::MACHINE_INPUT);
 }
 
 static Machine createOutput() {
-	return Machine("Output", 5, std::vector<int>());
+	return Machine("Output", 5, std::vector<int>(), MACHINE_TYPE::MACHINE_OUTPUT);
 }
 
 void DataBase::addSpecialMachines() {
@@ -365,6 +365,7 @@ Machine::Machine(const json11::Json& json, const std::map<std::string, int>& rec
 	iconeId = readInt(json, "iconeId", "Machine");
 
 	recipiesId = readMap(json, recipyIdMap, "recipes", "Machine", "recipes");
+	type = MACHINE_TYPE::MACHINE_REGULAR;
 }
 
 Machine::Machine() {
@@ -372,7 +373,7 @@ Machine::Machine() {
 	iconeId = 0;
 }
 
-Machine::Machine(std::string name, int iconeId, std::vector<int> recipiesId) : name(name), iconeId(iconeId), recipiesId(recipiesId){
+Machine::Machine(std::string name, int iconeId, std::vector<int> recipiesId, MACHINE_TYPE type) : name(name), iconeId(iconeId), recipiesId(recipiesId), type(type){
 
 }
 

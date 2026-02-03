@@ -291,13 +291,13 @@ void BluePrint::Update() {
 	if (nodeCreateType != -1)
 		CreateNewNode(nodeCreateType);
 	
-	if (nodeUpdator->update()) {
+	if (nodeUpdator->updateNode()) {
 		Node* node = nodes[nodeUpdator->nodeId];
 		NodeViewer* nodeViewer = nodeViewers[nodeUpdator->nodeId];
 
 		Node* nodePrev = new Node(*node);//copy node
 		NodeViewer* nodeViewerPrev = new NodeViewer(*nodeViewer);//copy nodeViewer
-		node->changeState(dataBase, nodeUpdator->stateChannel, nodeUpdator->newState, CreateId);
+		node->ChangeState(dataBase, nodeUpdator->stateChannel, nodeUpdator->newState, CreateId);
 		if (nodeUpdator->stateChannel == 0)
 			nodeViewer->Reset();
 		

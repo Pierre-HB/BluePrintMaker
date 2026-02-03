@@ -3,6 +3,53 @@
 #include <utility>
 #include <iostream>
 
+void NodeIOViewer::Draw() {
+	if (isInput)
+		ImNodes::BeginInputAttribute(GetId());
+	else
+		ImNodes::BeginOutputAttribute(GetId());
+	const Item& item = dataBase->getItem(nodeIO->itemId);
+
+	//static bool guess = true;
+	bool guess;
+	int th = static_cast<int>(nodeIO->quantity);
+	switch (nodeIO->type)
+	{
+	case NODE_IO_TYPE::ITEM:
+		ImGui::Text((item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity)).c_str());
+		break;
+	case NODE_IO_TYPE::LOCK_IO:
+		guess = true;
+		
+		ImGui::Checkbox("Guess", &guess);
+		ImGui::BeginDisabled();		
+		ImGui::InputInt("##throuput", &th, 1, 10);
+		ImGui::EndDisabled();
+		ImGui::SameLine();
+		ImGui::Text((item.iconeString + " " + item.name).c_str());
+
+		if (!guess) {
+			//Need to create an updator
+		}
+		break;
+	case NODE_IO_TYPE::IO:
+		guess = false;
+		ImGui::Checkbox("Guess", &guess);
+		ImGui::InputInt("##throuput", &th, 1, 10);
+		ImGui::SameLine();
+		ImGui::Text((item.iconeString + " " + item.name).c_str());
+		break;
+	case NODE_IO_TYPE::SPLITTER:
+		IM_ASSERT(false && "TODO");
+	}
+
+	if (isInput)
+		ImNodes::EndInputAttribute();
+	else
+		ImNodes::EndOutputAttribute();
+}
+
+
 Node::Node() : id() {
 
 }
@@ -24,19 +71,45 @@ Node::Node(const Node& node, int(*CreateId)() ) : Node(node) {
 
 //create node from dataBase
 Node::Node(const DataBase* dataBase, int machineId, int(*CreateId)()) : machineId(machineId) {
-	if (dataBase->getMachine(machineId).recipiesId.size() == 0) {
+	const Machine& machine = dataBase->getMachine(machineId);
+	switch (machine.type)
+	{
+	
+	case MACHINE_REGULAR:
+		InitNodeAsRegular(CreateId, dataBase);
+		return;
+	case MACHINE_INPUT:
+		InitNodeAsIO(CreateId, dataBase, true);
+		return;
+	case MACHINE_OUTPUT:
+		InitNodeAsIO(CreateId, dataBase, false);
+		return;
+
+	case MACHINE_SPLITTER:
+	case MACHINE_MERGER:
+	case MACHINE_BLACKBOX:
+		IM_ASSERT(false && "TODO");
+	}
+	if (machine.recipiesId.size() == 0) {
 		//special machine : merger or sorter or input or output
 		id = CreateId();
 		specialNode = true;
+		InitNodeAsIO(CreateId, dataBase, true);
+		//Database need to create INPOUT archetype ?
+		//I whant 
+		//if dataBase->GetMachineNode() == REGULAR/INPUT/OUTPUT/SPLITTER
+
+		//IF input, create special IONode containing 'allItem' item
+		//can specified throuput of item (item/min) or lock this number
+		//NO recipe list, automatic item deduction
+		//No title/footer
+		//WIll lock 
 		return;
 	}
 	specialNode = false;
-	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(machineId).recipiesId[0]);
-
-	state = std::vector<int>(recipe.modifierCategoriesId.size(), 0);
-
+	state = std::vector<int>(1, 0);
 	id = CreateId();
-	changeState(dataBase, 0, 0, CreateId);
+	ChangeState(dataBase, 0, 0, CreateId);
 }
 
 //change all node parameter to mimic a targeted node. Don't change Node::id
@@ -69,7 +142,8 @@ void Node::Update() {
 	//TODO overide nodes if needed
 }
 
-void Node::changeState(const DataBase* dataBase, int stateChannel, int newState, int(*CreateId)()) {
+//changeNodeIOState ?
+void Node::ChangeState(const DataBase* dataBase, int stateChannel, int newState, int(*CreateId)()) {
 	state[stateChannel] = newState;
 	const Recipe& recipe = dataBase->getRecipe(dataBase->getMachine(machineId).recipiesId[state[0]]);
 	if (stateChannel == 0) {
@@ -139,12 +213,44 @@ int Node::GetStateSize() const {
 	return state.size();
 }
 
+bool Node::GetSpecial() const {
+	return specialNode;
+}
+
 const std::vector<NodeIO>& Node::GetInputs() const {
 	return inputs;
 }
 
 const std::vector<NodeIO>& Node::GetOutputs() const {
 	return outputs;
+}
+
+void Node::UpdateIO(int ioId, float newData) {
+	for (NodeIO& nodeIO : inputs)
+		if (nodeIO.GetId() == ioId)
+			nodeIO.quantity = newData;
+	for (NodeIO& nodeIO : outputs)
+		if (nodeIO.GetId() == ioId)
+			nodeIO.quantity = newData;
+}
+
+void Node::InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input) {
+	id = CreateId();
+	if(input)
+	{
+		outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::LOCK_IO));
+	}
+	else
+	{
+		inputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::LOCK_IO));
+	}
+}
+
+void Node::InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase) {
+	specialNode = false;
+	state = std::vector<int>(1, 0);
+	id = CreateId();
+	ChangeState(dataBase, 0, 0, CreateId);
 }
 
 void Node::AddInputs(NodeIO nodeIO) {
@@ -225,16 +331,17 @@ NodeViewer::NodeViewer(const NodeViewer& nodeViewer, const Node* node) : NodeVie
 
 // View, only draw data
 void NodeViewer::Draw() {
-	if (input_ref.size() != node->GetInputs().size() || output_ref.size() != node->GetOutputs().size())
-		Reset();
-	//TODO check also if recipe as change with same nb of inout/output
+	if (node->GetSpecial())
+		DrawInput();
+	else
+		DrawMachine();
+}
+
+void NodeViewer::DrawMachineTitle() {
+	ImNodes::BeginNodeTitleBar();
 
 	const Machine& machine = dataBase->getMachine(node->GetMachineId());
 	const Recipe& recipe = dataBase->getRecipe(machine.recipiesId[node->GetState(0)]);
-	ImNodes::BeginNode(GetId());
-	//TODO Draw Title
-	ImNodes::BeginNodeTitleBar();
-
 
 	int newRecipe = node->GetState(0);
 	if (ImGui::BeginCombo("##combo 1", machine.recipeNames[newRecipe].c_str(), ImGuiComboFlags_WidthFitPreview))
@@ -256,13 +363,13 @@ void NodeViewer::Draw() {
 		}
 	}
 
-	const int nbState = node->GetStateSize()-1;
+	const int nbState = node->GetStateSize() - 1;
 	for (int i = 0; i < nbState; i++) {
 		ImGui::SameLine();
 
-		int newState = node->GetState(i+1);
+		int newState = node->GetState(i + 1);
 		char comboName[16];
-		
+
 		sprintf(comboName, "##combo -%i", i);
 		if (ImGui::BeginCombo(comboName, recipe.modifierNames[i][newState].c_str(), ImGuiComboFlags_WidthFitPreview))
 		{
@@ -276,16 +383,18 @@ void NodeViewer::Draw() {
 					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndCombo();
-			if (newState != node->GetState(i+1)) {
+			if (newState != node->GetState(i + 1)) {
 				nodeUpdator->nodeId = node->GetId();
-				nodeUpdator->stateChannel = i+1;
+				nodeUpdator->stateChannel = i + 1;
 				nodeUpdator->newState = newState;
 			}
 		}
 	}
 
 	ImNodes::EndNodeTitleBar();
+}
 
+void NodeViewer::DrawMachineContent() {
 	float width_input = 0;
 	float width_output = 0;
 	float height_column = 0;
@@ -293,22 +402,39 @@ void NodeViewer::Draw() {
 
 	//g.Style.CellPadding.x
 
-	if (ImGui::BeginTable("table1", 2, ImGuiTableFlags_SizingFixedFit, size))
+
+	//ImGuiTableFlags_NoPadInnerX
+		//ImGuiTableFlags_SizingFixedFit
+	int nb_col = 2;
+	if (input_perm.size() + output_perm.size() == 1)
+		nb_col = 1;
+	if (ImGui::BeginTable("table1", nb_col, ImGuiTableFlags_NoPadInnerX, size))
 	{
 		for (int i = 0; i < std::max(input_perm.size(), output_perm.size()); i++) {
 			ImGui::TableNextRow();
 			if (input_perm.size() > i) {
 				ImGui::TableSetColumnIndex(0);
+				if(input_perm.size() == 1)
+					ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable, false);
 				input_ref[input_perm[i]].Draw();
+				if (input_perm.size() == 1)
+					ImNodes::PopAttributeFlag();
 
 				ImVec2 r = ImGui::GetItemRectSize();
 				width_input = std::max(width_input, r.x);
 				height_column = std::max(height_column, r.y);
 			}
 
-			if (output_ref.size() > i) {
-				ImGui::TableSetColumnIndex(1);
+			if (output_perm.size() > i) {
+				if(nb_col == 2)
+					ImGui::TableSetColumnIndex(1);
+				else
+					ImGui::TableSetColumnIndex(0);
+				if (output_perm.size() == 1)
+					ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable, false);
 				output_ref[output_perm[i]].Draw();
+				if (output_perm.size() == 1)
+					ImNodes::PopAttributeFlag();
 
 				ImVec2 r = ImGui::GetItemRectSize();
 				width_output = std::max(width_output, r.x);
@@ -319,14 +445,41 @@ void NodeViewer::Draw() {
 		}
 
 		ImGui::EndTable();
-		size = ImVec2(width_input + width_output+ ImGui::GetStyle().CellPadding.x, height_total);
+		size = ImVec2(width_input + width_output + ImGui::GetStyle().CellPadding.x, height_total);
 	}
+}
 
+void NodeViewer::DrawMachineFooter() {
 	ImNodes::BeginNodeFooter();
 	ImGui::Text(std::format("nb machines : {}  -  time : {}s", "?", node->GetTime()).c_str());
 	ImNodes::EndNodeFooter();
+}
 
-	ImNodes::EndNode();	
+void NodeViewer::DrawMachine() {
+	ImNodes::BeginNode(GetId());
+
+	DrawMachineTitle();
+	DrawMachineContent();
+	DrawMachineFooter();
+
+	ImNodes::EndNode();
+}
+
+void NodeViewer::DrawInput() {
+	ImNodes::BeginNode(GetId());
+
+	//DrawMachineTitle();
+	DrawMachineContent();
+
+	ImNodes::EndNode();
+}
+
+void NodeViewer::DrawInputTitle() {
+
+}
+
+void NodeViewer::DrawInputContent() {
+
 }
 
 static void swap(std::vector<int>& v, int index1, int index2) {
