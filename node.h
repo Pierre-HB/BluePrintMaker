@@ -7,14 +7,23 @@
 #include "data_base.h"
 #include <format>
 
+enum NODE_IO_TYPE {
+	ITEM,//regular item
+	IO,//io with throuput specified by the user
+	LOCK_IO,//io with guessed througput
+	SPLITTER,//splitter
+
+};
+
 //Node viwer will write states in this SHARED struct
 struct NodeUpdator {
+private:
 	int nodeId = -1;
 	int stateChannel = -1;
 	int newState = -1;
 	int nodeIOId = -1;
 	float data = -1;
-
+public:
 	void reset() {
 		nodeId = -1;
 		stateChannel = -1;
@@ -23,20 +32,74 @@ struct NodeUpdator {
 		data = -1;
 	}
 
-	bool updateNode() {
+	bool UpdateNode() const {
 		return nodeId != -1;
 	}
-	bool updateNodeIO() {
+	bool UpdateNodeIO() const {
 		return nodeIOId != -1;
 	}
-};
 
-enum NODE_IO_TYPE {
-	ITEM,//regular item
-	IO,//io with throuput specified by the user
-	LOCK_IO,//io with guessed througput
-	SPLITTER,//splitter
+	int GetNodeIOId() const {
+		return nodeIOId;
+	}
 
+	int GetNodeId() const {
+		return nodeId;
+	}
+
+	int GetNodeStateChannel() const {
+		return stateChannel;
+	}
+
+	int GetNodeNewState() const {
+		return newState;
+	}
+
+	float GetIOQuantity() const {
+		return data;
+	}
+
+	bool IsNodeIOLock() const {
+		return data == -3;//internal encoding
+	}
+
+	bool UpdateNodeIOQuantity() const {
+		return data >= 0;//internal encoding
+	}
+
+	bool UpdateNodeIOState() const {
+		return data < -1;//internal encoding
+	}
+
+	void SetNodeNewState(int _stateChannel, int _newState, int _nodeId) {
+		nodeId = _nodeId;
+		stateChannel = _stateChannel;
+		newState = _newState;
+		IM_ASSERT(nodeIOId == -1);
+	}
+
+	void SetNodeIOQuantity(float newData, int _nodeIOId) {
+		data = newData;
+		nodeIOId = _nodeIOId;
+		IM_ASSERT(nodeId == -1);
+		IM_ASSERT(newData >= 0);
+	}
+
+	void SetNodeIOState(NODE_IO_TYPE newType, int _nodeIOId) {
+		nodeIOId = _nodeIOId;
+		IM_ASSERT(nodeId == -1);
+		switch (newType)
+		{
+		case IO:
+			data = -2; //internal encoding
+			break;
+		case LOCK_IO:
+			data = -3;
+			break;
+		default:
+			IM_ASSERT(false && "TODO");
+		}
+	}
 };
 
 struct NodeIO {
@@ -76,8 +139,10 @@ struct NodeIOViewer {
 	const NodeIO* nodeIO;
 	bool isInput;
 	const DataBase* dataBase;
+	NodeUpdator* nodeUpdator;
 
-	NodeIOViewer(const NodeIO* nodeIO, bool isInput, const DataBase* dataBase) : nodeIO(nodeIO), isInput(isInput), dataBase(dataBase) {
+
+	NodeIOViewer(const NodeIO* nodeIO, bool isInput, const DataBase* dataBase, NodeUpdator* nodeUpdator) : nodeIO(nodeIO), isInput(isInput), dataBase(dataBase), nodeUpdator(nodeUpdator) {
 		std::cout << "create IOViewer : " << nodeIO->GetId() << std::endl;
 	}
 

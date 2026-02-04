@@ -11,8 +11,9 @@ void NodeIOViewer::Draw() {
 	const Item& item = dataBase->getItem(nodeIO->itemId);
 
 	//static bool guess = true;
-	bool guess;
-	int th = static_cast<int>(nodeIO->quantity);
+	static bool guess;//static memory slot for imgui input
+	static int tmp;
+	tmp = int(nodeIO->quantity);
 	switch (nodeIO->type)
 	{
 	case NODE_IO_TYPE::ITEM:
@@ -22,22 +23,28 @@ void NodeIOViewer::Draw() {
 		guess = true;
 		
 		ImGui::Checkbox("Guess", &guess);
-		ImGui::BeginDisabled();		
-		ImGui::InputInt("##throuput", &th, 1, 10);
+
+		ImGui::BeginDisabled();
+		ImGui::InputInt("##throuput", &tmp, 0, 0);
 		ImGui::EndDisabled();
 		ImGui::SameLine();
 		ImGui::Text((item.iconeString + " " + item.name).c_str());
 
-		if (!guess) {
-			//Need to create an updator
-		}
+		if (!guess)
+			nodeUpdator->SetNodeIOState(NODE_IO_TYPE::IO, nodeIO->GetId());
 		break;
 	case NODE_IO_TYPE::IO:
 		guess = false;
 		ImGui::Checkbox("Guess", &guess);
-		ImGui::InputInt("##throuput", &th, 1, 10);
+		ImGui::InputInt("##throuput", &tmp, 0, 0);
+
+		if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
+			nodeUpdator->SetNodeIOQuantity(tmp, nodeIO->GetId());
+		
 		ImGui::SameLine();
 		ImGui::Text((item.iconeString + " " + item.name).c_str());
+		if (guess)
+			nodeUpdator->SetNodeIOState(NODE_IO_TYPE::LOCK_IO, nodeIO->GetId());
 		break;
 	case NODE_IO_TYPE::SPLITTER:
 		IM_ASSERT(false && "TODO");
@@ -238,7 +245,8 @@ void Node::InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input) 
 	id = CreateId();
 	if(input)
 	{
-		outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::LOCK_IO));
+		//outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::LOCK_IO));
+		outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::IO));
 	}
 	else
 	{
@@ -321,10 +329,10 @@ NodeViewer::NodeViewer(const NodeViewer& nodeViewer, const Node* node) : NodeVie
 	output_ref.clear();
 
 	for (const NodeIO& nodeInput : node->GetInputs())
-		input_ref.push_back(NodeIOViewer(&nodeInput, true, nodeViewer.dataBase));
+		input_ref.push_back(NodeIOViewer(&nodeInput, true, nodeViewer.dataBase, nodeViewer.nodeUpdator));
 
 	for (const NodeIO& nodeOutput : node->GetOutputs())
-		output_ref.push_back(NodeIOViewer(&nodeOutput, false, nodeViewer.dataBase));
+		output_ref.push_back(NodeIOViewer(&nodeOutput, false, nodeViewer.dataBase, nodeViewer.nodeUpdator));
 
 	//Reset();
 }
@@ -356,11 +364,8 @@ void NodeViewer::DrawMachineTitle() {
 				ImGui::SetItemDefaultFocus();
 		}
 		ImGui::EndCombo();
-		if (newRecipe != node->GetState(0)) {
-			nodeUpdator->nodeId = node->GetId();
-			nodeUpdator->stateChannel = 0;
-			nodeUpdator->newState = newRecipe;
-		}
+		if (newRecipe != node->GetState(0)) 
+			nodeUpdator->SetNodeNewState(0, newRecipe, node->GetId());
 	}
 
 	const int nbState = node->GetStateSize() - 1;
@@ -383,11 +388,8 @@ void NodeViewer::DrawMachineTitle() {
 					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndCombo();
-			if (newState != node->GetState(i + 1)) {
-				nodeUpdator->nodeId = node->GetId();
-				nodeUpdator->stateChannel = i + 1;
-				nodeUpdator->newState = newState;
-			}
+			if (newState != node->GetState(i + 1))
+				nodeUpdator->SetNodeNewState(i+1, newState, node->GetId());
 		}
 	}
 
@@ -538,12 +540,12 @@ void NodeViewer::Reset() {
 
 	for (int i = 0; i < nodeInput.size(); i++) {
 		input_perm.push_back(i);
-		input_ref.push_back(NodeIOViewer(&nodeInput[i], true, dataBase));
+		input_ref.push_back(NodeIOViewer(&nodeInput[i], true, dataBase, nodeUpdator));
 	}
 
 	for (int i = 0; i < nodeOutput.size(); i++) {
 		output_perm.push_back(i);
-		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false, dataBase));
+		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false, dataBase, nodeUpdator));
 	}
 }
 
@@ -597,7 +599,7 @@ NodeViewer::NodeViewer(std::map<int, Node*>& nodes, const json11::Json& json, co
 	const std::vector<NodeIO>& nodeInput = node->GetInputs();
 	const std::vector<NodeIO>& nodeOutput = node->GetOutputs();
 	for (int i = 0; i < nodeInput.size(); i++)
-		input_ref.push_back(NodeIOViewer(&nodeInput[i], true, dataBase));
+		input_ref.push_back(NodeIOViewer(&nodeInput[i], true, dataBase, nodeUpdator));
 	for (int i = 0; i < nodeOutput.size(); i++)
-		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false, dataBase));
+		output_ref.push_back(NodeIOViewer(&nodeOutput[i], false, dataBase, nodeUpdator));
 }

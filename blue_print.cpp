@@ -291,14 +291,14 @@ void BluePrint::Update() {
 	if (nodeCreateType != -1)
 		CreateNewNode(nodeCreateType);
 	
-	if (nodeUpdator->updateNode()) {
-		Node* node = nodes[nodeUpdator->nodeId];
-		NodeViewer* nodeViewer = nodeViewers[nodeUpdator->nodeId];
+	if (nodeUpdator->UpdateNode()) {
+		Node* node = nodes[nodeUpdator->GetNodeId()];
+		NodeViewer* nodeViewer = nodeViewers[nodeUpdator->GetNodeId()];
 
 		Node* nodePrev = new Node(*node);//copy node
 		NodeViewer* nodeViewerPrev = new NodeViewer(*nodeViewer);//copy nodeViewer
-		node->ChangeState(dataBase, nodeUpdator->stateChannel, nodeUpdator->newState, CreateId);
-		if (nodeUpdator->stateChannel == 0)
+		node->ChangeState(dataBase, nodeUpdator->GetNodeStateChannel(), nodeUpdator->GetNodeNewState(), CreateId);
+		if (nodeUpdator->GetNodeStateChannel() == 0)
 			nodeViewer->Reset();
 		
 		nodeUpdator->reset();
@@ -308,6 +308,23 @@ void BluePrint::Update() {
 		int eventId = CreateId();
 		graphEvents.push(GraphEvent(eventId, NODE_UPDATE, nodePrev, nodeNext, nodeViewerPrev, nodeViewerNext)); //copy node by passing it's referrence
 		ImNodes::PushEvent(eventId);
+	}
+
+	if (nodeUpdator->UpdateNodeIO()) {
+		if (nodeUpdator->UpdateNodeIOQuantity()) {
+			std::cout << "TODO set nodeIO quantity to " << nodeUpdator->GetIOQuantity() << " (" << nodeUpdator->GetNodeIOId() << ")" << std::endl;
+		}
+		else {//update state
+			if (nodeUpdator->IsNodeIOLock()) {//lock nodeIO
+				std::cout << "TODO lock nodeIO  (" << nodeUpdator->GetNodeIOId() << ")" << std::endl;
+			}
+			else {//Unlock NodeIO
+				std::cout << "TODO unlock (" << nodeUpdator->GetNodeIOId() << ")" << std::endl;
+			}
+
+		}
+		nodeUpdator->reset();
+		//TODO push event on stack
 	}
 
 	/*if (linkUpdator->update()) {
