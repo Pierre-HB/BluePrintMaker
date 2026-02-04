@@ -8,12 +8,14 @@
 #include <format>
 
 enum NODE_IO_TYPE {
-	ITEM,//regular item
-	IO,//io with throuput specified by the user
-	LOCK_IO,//io with guessed througput
-	SPLITTER,//splitter
-
+	ITEM=0,//regular item
+	IO=1,//io with throuput specified by the user
+	LOCK_IO=2,//io with guessed througput
+	SPLITTER=3//splitter
 };
+
+NODE_IO_TYPE int2NodeIOType(int i);
+
 
 //Node viwer will write states in this SHARED struct
 struct NodeUpdator {
@@ -118,7 +120,7 @@ struct NodeIO {
 	NodeIO(int id, int itemId) : id(id), itemId(itemId), quantity(), type(NODE_IO_TYPE::ITEM) {}
 	NodeIO(int id, int itemId, float quantity) : id(id), itemId(itemId), quantity(quantity), type(NODE_IO_TYPE::ITEM) {}
 	NodeIO(int id, int itemId, float quantity, NODE_IO_TYPE type) : id(id), itemId(itemId), quantity(quantity), type(type) {}
-	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), itemId(json.object_items().at("itemId").int_value()), quantity(json.object_items().at("quantity").number_value()) {}
+	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), itemId(json.object_items().at("itemId").int_value()), quantity(json.object_items().at("quantity").number_value()), type(int2NodeIOType(json.object_items().at("type").int_value() )){}
 	//TODO save and load type 
 
 	int GetId() const {
@@ -131,7 +133,13 @@ struct NodeIO {
 	}
 
 	json11::Json ToJson() const {
-		return json11::Json({ {"id", id}, {"itemId", itemId}, {"quantity", quantity}});
+		return json11::Json({ {"id", id}, {"itemId", itemId}, {"quantity", quantity}, {"type", type} });
+	}
+
+	void Overide(const NodeIO& nodeIO) {
+		itemId = nodeIO.itemId;
+		quantity = nodeIO.quantity;
+		type = nodeIO.type;
 	}
 };
 
@@ -194,7 +202,8 @@ public:
 	const std::vector<NodeIO>& GetInputs() const;
 	const std::vector<NodeIO>& GetOutputs() const;
 
-	void UpdateIO(int ioId, float newData);
+	void UpdateNodeIOData(int ioId, float newData);
+	void UpdateNodeIOType(int ioId, NODE_IO_TYPE type);
 	void InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input);
 	void InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase);
 	//void InitNodeAsSplitter(const DataBase* dataBase);

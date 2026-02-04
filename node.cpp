@@ -3,6 +3,10 @@
 #include <utility>
 #include <iostream>
 
+NODE_IO_TYPE int2NodeIOType(int i){
+	static const NODE_IO_TYPE types[4] = { ITEM , IO , LOCK_IO , SPLITTER };
+	return types[i];
+}
 void NodeIOViewer::Draw() {
 	if (isInput)
 		ImNodes::BeginInputAttribute(GetId());
@@ -127,8 +131,13 @@ void Node::Overide(const Node& node, int(*CreateId)()) {
 }
 //change all node parameter to mimic a targeted node. Don't change Node::id or NodeIO::id
 void Node::Overide(const Node& node) {
-	inputs = std::vector<NodeIO>(node.GetInputs());
-	outputs = std::vector<NodeIO>(node.GetOutputs());
+	for (int i = 0; i < inputs.size(); i++)
+		inputs[i].Overide(node.inputs[i]);
+	for (int i = 0; i < outputs.size(); i++)
+		outputs[i].Overide(node.outputs[i]);
+
+	//inputs = std::vector<NodeIO>(node.GetInputs());
+	//outputs = std::vector<NodeIO>(node.GetOutputs());
 	machineId = node.machineId;
 	time = node.time;
 	idlePower = node.idlePower;
@@ -232,13 +241,22 @@ const std::vector<NodeIO>& Node::GetOutputs() const {
 	return outputs;
 }
 
-void Node::UpdateIO(int ioId, float newData) {
+void Node::UpdateNodeIOData(int nodeIOId, float newData) {
 	for (NodeIO& nodeIO : inputs)
-		if (nodeIO.GetId() == ioId)
+		if (nodeIO.GetId() == nodeIOId)
 			nodeIO.quantity = newData;
 	for (NodeIO& nodeIO : outputs)
-		if (nodeIO.GetId() == ioId)
+		if (nodeIO.GetId() == nodeIOId)
 			nodeIO.quantity = newData;
+}
+
+void Node::UpdateNodeIOType(int nodeIOId, NODE_IO_TYPE type) {
+	for (NodeIO& nodeIO : inputs)
+		if (nodeIO.GetId() == nodeIOId)
+			nodeIO.type = type;
+	for (NodeIO& nodeIO : outputs)
+		if (nodeIO.GetId() == nodeIOId)
+			nodeIO.type = type;
 }
 
 void Node::InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input) {

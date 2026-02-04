@@ -16,6 +16,11 @@ GraphEvent::GraphEvent(int id, GraphEventType type, Node* nodePrev, Node* nodeNe
 	nodeViewerDatas.push_back(nodeViewerNext);
 }
 
+GraphEvent::GraphEvent(int id, GraphEventType type, Node* nodePrev, Node* nodeNext) : id(id), type(type), targetedId(-1) {
+	nodeDatas.push_back(nodePrev);
+	nodeDatas.push_back(nodeNext);
+}
+
 GraphEvent::GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* nodeViewer) : id(id), type(type), targetedId(-1) {
 	nodeDatas.push_back(node);
 	nodeViewerDatas.push_back(nodeViewer);

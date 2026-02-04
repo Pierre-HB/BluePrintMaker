@@ -311,20 +311,28 @@ void BluePrint::Update() {
 	}
 
 	if (nodeUpdator->UpdateNodeIO()) {
+		//NodeIO& nodeIO;
+		int nodeId = findNodeContainingAttr(nodeUpdator->GetNodeIOId(), nodes);
+		Node* nodePrev = new Node(*nodes[nodeId]);
+		
 		if (nodeUpdator->UpdateNodeIOQuantity()) {
-			std::cout << "TODO set nodeIO quantity to " << nodeUpdator->GetIOQuantity() << " (" << nodeUpdator->GetNodeIOId() << ")" << std::endl;
+			nodes[nodeId]->UpdateNodeIOData(nodeUpdator->GetNodeIOId(), nodeUpdator->GetIOQuantity());
 		}
 		else {//update state
 			if (nodeUpdator->IsNodeIOLock()) {//lock nodeIO
-				std::cout << "TODO lock nodeIO  (" << nodeUpdator->GetNodeIOId() << ")" << std::endl;
+				nodes[nodeId]->UpdateNodeIOType(nodeUpdator->GetNodeIOId(), NODE_IO_TYPE::LOCK_IO);
 			}
 			else {//Unlock NodeIO
-				std::cout << "TODO unlock (" << nodeUpdator->GetNodeIOId() << ")" << std::endl;
+				nodes[nodeId]->UpdateNodeIOType(nodeUpdator->GetNodeIOId(), NODE_IO_TYPE::IO);
 			}
 
 		}
 		nodeUpdator->reset();
-		//TODO push event on stack
+		Node* nodeNext = new Node(*nodes[nodeId]);
+
+		int eventId = CreateId();
+		graphEvents.push(GraphEvent(eventId, NODE_IO_UPDATE, nodePrev, nodeNext)); //copy node by passing it's referrence
+		ImNodes::PushEvent(eventId);
 	}
 
 	/*if (linkUpdator->update()) {
@@ -446,6 +454,11 @@ void BluePrint::Update() {
 
 				break;
 			}
+			case NODE_IO_UPDATE:
+			{
+				nodes[dest->nodeDatas[0]->GetId()]->Overide(*dest->nodeDatas[0]);
+				break;
+			}
 			default:
 				assert(false);
 				break;
@@ -492,6 +505,11 @@ void BluePrint::Update() {
 				delete nodeViewers[dest->nodeDatas[1]->GetId()];
 				nodeViewers[dest->nodeDatas[1]->GetId()] = new NodeViewer(*dest->nodeViewerDatas[1], nodes[dest->nodeDatas[1]->GetId()]);
 
+				break;
+			}
+			case NODE_IO_UPDATE:
+			{
+				nodes[dest->nodeDatas[1]->GetId()]->Overide(*dest->nodeDatas[1]);
 				break;
 			}
 			default:

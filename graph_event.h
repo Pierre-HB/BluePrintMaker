@@ -9,6 +9,7 @@ enum GraphEventType {
 	DESTRUCTION,
 	ATTRIUTE_SWAP,
 	NODE_UPDATE,
+	NODE_IO_UPDATE,
 	NONE
 };
 
@@ -44,8 +45,11 @@ struct GraphEvent {
 	// create a GraphEvent by coping the state of a Link and a LinkViewer
 	GraphEvent(int id, GraphEventType type, const Link& link, const LinkViewer& linkViewer);
 
-	// create a GraphEvent by stealing the state of a Node
+	// create a GraphEvent by stealing the state of a Node and it's viewer
 	GraphEvent(int id, GraphEventType type, Node* nodePrev, Node* nodeNext, NodeViewer* nodeViewerPrev, NodeViewer* nodeViewerNext);
+
+	// create a GraphEvent by stealing the state of a Node
+	GraphEvent(int id, GraphEventType type, Node* nodePrev, Node* nodeNext);
 
 	// create a GraphEvent by stealing the state of a Node and a NodeViewer
 	GraphEvent(int id, GraphEventType type, Node* node, NodeViewer* nodeViewer);
