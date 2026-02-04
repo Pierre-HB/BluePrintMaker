@@ -283,28 +283,28 @@ static Machine createMAM(const DataBase* dataBase) {
 	std::vector<int> recipeId = std::vector<int>(dataBase->getNbRecipe());
 	for (int i = 0; i < recipeId.size(); i++)
 		recipeId[i] = i;
-	return Machine("MAM", 1, recipeId, MACHINE_TYPE::MACHINE_REGULAR);
+	return Machine("MAM", 0, recipeId, MACHINE_TYPE::MACHINE_REGULAR);
 }
 
 static Machine createMerger() {
-	return Machine("Merger", 2, std::vector<int>(), MACHINE_TYPE::MACHINE_MERGER);
+	return Machine("Merger", 0, std::vector<int>(), MACHINE_TYPE::MACHINE_MERGER);
 }
 
 static Machine createSplitter() {
-	return Machine("Splitter", 3, std::vector<int>(), MACHINE_TYPE::MACHINE_SPLITTER);
+	return Machine("Splitter", 0, std::vector<int>(), MACHINE_TYPE::MACHINE_SPLITTER);
 }
 
 static Machine createInput() {
-	return Machine("Input", 4, std::vector<int>(), MACHINE_TYPE::MACHINE_INPUT);
+	return Machine("Input", 0, std::vector<int>(), MACHINE_TYPE::MACHINE_INPUT);
 }
 
 static Machine createOutput() {
-	return Machine("Output", 5, std::vector<int>(), MACHINE_TYPE::MACHINE_OUTPUT);
+	return Machine("Output", 0, std::vector<int>(), MACHINE_TYPE::MACHINE_OUTPUT);
 }
 
 void DataBase::addSpecialMachines() {
 	machines.push_back(createMAM(this));
-	machines.push_back(createMerger());
+	//machines.push_back(createMerger());
 	machines.push_back(createSplitter());
 	machines.push_back(createInput());
 	machines.push_back(createOutput());

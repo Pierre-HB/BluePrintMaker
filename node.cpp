@@ -7,6 +7,7 @@ NODE_IO_TYPE int2NodeIOType(int i){
 	static const NODE_IO_TYPE types[4] = { ITEM , IO , LOCK_IO , SPLITTER };
 	return types[i];
 }
+
 void NodeIOViewer::Draw() {
 	if (isInput)
 		ImNodes::BeginInputAttribute(GetId());
@@ -263,8 +264,8 @@ void Node::InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input) 
 	id = CreateId();
 	if(input)
 	{
-		//outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::LOCK_IO));
-		outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::IO));
+		outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::LOCK_IO));
+		//outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::IO));
 	}
 	else
 	{
@@ -272,6 +273,12 @@ void Node::InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input) 
 	}
 }
 
+void Node::InitNodeAsSplitter(int(*CreateId)(), const DataBase* dataBase) {
+	id = CreateId();
+	inputs.push_back(NodeIO(CreateId(), 0, 0.5, NODE_IO_TYPE::SPLITTER));
+	outputs.push_back(NodeIO(CreateId(), 0, 0.5, NODE_IO_TYPE::SPLITTER));
+	outputs.push_back(NodeIO(CreateId(), 0, 0.5, NODE_IO_TYPE::SPLITTER));
+}
 void Node::InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase) {
 	specialNode = false;
 	state = std::vector<int>(1, 0);

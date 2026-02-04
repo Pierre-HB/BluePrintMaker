@@ -206,7 +206,7 @@ public:
 	void UpdateNodeIOType(int ioId, NODE_IO_TYPE type);
 	void InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input);
 	void InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase);
-	//void InitNodeAsSplitter(const DataBase* dataBase);
+	void InitNodeAsSplitter(int(*CreateId)(), const DataBase* dataBase);
 
 	void AddInputs(NodeIO nodeIO);
 	void AddOutputs(NodeIO nodeIO);
