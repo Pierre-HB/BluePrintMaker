@@ -74,6 +74,12 @@ void GraphEvent::Push_Node(Node* node, NodeViewer* nodeViewer) {
 	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node->GetId()));
 }
 
+void GraphEvent::Push_Node(const Node& node, const NodeViewer& nodeViewer) {
+	nodeDatas.push_back(new Node(node));
+	nodeViewerDatas.push_back(new NodeViewer(nodeViewer));
+	nodeImNodesDatas.push_back(ImNodes::GetNodeData(node.GetId()));
+}
+
 void GraphEvent::Push_NodeViewer(const NodeViewer& nodeViewer) {
 	assert(type == ATTRIUTE_SWAP);
 	assert(nodeViewerDatas.size() == 1);

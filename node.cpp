@@ -19,10 +19,21 @@ void NodeIOViewer::Draw() {
 	static bool guess;//static memory slot for imgui input
 	static int tmp;
 	tmp = int(nodeIO->quantity);
+	std::string truc;
 	switch (nodeIO->type)
 	{
 	case NODE_IO_TYPE::ITEM:
-		ImGui::Text((item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity)).c_str());
+		//ImGui::Text((item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity)).c_str());
+		truc = (item.name + std::format(" {}", nodeIO->quantity));
+		//truc = (item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity));
+		ImGui::Text(item.iconeString.c_str());
+		ImGui::SameLine();
+		ImGui::Text(truc.c_str());
+		ImGui::SameLine();
+		ImGui::Text(std::format(" {}", nodeIO->quantity).c_str());
+		ImGui::SameLine();
+		ImGui::Text("hduis");
+		//std::cout << "write : " << (item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity)) << std::endl;
 		break;
 	case NODE_IO_TYPE::LOCK_IO:
 		guess = true;

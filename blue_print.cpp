@@ -256,6 +256,18 @@ void BluePrint::DeleteLinks(const std::vector<int>& linkIds, GraphEvent* Event) 
 	}
 }
 
+void BluePrint::DeleteLinkedLink(int nodeId, GraphEvent* Event) {
+
+	std::vector<int> linkToDelete = std::vector<int>();
+	for (const auto& [linkId, link] : links) {
+		if (link->GetNodeInputId() == nodeId || link->GetNodeOutputId() == nodeId) {
+			linkToDelete.push_back(linkId);
+		}
+	}
+
+	DeleteLinks(linkToDelete, Event);
+}
+
 void BluePrint::DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event) {
 	//TODO delete assosciated links
 	
@@ -292,21 +304,23 @@ void BluePrint::Update() {
 		CreateNewNode(nodeCreateType);
 	
 	if (nodeUpdator->UpdateNode()) {
+		int eventId = CreateId();
+		GraphEvent Event(eventId, NODE_UPDATE);
+
 		Node* node = nodes[nodeUpdator->GetNodeId()];
 		NodeViewer* nodeViewer = nodeViewers[nodeUpdator->GetNodeId()];
 
-		Node* nodePrev = new Node(*node);//copy node
-		NodeViewer* nodeViewerPrev = new NodeViewer(*nodeViewer);//copy nodeViewer
+		Event.Push_Node(*node, *nodeViewer);
 		node->ChangeState(dataBase, nodeUpdator->GetNodeStateChannel(), nodeUpdator->GetNodeNewState(), CreateId);
 		if (nodeUpdator->GetNodeStateChannel() == 0)
+		{
 			nodeViewer->Reset();
+			DeleteLinkedLink(node->GetId(), &Event);
+		}
 		
 		nodeUpdator->reset();
-		Node* nodeNext = new Node(*node);//copy node
-		NodeViewer* nodeViewerNext = new NodeViewer(*nodeViewer);//copy nodeViewer
-
-		int eventId = CreateId();
-		graphEvents.push(GraphEvent(eventId, NODE_UPDATE, nodePrev, nodeNext, nodeViewerPrev, nodeViewerNext)); //copy node by passing it's referrence
+		Event.Push_Node(*node, *nodeViewer);
+		graphEvents.push(std::move(Event)); //copy node by passing it's referrence
 		ImNodes::PushEvent(eventId);
 	}
 
@@ -454,6 +468,10 @@ void BluePrint::Update() {
 				delete nodeViewers[dest->nodeDatas[0]->GetId()];
 				nodeViewers[dest->nodeDatas[0]->GetId()] = new NodeViewer(*dest->nodeViewerDatas[0], nodes[dest->nodeDatas[0]->GetId()]);
 
+				for (int i = 0; i < dest->linkDatas.size(); i++) {
+					CreateLink(dest->linkDatas[i], dest->linkViewerDatas[i], dest->linkImNodesDatas[i]);
+				}
+
 				break;
 			}
 			case NODE_IO_UPDATE:
@@ -506,7 +524,8 @@ void BluePrint::Update() {
 
 				delete nodeViewers[dest->nodeDatas[1]->GetId()];
 				nodeViewers[dest->nodeDatas[1]->GetId()] = new NodeViewer(*dest->nodeViewerDatas[1], nodes[dest->nodeDatas[1]->GetId()]);
-
+				if (dest->linkDatas.size() > 0)
+					DeleteLinks(ExtractIds(dest->linkDatas));
 				break;
 			}
 			case NODE_IO_UPDATE:

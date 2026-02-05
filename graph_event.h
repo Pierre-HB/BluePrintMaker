@@ -82,6 +82,9 @@ struct GraphEvent {
 	//Steal a Node and a NodeViewer and put them in the event
 	void Push_Node(Node* node, NodeViewer* nodeViewer);
 
+	//Copy a Node and a NodeViewer and put them in the event
+	void Push_Node(const Node& node, const NodeViewer& nodeViewer);
+
 	//Steal a Link and a LinkViewer and put them in the event
 	void Push_Link(Link* link, LinkViewer* linkViewer);
 

@@ -92,6 +92,7 @@ public:
 	int CreateNewLink(int input_attr_id, int output_attr_id);
 	int CreateNode(Node* node, NodeViewer* nodeViewer, ImNodeData* nodeData);
 	int CreateLink(Link* link, LinkViewer* linkViewer, ImLinkData* linkData);
+	void DeleteLinkedLink(int nodeId, GraphEvent* Event);
 	void DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event = nullptr);
 	void DeleteLinks(const std::vector<int>& linkIds, GraphEvent* Event = nullptr);
 
