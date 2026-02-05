@@ -28,8 +28,10 @@ void NodeIOViewer::Draw() {
 		guess = true;
 		
 		ImGui::Checkbox("Guess", &guess);
+		ImGui::SameLine();
 
 		ImGui::BeginDisabled();
+		ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
 		ImGui::InputInt("##throuput", &tmp, 0, 0);
 		ImGui::EndDisabled();
 		ImGui::SameLine();
@@ -41,6 +43,8 @@ void NodeIOViewer::Draw() {
 	case NODE_IO_TYPE::IO:
 		guess = false;
 		ImGui::Checkbox("Guess", &guess);
+		ImGui::SameLine();
+		ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
 		ImGui::InputInt("##throuput", &tmp, 0, 0);
 
 		if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
@@ -53,6 +57,7 @@ void NodeIOViewer::Draw() {
 		break;
 	case NODE_IO_TYPE::SPLITTER:
 		if (!isInput) {
+			ImNodes::SetNextItemWidth(45);
 			ImGui::InputInt("##percentage", &tmp, 0, 0);
 			if (tmp < 0)
 				tmp = 0;
@@ -524,6 +529,7 @@ void NodeViewer::DrawInput() {
 	ImNodes::BeginNode(GetId());
 
 	//DrawMachineTitle();
+	//ImNodes::NoNodeTitleBar();
 	DrawMachineContent();
 
 	ImNodes::EndNode();

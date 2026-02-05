@@ -1709,6 +1709,42 @@ ImVec2 SnapOriginToGrid(ImVec2 origin)
     return origin;
 }
 
+ImRect SnapNodeSizeToGrid(ImRect rect)
+{
+    if (GImNodes->Style.Flags & ImNodesStyleFlags_NodeSizeGridSnapping)
+    {
+        const ImNodesEditorContext& editor = EditorContextGet();
+        ImVec2 maxEditorSpace = rect.Max;
+        ImVec2 maxGridSpace = EditorSpaceToGridSpace(editor, maxEditorSpace);
+
+        const float spacing = GImNodes->Style.GridSpacing;
+        maxGridSpace.x += spacing - fmodf(maxGridSpace.x, spacing);
+        maxGridSpace.y += spacing - fmodf(maxGridSpace.y, spacing);
+
+        rect.Max = GridSpaceToEditorSpace(editor, maxGridSpace);
+    }
+
+    return rect;
+}
+
+ImVec2 SnapCorsorToGrid(ImVec2 cursor)
+{
+    if (GImNodes->Style.Flags & ImNodesStyleFlags_NodeSizeGridSnapping)
+    {
+        const ImNodesEditorContext& editor = EditorContextGet();
+        ImVec2 maxEditorSpace = cursor;
+        ImVec2 maxGridSpace = EditorSpaceToGridSpace(editor, maxEditorSpace);
+
+        const float spacing = GImNodes->Style.GridSpacing;
+        maxGridSpace.x += spacing - fmodf(maxGridSpace.x, spacing);
+        maxGridSpace.y += spacing - fmodf(maxGridSpace.y, spacing);
+
+        cursor = GridSpaceToEditorSpace(editor, maxGridSpace);
+    }
+
+    return cursor;
+}
+
 void TranslateSelectedNodes(ImNodesEditorContext& editor)
 {
     if (editor.current_event.Event == -1) {
@@ -2594,7 +2630,12 @@ inline ImVec2 GetNodeContentOrigin(const ImNodeData& node)
     const ImNodesEditorContext& editor = EditorContextGet();
     const ImVec2 title_bar_height =
         ImVec2(0.f, node.TitleBarContentRect.GetHeight() + 2.0f * node.LayoutStyle.Padding.y * editor.Zoom);
-    return GridSpaceToEditorSpace(editor, node.Origin) + title_bar_height + node.LayoutStyle.Padding*editor.Zoom;
+
+    ImVec2 editorSpace = GridSpaceToEditorSpace(editor, node.Origin) + title_bar_height + node.LayoutStyle.Padding * editor.Zoom;
+    ImVec2 gridSpace = EditorSpaceToGridSpace(editor, editorSpace);
+    gridSpace = SnapOriginToGrid(gridSpace);
+    editorSpace.y = GridSpaceToEditorSpace(editor, gridSpace).y;
+    return editorSpace;
 }
 
 inline ImVec2 GetNodeFooterEnd(const ImNodeData& node)
@@ -2706,7 +2747,7 @@ TriangleOffsets CalculateTriangleOffsets(const float side_length)
 
 void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_color)
 {
-    
+
     const ImNodesEditorContext& editor = EditorContextGet();
     int CIRCLE_NUM_SEGMENTS = 8*editor.Zoom;
     switch (pin.Shape)
@@ -3019,7 +3060,12 @@ void BeginPinAttribute(
     GImNodes->CurrentScope = ImNodesScope_Attribute;
 
     BeginSwappableAttribute();
-
+    if(GImNodes->Style.Flags & ImNodesStyleFlags_AttrGridSnapping)
+    {
+        ImVec2 cursor = ImGui::GetCursorPos();
+        cursor.y = SnapCorsorToGrid(cursor).y;
+        ImGui::SetCursorPos(cursor);
+    }
     ImGui::BeginGroup();
     ImGui::PushID(id);
 
@@ -3057,6 +3103,13 @@ void EndPinAttribute()
     ImPinData&            pin = editor.Pins.Pool[GImNodes->CurrentPinIdx];
     ImNodeData&           node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
     pin.AttributeRect = GetItemRect();
+    if (GImNodes->Style.Flags & ImNodesStyleFlags_AttrGridSnapping)
+    {
+        pin.AttributeRect = SnapNodeSizeToGrid(pin.AttributeRect);
+        ImVec2 cursor = ImGui::GetCursorPos();
+        cursor.y = SnapCorsorToGrid(cursor).y;
+        ImGui::SetCursorPos(cursor);
+    }    
     node.PinIndices.push_back(GImNodes->CurrentPinIdx);
 
     EndSwappableAttribute();
@@ -3671,7 +3724,7 @@ void StyleColorsBluePrint(ImNodesStyle* dest)
 
     dest->LinkCreationType = ImNodesLinkType_Sloped;
     dest->NodeBorderThickness = 2.0f;
-    dest->Flags |= ImNodesStyleFlags_AttributeSwappable | ImNodesStyleFlags_GridSnapping;
+    dest->Flags |= ImNodesStyleFlags_AttributeSwappable | ImNodesStyleFlags_GridSnapping | ImNodesStyleFlags_NodeSizeGridSnapping | ImNodesStyleFlags_AttrGridSnapping;
 
     dest->Colors[ImNodesCol_GridBackground] = IM_COL32(5, 69, 141, 255);
     dest->Colors[ImNodesCol_GridLine] = IM_COL32(32, 109, 177, 255);
@@ -4138,7 +4191,7 @@ void BeginNode(const int node_id)
     // (in this case, the child object started in BeginNodeEditor). Use
     // ImGui::SetCursorScreenPos to set the screen space coordinates directly.
     ImGui::SetCursorPos(GridSpaceToEditorSpace(editor, GetNodeTitleBarOrigin(node)));
-
+    
     DrawListAddNode(node_idx);
     DrawListActivateCurrentNodeForeground();
 
@@ -4159,6 +4212,7 @@ void EndNode()
 
     ImNodeData& node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
     node.Rect = GetItemRect();
+    node.Rect = SnapNodeSizeToGrid(node.Rect);
     node.Rect.Expand(node.LayoutStyle.Padding*editor.Zoom);
 
     editor.GridContentBounds.Add(node.Origin);
@@ -4204,6 +4258,7 @@ void EndNodeTitleBar()
     ImNodesEditorContext& editor = EditorContextGet();
     ImNodeData& node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
     node.TitleBarContentRect = GetItemRect();
+    node.TitleBarContentRect = SnapNodeSizeToGrid(node.TitleBarContentRect);
     //ImGui::ItemAdd(GetNodeTitleRect(node), ImGui::GetID("title_bar"));
 
     ImGui::SetCursorPos(GetNodeContentOrigin(node));
@@ -4217,6 +4272,7 @@ void EndNodeFooter()
     ImNodesEditorContext& editor = EditorContextGet();
     ImNodeData& node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
     node.FooterContentRect = GetItemRect();
+    node.FooterContentRect = SnapNodeSizeToGrid(node.FooterContentRect);
 }
 
 void BeginInputAttribute(const int id, const ImNodesPinShape shape)
@@ -5356,5 +5412,10 @@ void LoadEditorStateFromIniFile(ImNodesEditorContext* const editor, const char* 
 
     LoadEditorStateFromIniString(editor, file_data, data_size);
     ImGui::MemFree(file_data);
+}
+
+void SetNextItemWidth(float width) {
+    const ImNodesEditorContext& editor = EditorContextGet();
+    ImGui::SetNextItemWidth(width * editor.Zoom);
 }
 } // namespace IMNODES_NAMESPACE

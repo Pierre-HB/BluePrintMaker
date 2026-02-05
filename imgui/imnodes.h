@@ -97,7 +97,9 @@ enum ImNodesStyleFlags_
     ImNodesStyleFlags_GridLines = 1 << 2,
     ImNodesStyleFlags_GridLinesPrimary = 1 << 3,
     ImNodesStyleFlags_GridSnapping = 1 << 4,
-    ImNodesStyleFlags_AttributeSwappable = 1 << 5
+    ImNodesStyleFlags_AttributeSwappable = 1 << 5,
+    ImNodesStyleFlags_NodeSizeGridSnapping = 1 << 6,
+    ImNodesStyleFlags_AttrGridSnapping = 1 << 7
 };
 
 enum ImNodesPinShape_
@@ -565,4 +567,6 @@ void SaveEditorStateToIniFile(const ImNodesEditorContext* editor, const char* fi
 
 void LoadCurrentEditorStateFromIniFile(const char* file_name);
 void LoadEditorStateFromIniFile(ImNodesEditorContext* editor, const char* file_name);
+
+void SetNextItemWidth(float width);
 } // namespace IMNODES_NAMESPACE

@@ -311,7 +311,6 @@ void BluePrint::Update() {
 	}
 
 	if (nodeUpdator->UpdateNodeIO()) {
-		//NodeIO& nodeIO;
 		int nodeId = findNodeContainingAttr(nodeUpdator->GetNodeIOId(), nodes);
 		Node* nodePrev = new Node(*nodes[nodeId]);
 		
