@@ -316,7 +316,10 @@ void BluePrint::Update() {
 		Node* nodePrev = new Node(*nodes[nodeId]);
 		
 		if (nodeUpdator->UpdateNodeIOQuantity()) {
-			nodes[nodeId]->UpdateNodeIOData(nodeUpdator->GetNodeIOId(), nodeUpdator->GetIOQuantity());
+			if(nodeUpdator->IsNodeIOSplitter())
+				nodes[nodeId]->UpdateNodeIOSplitterData(nodeUpdator->GetNodeIOId(), nodeUpdator->GetIOQuantity());
+			else
+				nodes[nodeId]->UpdateNodeIOData(nodeUpdator->GetNodeIOId(), nodeUpdator->GetIOQuantity());
 		}
 		else {//update state
 			if (nodeUpdator->IsNodeIOLock()) {//lock nodeIO

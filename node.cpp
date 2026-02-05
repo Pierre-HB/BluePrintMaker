@@ -52,7 +52,22 @@ void NodeIOViewer::Draw() {
 			nodeUpdator->SetNodeIOState(NODE_IO_TYPE::LOCK_IO, nodeIO->GetId());
 		break;
 	case NODE_IO_TYPE::SPLITTER:
-		IM_ASSERT(false && "TODO");
+		if (!isInput) {
+			ImGui::InputInt("##percentage", &tmp, 0, 0);
+			if (tmp < 0)
+				tmp = 0;
+			if (tmp > 100)
+				tmp = 100;
+
+			if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
+			{
+				nodeUpdator->SetNodeIOSplitterPercent(tmp, nodeIO->GetId());
+			}
+			ImGui::SameLine();
+		}
+		ImGui::Text((item.iconeString + " " + item.name).c_str());
+		break;
+		//IM_ASSERT(false && "TODO");
 	}
 
 	if (isInput)
@@ -98,6 +113,9 @@ Node::Node(const DataBase* dataBase, int machineId, int(*CreateId)()) : machineI
 		return;
 
 	case MACHINE_SPLITTER:
+		InitNodeAsSplitter(CreateId, dataBase);
+		return;
+
 	case MACHINE_MERGER:
 	case MACHINE_BLACKBOX:
 		IM_ASSERT(false && "TODO");
@@ -251,6 +269,16 @@ void Node::UpdateNodeIOData(int nodeIOId, float newData) {
 			nodeIO.quantity = newData;
 }
 
+void Node::UpdateNodeIOSplitterData(int nodeIOId, float newData) {
+	for (NodeIO& nodeIO : outputs)
+	{
+		if (nodeIO.GetId() == nodeIOId)
+			nodeIO.quantity = newData;
+		else
+			nodeIO.quantity = 100 - newData;
+	}
+}
+
 void Node::UpdateNodeIOType(int nodeIOId, NODE_IO_TYPE type) {
 	for (NodeIO& nodeIO : inputs)
 		if (nodeIO.GetId() == nodeIOId)
@@ -275,9 +303,9 @@ void Node::InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input) 
 
 void Node::InitNodeAsSplitter(int(*CreateId)(), const DataBase* dataBase) {
 	id = CreateId();
-	inputs.push_back(NodeIO(CreateId(), 0, 0.5, NODE_IO_TYPE::SPLITTER));
-	outputs.push_back(NodeIO(CreateId(), 0, 0.5, NODE_IO_TYPE::SPLITTER));
-	outputs.push_back(NodeIO(CreateId(), 0, 0.5, NODE_IO_TYPE::SPLITTER));
+	inputs.push_back(NodeIO(CreateId(), 0, 0, NODE_IO_TYPE::SPLITTER));
+	outputs.push_back(NodeIO(CreateId(), 0, 50, NODE_IO_TYPE::SPLITTER));
+	outputs.push_back(NodeIO(CreateId(), 0, 50, NODE_IO_TYPE::SPLITTER));
 }
 void Node::InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase) {
 	specialNode = false;

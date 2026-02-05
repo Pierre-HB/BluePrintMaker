@@ -25,6 +25,12 @@ private:
 	int newState = -1;
 	int nodeIOId = -1;
 	float data = -1;
+	int nodeUpdatorState = -1;
+
+	const static int NODE_UPDATOR_IO_LOCK = 0;
+	const static int NODE_UPDATOR_IO_UNLOCK = 1;
+	const static int NODE_UPDATOR_IO_SPLITTER = 2;
+
 public:
 	void reset() {
 		nodeId = -1;
@@ -32,6 +38,7 @@ public:
 		newState = -1;
 		nodeIOId = -1;
 		data = -1;
+		nodeUpdatorState = -1;
 	}
 
 	bool UpdateNode() const {
@@ -62,15 +69,23 @@ public:
 	}
 
 	bool IsNodeIOLock() const {
-		return data == -3;//internal encoding
+		return nodeUpdatorState == NODE_UPDATOR_IO_LOCK;//internal encoding
+	}
+
+	bool IsNodeIOUnlock() const {
+		return nodeUpdatorState == NODE_UPDATOR_IO_UNLOCK;//internal encoding
+	}
+
+	bool IsNodeIOSplitter() const {
+		return nodeUpdatorState == NODE_UPDATOR_IO_SPLITTER;
 	}
 
 	bool UpdateNodeIOQuantity() const {
-		return data >= 0;//internal encoding
+		return !UpdateNodeIOState();
 	}
 
 	bool UpdateNodeIOState() const {
-		return data < -1;//internal encoding
+		return nodeUpdatorState == NODE_UPDATOR_IO_UNLOCK || nodeUpdatorState == NODE_UPDATOR_IO_LOCK;
 	}
 
 	void SetNodeNewState(int _stateChannel, int _newState, int _nodeId) {
@@ -87,16 +102,25 @@ public:
 		IM_ASSERT(newData >= 0);
 	}
 
+	void SetNodeIOSplitterPercent(float newPercent, int _nodeIOId) {
+		data = newPercent;
+		nodeIOId = _nodeIOId;
+		nodeUpdatorState = NODE_UPDATOR_IO_SPLITTER;
+		IM_ASSERT(nodeId == -1);
+		IM_ASSERT(newPercent >= 0);
+		IM_ASSERT(newPercent <= 100);
+	}
+
 	void SetNodeIOState(NODE_IO_TYPE newType, int _nodeIOId) {
 		nodeIOId = _nodeIOId;
 		IM_ASSERT(nodeId == -1);
 		switch (newType)
 		{
 		case IO:
-			data = -2; //internal encoding
+			nodeUpdatorState = NODE_UPDATOR_IO_UNLOCK; //internal encoding
 			break;
 		case LOCK_IO:
-			data = -3;
+			nodeUpdatorState = NODE_UPDATOR_IO_LOCK;
 			break;
 		default:
 			IM_ASSERT(false && "TODO");
@@ -203,6 +227,7 @@ public:
 	const std::vector<NodeIO>& GetOutputs() const;
 
 	void UpdateNodeIOData(int ioId, float newData);
+	void UpdateNodeIOSplitterData(int ioId, float newData);
 	void UpdateNodeIOType(int ioId, NODE_IO_TYPE type);
 	void InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input);
 	void InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase);
