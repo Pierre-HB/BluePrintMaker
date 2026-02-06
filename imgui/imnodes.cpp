@@ -3102,7 +3102,7 @@ void EndPinAttribute()
     ImNodesEditorContext& editor = EditorContextGet();
     ImPinData&            pin = editor.Pins.Pool[GImNodes->CurrentPinIdx];
     ImNodeData&           node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
-    pin.AttributeRect = GetItemRect();
+    pin.AttributeRect = GetItemRect(); 
     if (GImNodes->Style.Flags & ImNodesStyleFlags_AttrGridSnapping)
     {
         pin.AttributeRect = SnapNodeSizeToGrid(pin.AttributeRect);
@@ -4259,7 +4259,7 @@ void EndNodeTitleBar()
     ImNodeData& node = editor.Nodes.Pool[GImNodes->CurrentNodeIdx];
     node.TitleBarContentRect = GetItemRect();
     node.TitleBarContentRect = SnapNodeSizeToGrid(node.TitleBarContentRect);
-    //ImGui::ItemAdd(GetNodeTitleRect(node), ImGui::GetID("title_bar"));
+    ImGui::ItemAdd(GetNodeTitleRect(node), ImGui::GetID("title_bar"));
 
     ImGui::SetCursorPos(GetNodeContentOrigin(node));
 }

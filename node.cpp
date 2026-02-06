@@ -20,20 +20,13 @@ void NodeIOViewer::Draw() {
 	static int tmp;
 	tmp = int(nodeIO->quantity);
 	std::string truc;
+	std::string name = item.name;
+	std::string quantity = std::format(" {}", nodeIO->quantity);
+	std::string icone = item.iconeString;
 	switch (nodeIO->type)
 	{
 	case NODE_IO_TYPE::ITEM:
-		//ImGui::Text((item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity)).c_str());
-		truc = (item.name + std::format(" {}", nodeIO->quantity));
-		//truc = (item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity));
-		ImGui::Text(item.iconeString.c_str());
-		ImGui::SameLine();
-		ImGui::Text(truc.c_str());
-		ImGui::SameLine();
-		ImGui::Text(std::format(" {}", nodeIO->quantity).c_str());
-		ImGui::SameLine();
-		ImGui::Text("hduis");
-		//std::cout << "write : " << (item.iconeString + " " + item.name + std::format(" {}", nodeIO->quantity)) << std::endl;
+		ImGui::Text((icone + name + quantity).c_str());
 		break;
 	case NODE_IO_TYPE::LOCK_IO:
 		guess = true;
@@ -81,9 +74,8 @@ void NodeIOViewer::Draw() {
 			}
 			ImGui::SameLine();
 		}
-		ImGui::Text((item.iconeString + " " + item.name).c_str());
+		ImGui::Text((icone + name + quantity).c_str());
 		break;
-		//IM_ASSERT(false && "TODO");
 	}
 
 	if (isInput)
@@ -466,57 +458,45 @@ void NodeViewer::DrawMachineTitle() {
 }
 
 void NodeViewer::DrawMachineContent() {
-	float width_input = 0;
-	float width_output = 0;
-	float height_column = 0;
-	float height_total = 0;
+	float minPosX = INFINITY;
+	float maxPosX = -INFINITY;
 
-	//g.Style.CellPadding.x
-
-
-	//ImGuiTableFlags_NoPadInnerX
-		//ImGuiTableFlags_SizingFixedFit
 	int nb_col = 2;
-	if (input_perm.size() + output_perm.size() == 1)
+	if (input_perm.size() == 0 || output_perm.size() == 0)
 		nb_col = 1;
-	if (ImGui::BeginTable("table1", nb_col, ImGuiTableFlags_NoPadInnerX, size))
+		
+	if (ImGui::BeginTable("table1", nb_col, ImGuiTableFlags_SizingFixedFit, size))
 	{
 		for (int i = 0; i < std::max(input_perm.size(), output_perm.size()); i++) {
 			ImGui::TableNextRow();
 			if (input_perm.size() > i) {
 				ImGui::TableSetColumnIndex(0);
-				if(input_perm.size() == 1)
+				if (input_perm.size() == 1)
 					ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable, false);
+				minPosX = std::min(minPosX, ImGui::GetCursorPosX());
 				input_ref[input_perm[i]].Draw();
+				maxPosX = std::max(maxPosX, ImGui::GetCursorPosX()+ ImGui::GetItemRectSize().x);
 				if (input_perm.size() == 1)
 					ImNodes::PopAttributeFlag();
-
-				ImVec2 r = ImGui::GetItemRectSize();
-				width_input = std::max(width_input, r.x);
-				height_column = std::max(height_column, r.y);
 			}
 
 			if (output_perm.size() > i) {
-				if(nb_col == 2)
+				if (nb_col == 2)
 					ImGui::TableSetColumnIndex(1);
 				else
 					ImGui::TableSetColumnIndex(0);
 				if (output_perm.size() == 1)
 					ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable, false);
+				minPosX = std::min(minPosX, ImGui::GetCursorPosX());
 				output_ref[output_perm[i]].Draw();
+				maxPosX = std::max(maxPosX, ImGui::GetCursorPosX() + ImGui::GetItemRectSize().x);
 				if (output_perm.size() == 1)
 					ImNodes::PopAttributeFlag();
-
-				ImVec2 r = ImGui::GetItemRectSize();
-				width_output = std::max(width_output, r.x);
-				height_column = std::max(height_column, r.y);
 			}
-			height_total += height_column;
-			height_column = 0;
 		}
-
+		size.x = maxPosX - minPosX;
+		size.y = 0;
 		ImGui::EndTable();
-		size = ImVec2(width_input + width_output + ImGui::GetStyle().CellPadding.x, height_total);
 	}
 }
 
@@ -539,8 +519,6 @@ void NodeViewer::DrawMachine() {
 void NodeViewer::DrawInput() {
 	ImNodes::BeginNode(GetId());
 
-	//DrawMachineTitle();
-	//ImNodes::NoNodeTitleBar();
 	DrawMachineContent();
 
 	ImNodes::EndNode();
