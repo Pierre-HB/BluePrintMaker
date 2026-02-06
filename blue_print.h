@@ -8,6 +8,7 @@
 #include "graph_event.h"
 #include "bififo.h"
 #include "json11.hpp"
+#include "smatrix.h"
 
 
 static int idSeed = 0;
@@ -89,7 +90,8 @@ public:
 	void Draw() const;
 
 	void Update();
-	bool checkGraph();
+	bool CheckGraph();
+	bool SolveGraph();
 
 	int CreateNewNode(int type);
 	int CreateNewLink(int input_attr_id, int output_attr_id);

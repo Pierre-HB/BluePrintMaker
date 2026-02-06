@@ -309,6 +309,15 @@ void Node::SetIOItem(int nodeIOId, int itemId) {
 	}
 }
 
+void Node::SetIOQuantity(float quantity) {
+	for (NodeIO& nodeIO : inputs)
+		if (nodeIO.type == LOCK_IO) 
+			nodeIO.quantity = quantity;
+	for (NodeIO& nodeIO : outputs)
+		if (nodeIO.type == LOCK_IO)
+			nodeIO.quantity = quantity;
+}
+
 void Node::ResetIOItemId(int unkownItemId) {
 	for (NodeIO& nodeIO : inputs)
 		if (nodeIO.type != ITEM) 

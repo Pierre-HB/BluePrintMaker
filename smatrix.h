@@ -3,6 +3,46 @@
 #include <exception>
 
 template<typename T>
+class SMatrix;
+
+template<typename T>
+class SVector {
+private:
+	int n_2; //store half of the dimension
+	T value;
+	SVector<T>* blocks[2]; //block idx : [0, 1]
+public:
+	SVector();
+	SVector(int n);
+	SVector(const SVector<T>& v);//copy
+	SVector(SVector<T>&& v) noexcept;//move
+	~SVector();
+
+	int get_n() const;
+
+	T at(int i) const;
+	void insert(const T& x, int i);
+
+	bool is_zero() const;
+
+	SVector<T>& operator+=(const SVector<T>& other);
+	SVector<T> operator+(const SVector<T>& other) const;
+	SVector<T>&& operator+(SVector<T>&& other) const;
+
+	SVector<T>& operator=(SVector<T>&& m) noexcept;//move assign
+	SVector<T>& operator=(const SVector<T>& m) noexcept;//copy assign
+
+	friend SVector<T> SMatrix<T>::operator*(const SVector<T>& v) const;
+private:
+
+	void _clean();//check if childs are 0 and so, delete them
+	void _split();
+	void _split(SVector<T>* const other[2]);
+
+	
+};
+
+template<typename T>
 class SMatrix {
 private:
 	int n_2; //store half of the dimension
@@ -14,6 +54,7 @@ private:
 	|2 3|
 	*/
 public:
+	SMatrix();
 	SMatrix(int n);
 	SMatrix(const SMatrix<T>& m);//copy
 	SMatrix(SMatrix<T>&& m) noexcept;//moove
@@ -40,6 +81,7 @@ public:
 	SMatrix<T>&& operator-() &&;
 
 	SMatrix<T> operator*(const SMatrix<T>& other) const;
+	SVector<T> operator*(const SVector<T>& v) const;
 
 	void transpose();
 	SMatrix<T> transposed() const;
@@ -59,6 +101,204 @@ private:
 	SMatrix<T>& _self_neg(); //self negation
 	void _inverse();
 };
+
+//========================================== SVECTOR
+//! emtpy constructor
+template<typename T>
+SVector<T>::SVector() : SVector(0) {
+
+}
+
+//! emtpy constructor
+template<typename T>
+SVector<T>::SVector(int n) : n_2(n / 2), value(T()), blocks{ nullptr, nullptr } {
+	assert(n == 1 || n % 2 == 0);
+}
+
+//! copy constructor
+template<typename T>
+SVector<T>::SVector(const SVector<T>& m) : n_2(m.n_2), value(T(m.value)), blocks{ nullptr, nullptr } {
+	if (m.blocks[0] != nullptr)
+		for (int i = 0; i < 2; i++)
+			blocks[i] = new SVector<T>(*(m.blocks[i]));
+}
+
+//! move constructor
+template<typename T>
+SVector<T>::SVector(SVector<T>&& m) noexcept : n_2(m.n_2), value(T(m.value)), blocks{ nullptr, nullptr } {
+	for (int i = 0; i < 2; i++) {
+		blocks[i] = m.blocks[i];
+		m.blocks[i] = nullptr;
+	}
+
+	m.n_2 = 0;
+	m.value = T();
+}
+
+//! move assignement
+template<typename T>
+SVector<T>& SVector<T>::operator=(SVector<T>&& other) noexcept {
+	if (this != &other) {
+		n_2 = other.n_2;
+		value = other.value;
+		other.n_2 = 0;
+		other.value = T();
+
+		for (int i = 0; i < 2; i++) {
+			delete blocks[i];
+			blocks[i] = other.blocks[i];
+			other.blocks[i] = nullptr;
+		}
+	}
+	return *this;
+}
+
+//! copy assignement
+template<typename T>
+SVector<T>& SVector<T>::operator=(const SVector<T>& other) noexcept {
+	if (this != &other) {
+		n_2 = other.n_2;
+		value = T(other.value);
+
+		for (int i = 0; i < 2; i++)
+			delete blocks[i];
+
+		if (other.blocks[0] != nullptr)
+			for (int i = 0; i < 2; i++)
+				blocks[i] = new SMatrix<T>(*other.blocks[i]);
+		else
+			for (int i = 0; i < 2; i++)
+				blocks[i] = nullptr;
+	}
+	return *this;
+}
+
+//! destructor
+template<typename T>
+SVector<T>::~SVector() {
+	if (blocks[0] != nullptr)
+		for (int i = 0; i < 2; i++)
+			delete blocks[i];
+}
+
+//! return the dimension of the vector
+template<typename T>
+int SVector<T>::get_n() const {
+	return n_2 == 0 ? 1 : (n_2 << 1);
+}
+
+//! true if the matrix is full of 0
+template<typename T>
+bool SVector<T>::is_zero() const {
+	if (n_2 == 0)
+		return value == T();
+	if (n_2 == 1 && blocks[0] != nullptr)
+		return blocks[0]->value == T() && blocks[1]->value == T();
+	if (blocks[0] != nullptr)
+		return blocks[0]->blocks[0] == nullptr && blocks[1]->blocks[0] == nullptr;
+	return true;
+}
+
+//! delete childs if there are all 0
+template<typename T>
+void SVector<T>::_clean() {
+	if (n_2 == 0)
+		return;
+	if (blocks[0] != nullptr && is_zero()) {
+		for (int i = 0; i < 2; i++) {
+			delete blocks[i];
+			blocks[i] = nullptr;
+		}
+	}
+}
+
+//! internal function, split the matrix with empty childs
+template<typename T>
+void SVector<T>::_split() {
+	assert(blocks[0] == nullptr);
+	for (int i = 0; i < 2; i++)
+		blocks[i] = new SVector<T>(n_2);
+}
+
+//! internal function, split the matrix with copied childs
+template<typename T>
+void SVector<T>::_split(SVector<T>* const other[2]) {
+	assert(blocks[0] == nullptr);
+	for (int i = 0; i < 2; i++)
+		blocks[i] = new SVector<T>(*(other[i]));
+}
+
+//! return a coeficient of the matrix given it's position
+template<typename T>
+T SVector<T>::at(int i) const {
+	if (n_2 == 0)
+		return value;
+	if (blocks[0] == nullptr)
+		return T();
+	if (i < n_2)
+		return blocks[0]->at(i);
+	return blocks[1]->at(i % n_2);
+}
+
+//! write a coeficient of the matrix given it's position
+template<typename T>
+void SVector<T>::insert(const T& x, int i) {
+	if (n_2 == 0) {
+		assert(i == 0);
+		value = T(x);
+	}
+	else {
+		if (blocks[0] == nullptr)
+			_split();
+		if (i < n_2)
+			return blocks[0]->insert(x, i);
+		return blocks[1]->insert(x, i % n_2);
+	}
+}
+
+//! += operator
+template<typename T>
+SVector<T>& SVector<T>::operator+=(const SVector<T>& other) {
+	assert(n_2 == other.n_2);
+	if (n_2 == 0) {
+		value += other.value;
+		return *this;
+	}
+
+	if (other.blocks[0] != nullptr) {
+		if (blocks[0] == nullptr) {
+			//copy
+			_split(other.blocks);
+		}
+		else {
+			//reccurse
+			for (int i = 0; i < 2; i++)
+				blocks[i]->operator+=(*(other.blocks[i]));
+			_clean();
+		}
+	}
+	return *this;
+}
+
+//! addition with a constant matrix
+template<typename T>
+SVector<T> SVector<T>::operator+(const SVector<T>& other) const {
+	SVector<T> dest = SVector<T>(*this);
+	return dest += other;
+}
+
+//! addition with a rvalue matrix, result is writen in the 'other' matrix to save memory space and avoid copy
+template<typename T>
+SVector<T>&& SVector<T>::operator+(SVector<T>&& other) const {
+	return std::move(other += (*this));
+}
+
+//========================================== SMATRIX
+
+//! emtpy constructor
+template<typename T>
+SMatrix<T>::SMatrix() : SMatrix(0) {
+}
 
 //! emtpy constructor
 template<typename T>
@@ -378,12 +618,46 @@ SMatrix<T> SMatrix<T>::operator*(const SMatrix<T>& other) const {
 	SMatrix<T>& G = *other.blocks[2];
 	SMatrix<T>& H = *other.blocks[3];
 
-	dest.blocks[0] = new SMatrix<T>(B._add_mult(G, A*E));
-	dest.blocks[1] = new SMatrix<T>(B._add_mult(H, A*F));
-	dest.blocks[2] = new SMatrix<T>(D._add_mult(G, C*E));
-	dest.blocks[3] = new SMatrix<T>(D._add_mult(H, C*F));
+	dest.blocks[0] = new SMatrix<T>(A * E);
+	B._add_mult(G, *dest.blocks[0]);
+	dest.blocks[1] = new SMatrix<T>(A * F);
+	B._add_mult(H, *dest.blocks[1]);
+	dest.blocks[2] = new SMatrix<T>(C * E);
+	D._add_mult(G, *dest.blocks[2]);
+	dest.blocks[3] = new SMatrix<T>(C * F);
+	D._add_mult(H, *dest.blocks[3]);
 
 	dest._clean();
+
+	return dest;
+}
+
+//! matrix multiplication
+template<typename T>
+SVector<T> SMatrix<T>::operator*(const SVector<T>& v) const {
+	assert(n_2 == v.n_2);
+	SVector<T> dest = SVector<T>(get_n());
+	if (n_2 == 0) {
+		dest.value = value * v.value;
+		return dest;
+	}
+	if (blocks[0] == nullptr || v.blocks[0] == nullptr)
+		return dest;
+	const SMatrix<T>& A = *blocks[0];
+	const SMatrix<T>& B = *blocks[1];
+	const SMatrix<T>& C = *blocks[2];
+	const SMatrix<T>& D = *blocks[3];
+
+	const SVector<T>& V1 = *v.blocks[0];
+	const SVector<T>& V2 = *v.blocks[1];
+
+	dest.blocks[0] = new SVector<T>(A*V1);
+	*dest.blocks[0] += B*V2;
+
+	dest.blocks[1] = new SVector<T>(C*V1);
+	*dest.blocks[1] += D*V2;
+
+	//dest._clean();
 
 	return dest;
 }

@@ -241,6 +241,7 @@ public:
 
 	NodeIO const* GetIO(int nodeIOId) const;
 	void SetIOItem(int nodeIOId, int itemId);
+	void SetIOQuantity(float quantity);
 	void ResetIOItemId(int unkownItemId);
 
 private:

@@ -295,7 +295,7 @@ void BluePrint::DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event) 
 }
 
 
-bool BluePrint::checkGraph() {
+bool BluePrint::CheckGraph() {
 	//create classe of equivalence with Links
 	//set the object
 	std::map<int, std::vector<int>> linkContact = std::map<int, std::vector<int>>();
@@ -429,6 +429,188 @@ bool BluePrint::checkGraph() {
 	}
 
 	return complete;
+}
+
+static int pow2roundup(int x)
+{
+	if (x < 0)
+		return 0;
+	--x;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	return x + 1;
+}
+
+bool BluePrint::SolveGraph() {
+	/*
+	conter nb pin, link, node pour avoir nb variable (taille du pb)
+	créé matric de taille 2^n minimap pour contenir le probelem
+	pour chaque pin, link, node donner un indice de variable (ligne du vecteur d'etat)
+	pour chaque node ajouté les contrainte :
+		v_node - v_pin*pin_quantity=0
+	pour chaque pin ajouter la contrainte :
+		v_pin - v_link1-...-v_linkn = 0
+	pour chaque input/output node spécifier ajouter la contrainte :
+		v_node = throuput
+	*/
+
+	//int nb_pin = 0;
+	//int nb_node = 0;
+	//int nb_link = 0;
+	//int nb_given_io = 0;
+	std::map<int, int> variables = std::map<int, int>();
+	int variableIdx = 0;
+
+
+	for (const auto& [nodeId, node] : nodes) {
+		variables.insert({ nodeId, variableIdx });
+		variableIdx++;
+		//nb_node++;
+		for (const NodeIO& nodeIO : node->GetInputs()) {
+			variables.insert({ nodeIO.id, variableIdx });
+			variableIdx++;
+			//nb_pin++;
+		}
+		for (const NodeIO& nodeIO : node->GetOutputs()) {
+			variables.insert({ nodeIO.id, variableIdx });
+			variableIdx++;
+			//nb_pin++;
+		}
+	}
+
+	for (const auto& [linkId, link] : links) {
+		variables.insert({ linkId, variableIdx });
+		variableIdx++;
+	}
+
+	int n = pow2roundup(variableIdx);
+	SMatrix<float> problem = SMatrix<float>(n);
+	SVector<float> state = SVector<float>(n);
+
+	std::map<int, int> nodeIOConstraint = std::map<int, int>();
+
+	int constraintIdx = 0;
+
+	for (const auto& [nodeId, node] : nodes) {
+		for (const NodeIO& nodeIO : node->GetInputs()) {
+			{
+				problem.insert(-1, constraintIdx, variables[nodeIO.id]);
+				if (nodeIO.type == NODE_IO_TYPE::IO || nodeIO.type == NODE_IO_TYPE::LOCK_IO) {
+					problem.insert(1, constraintIdx, variables[nodeId]);
+					if (nodeIO.type == NODE_IO_TYPE::IO)
+					{
+						constraintIdx++;
+
+						problem.insert(1, constraintIdx, variables[nodeId]);
+						state.insert(nodeIO.quantity, constraintIdx);
+						std::cout << "insert user throuput : " << nodeIO.quantity << std::endl;
+					}
+				}
+				else
+					problem.insert(nodeIO.quantity, constraintIdx, variables[nodeId]);
+				constraintIdx++;
+			}
+			{//pin constraint
+				problem.insert(1, constraintIdx, variables[nodeIO.id]);
+				nodeIOConstraint.insert({ nodeIO.id, constraintIdx });
+				//link will later ad themself into this constrainte
+				constraintIdx++;
+			}
+
+			
+			//don't insert 0 in the state vector to keep it sparse
+		}
+		for (const NodeIO& nodeIO : node->GetOutputs()) {
+			{
+				problem.insert(-1, constraintIdx, variables[nodeIO.id]);
+				if (nodeIO.type == NODE_IO_TYPE::IO || nodeIO.type == NODE_IO_TYPE::LOCK_IO) {
+					problem.insert(1, constraintIdx, variables[nodeId]);
+					if (nodeIO.type == NODE_IO_TYPE::IO)
+					{
+						constraintIdx++;
+
+						problem.insert(1, constraintIdx, variables[nodeId]);
+						state.insert(nodeIO.quantity, constraintIdx);
+						std::cout << "insert user throuput : " << nodeIO.quantity << std::endl;
+					}
+				}
+				else 
+					problem.insert(nodeIO.quantity, constraintIdx, variables[nodeId]);
+				constraintIdx++;
+			}
+			{//pin constraint
+				problem.insert(1, constraintIdx, variables[nodeIO.id]);
+				nodeIOConstraint.insert({ nodeIO.id, constraintIdx });
+				//link will later ad themself into this constrainte
+				constraintIdx++;
+			}
+		}
+	}
+
+	for (const auto& [linkId, link] : links) {
+		problem.insert(-1, nodeIOConstraint[link->GetInputId()], variables[link->GetId()]);
+		problem.insert(-1, nodeIOConstraint[link->GetOutputId()], variables[link->GetId()]);
+	}
+
+	for(int i = constraintIdx; i < n; i++)
+		problem.insert(1, i, i);//make sure the matrix is invertible
+
+	std::cout << std::endl << "state before solve " << std::endl;
+	for (int i = 0; i < n; i++) {
+		std::cout << state.at(i) << "\t";
+	}
+	std::cout << std::endl << "problem : " << std::endl;
+	for (int i = 0; i < constraintIdx; i++) {
+		for (int j = 0; j < constraintIdx; j++) {
+			std::cout << problem.at(i, j) << "\t";
+		}
+		std::cout << std::endl;
+	}
+
+	bool inverted = true;
+	problem = problem.inversed(&inverted);
+	if (inverted)
+		std::cout << "YES INVERSION!" << std::endl;
+	else
+	{	
+		return false;
+		std::cout << "not invertible ?" << std::endl;
+	}
+
+	for (int i = 0; i < constraintIdx; i++) {
+		for (int j = 0; j < constraintIdx; j++) {
+			std::cout << problem.at(i, j) << "\t";
+		}
+		std::cout << std::endl;
+	}
+
+	
+	std::cout << std::endl;
+
+	state = problem * state;
+	std::cout << std::endl << "state after solve " << std::endl;
+	for (int i = 0; i < constraintIdx; i++) {
+		std::cout << state.at(i) << "\t";
+	}
+	std::cout << std::endl;
+
+	for (int i = 0; i < constraintIdx; i++)
+		if (state.at(i) < 0)
+			return false; //hill formed blueprint, need for negative throuput
+
+	for (const auto& [nodeId, node] : nodes)
+		if (node->GetType() == MACHINE_INPUT || node->GetType() == MACHINE_OUTPUT)
+			node->SetIOQuantity(state.at(variables[nodeId]));
+	
+	/*for (const auto& [linkId, link] : links) {
+		link->SetThrouput(state.at(variables[linkId]));
+	}*/
+
+
+	return true;
 }
 
 void BluePrint::Update() {
@@ -693,8 +875,11 @@ void BluePrint::Update() {
 		}
 	}
 
-	if (!solved && checkGraph()) {
-		std::cout << "try to solve" << std::endl;
+	if (!solved && CheckGraph()) {
+		if (!SolveGraph())
+		{
+			//TODO clear all throuput
+		}
 		solved = true;
 	}
 }
