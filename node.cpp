@@ -8,73 +8,106 @@ NODE_IO_TYPE int2NodeIOType(int i){
 	return types[i];
 }
 
+void NodeIOViewer::DrawItem(const Item& item) {
+	ImGui::Text((item.iconeString + item.name + std::format(" {}", nodeIO->quantity)).c_str());
+}
+
+void NodeIOViewer::DrawLockIO(const Item& item) {
+	static bool guess;
+	static int tmp;
+	tmp = int(nodeIO->quantity);
+	guess = true;
+	ImGui::Checkbox("Guess", &guess);
+	ImGui::SameLine();
+
+	ImGui::BeginDisabled();
+	ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
+	ImGui::InputInt("##throuput", &tmp, 0, 0);
+	ImGui::EndDisabled();
+	if(nodeIO->itemId != dataBase->GetUnkownItemId())
+	{
+		ImGui::SameLine();
+		ImGui::Text(item.iconeString.c_str());
+	}
+
+	if (!guess)
+		nodeUpdator->SetNodeIOState(NODE_IO_TYPE::IO, nodeIO->GetId());
+}
+
+void NodeIOViewer::DrawIO(const Item& item) {
+	static bool guess;
+	static int tmp;
+	tmp = int(nodeIO->quantity);
+	guess = false;
+	ImGui::Checkbox("Guess", &guess);
+	ImGui::SameLine();
+	ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
+	ImGui::InputInt("##throuput", &tmp, 0, 0);
+
+	if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
+		nodeUpdator->SetNodeIOQuantity(tmp, nodeIO->GetId());
+
+	if (nodeIO->itemId != dataBase->GetUnkownItemId())
+	{
+		ImGui::SameLine();
+		ImGui::Text(item.iconeString.c_str());
+	}
+	if (guess)
+		nodeUpdator->SetNodeIOState(NODE_IO_TYPE::LOCK_IO, nodeIO->GetId());
+}
+
+void NodeIOViewer::DrawSplitter(const Item& item) {
+	static int tmp;
+	tmp = int(nodeIO->quantity);
+	static std::string quantity;
+	quantity = "";
+	if (!isInput) {
+		quantity = std::format(" {}", nodeIO->quantity);
+	}
+	if (!isInput) {
+		ImNodes::SetNextItemWidth(45);
+		ImGui::InputInt("##percentage", &tmp, 0, 0);
+		if (tmp < 0)
+			tmp = 0;
+		if (tmp > 100)
+			tmp = 100;
+
+		if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			nodeUpdator->SetNodeIOSplitterPercent(tmp, nodeIO->GetId());
+		}
+		ImGui::SameLine();
+	}
+	if (nodeIO->itemId != dataBase->GetUnkownItemId())
+	{
+		ImGui::Text(item.iconeString.c_str());
+		ImGui::SameLine();
+	}
+	if(isInput)
+		ImGui::Text(std::format(" {}", nodeIO->quantity).c_str());
+}
+
 void NodeIOViewer::Draw() {
 	if (isInput)
 		ImNodes::BeginInputAttribute(GetId());
 	else
 		ImNodes::BeginOutputAttribute(GetId());
+
 	const Item& item = dataBase->getItem(nodeIO->itemId);
 
-	//static bool guess = true;
-	static bool guess;//static memory slot for imgui input
-	static int tmp;
-	tmp = int(nodeIO->quantity);
-	std::string truc;
-	std::string name = item.name;
-	std::string quantity = std::format(" {}", nodeIO->quantity);
-	std::string icone = item.iconeString;
 	switch (nodeIO->type)
 	{
 	case NODE_IO_TYPE::ITEM:
-		ImGui::Text((icone + name + quantity).c_str());
+		DrawItem(item);
 		break;
 	case NODE_IO_TYPE::LOCK_IO:
-		guess = true;
-		
-		ImGui::Checkbox("Guess", &guess);
-		ImGui::SameLine();
-
-		ImGui::BeginDisabled();
-		ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
-		ImGui::InputInt("##throuput", &tmp, 0, 0);
-		ImGui::EndDisabled();
-		ImGui::SameLine();
-		ImGui::Text((item.iconeString + " " + item.name).c_str());
-
-		if (!guess)
-			nodeUpdator->SetNodeIOState(NODE_IO_TYPE::IO, nodeIO->GetId());
+		DrawLockIO(item);
 		break;
 	case NODE_IO_TYPE::IO:
-		guess = false;
-		ImGui::Checkbox("Guess", &guess);
-		ImGui::SameLine();
-		ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
-		ImGui::InputInt("##throuput", &tmp, 0, 0);
-
-		if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
-			nodeUpdator->SetNodeIOQuantity(tmp, nodeIO->GetId());
-		
-		ImGui::SameLine();
-		ImGui::Text((item.iconeString + " " + item.name).c_str());
-		if (guess)
-			nodeUpdator->SetNodeIOState(NODE_IO_TYPE::LOCK_IO, nodeIO->GetId());
+		DrawIO(item);
 		break;
 	case NODE_IO_TYPE::SPLITTER:
-		if (!isInput) {
-			ImNodes::SetNextItemWidth(45);
-			ImGui::InputInt("##percentage", &tmp, 0, 0);
-			if (tmp < 0)
-				tmp = 0;
-			if (tmp > 100)
-				tmp = 100;
-
-			if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
-			{
-				nodeUpdator->SetNodeIOSplitterPercent(tmp, nodeIO->GetId());
-			}
-			ImGui::SameLine();
-		}
-		ImGui::Text((icone + name + quantity).c_str());
+		DrawSplitter(item);
 		break;
 	}
 
@@ -94,7 +127,7 @@ Node::Node(int id) : id(id) {
 }
 
 //copy a node
-Node::Node(const Node& node) : id(node.id), inputs(node.inputs), outputs(node.outputs), machineId(node.machineId), time(node.time), idlePower(node.idlePower), workingPower(node.workingPower), state(node.state), specialNode(node.specialNode) {
+Node::Node(const Node& node) : id(node.id), inputs(node.inputs), outputs(node.outputs), machineId(node.machineId), time(node.time), idlePower(node.idlePower), workingPower(node.workingPower), state(node.state), type(node.type) {
 
 }
 
@@ -128,26 +161,7 @@ Node::Node(const DataBase* dataBase, int machineId, int(*CreateId)()) : machineI
 	case MACHINE_BLACKBOX:
 		IM_ASSERT(false && "TODO");
 	}
-	if (machine.recipiesId.size() == 0) {
-		//special machine : merger or sorter or input or output
-		id = CreateId();
-		specialNode = true;
-		InitNodeAsIO(CreateId, dataBase, true);
-		//Database need to create INPOUT archetype ?
-		//I whant 
-		//if dataBase->GetMachineNode() == REGULAR/INPUT/OUTPUT/SPLITTER
 
-		//IF input, create special IONode containing 'allItem' item
-		//can specified throuput of item (item/min) or lock this number
-		//NO recipe list, automatic item deduction
-		//No title/footer
-		//WIll lock 
-		return;
-	}
-	specialNode = false;
-	state = std::vector<int>(1, 0);
-	id = CreateId();
-	ChangeState(dataBase, 0, 0, CreateId);
 }
 
 //change all node parameter to mimic a targeted node. Don't change Node::id
@@ -170,7 +184,7 @@ void Node::Overide(const Node& node) {
 	idlePower = node.idlePower;
 	workingPower = node.workingPower;
 	state = std::vector<int>(node.state);
-	specialNode = node.specialNode;
+	type = node.type;
 }
 
 void Node::SetIOIds(int(*CreateId)()) {
@@ -256,8 +270,8 @@ int Node::GetStateSize() const {
 	return state.size();
 }
 
-bool Node::GetSpecial() const {
-	return specialNode;
+MACHINE_TYPE Node::GetType() const {
+	return type;
 }
 
 const std::vector<NodeIO>& Node::GetInputs() const {
@@ -266,6 +280,43 @@ const std::vector<NodeIO>& Node::GetInputs() const {
 
 const std::vector<NodeIO>& Node::GetOutputs() const {
 	return outputs;
+}
+
+NodeIO const* Node::GetIO(int nodeIOId) const {
+	for (const NodeIO& nodeIO : inputs)
+		if (nodeIO.id == nodeIOId)
+			return &nodeIO;
+	for (const NodeIO& nodeIO : outputs)
+		if (nodeIO.id == nodeIOId)
+			return &nodeIO;
+	return nullptr;
+}
+
+void Node::SetIOItem(int nodeIOId, int itemId) {
+	for (NodeIO& nodeIO : inputs)
+	{
+		if (nodeIO.id == nodeIOId && nodeIO.type != ITEM) {
+			nodeIO.itemId = itemId;
+			return;
+		}
+	}
+	for (NodeIO& nodeIO : outputs)
+	{
+		if (nodeIO.id == nodeIOId && nodeIO.type != ITEM) {
+			nodeIO.itemId = itemId;
+			return;
+		}
+	}
+}
+
+void Node::ResetIOItemId(int unkownItemId) {
+	for (NodeIO& nodeIO : inputs)
+		if (nodeIO.type != ITEM) 
+			nodeIO.itemId = unkownItemId;
+	
+	for (NodeIO& nodeIO : outputs)
+		if (nodeIO.type != ITEM)
+			nodeIO.itemId = unkownItemId;
 }
 
 void Node::UpdateNodeIOData(int nodeIOId, float newData) {
@@ -300,23 +351,25 @@ void Node::InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input) 
 	id = CreateId();
 	if(input)
 	{
-		outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::LOCK_IO));
-		//outputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::IO));
+		outputs.push_back(NodeIO(CreateId(), dataBase->GetUnkownItemId(), 360, NODE_IO_TYPE::LOCK_IO));
+		type = MACHINE_INPUT;
 	}
 	else
 	{
-		inputs.push_back(NodeIO(CreateId(), 0, 360, NODE_IO_TYPE::LOCK_IO));
+		inputs.push_back(NodeIO(CreateId(), dataBase->GetUnkownItemId(), 360, NODE_IO_TYPE::IO));
+		type = MACHINE_OUTPUT;
 	}
 }
 
 void Node::InitNodeAsSplitter(int(*CreateId)(), const DataBase* dataBase) {
 	id = CreateId();
-	inputs.push_back(NodeIO(CreateId(), 0, 0, NODE_IO_TYPE::SPLITTER));
-	outputs.push_back(NodeIO(CreateId(), 0, 50, NODE_IO_TYPE::SPLITTER));
-	outputs.push_back(NodeIO(CreateId(), 0, 50, NODE_IO_TYPE::SPLITTER));
+	inputs.push_back(NodeIO(CreateId(), dataBase->GetUnkownItemId(), 100, NODE_IO_TYPE::SPLITTER));
+	outputs.push_back(NodeIO(CreateId(), dataBase->GetUnkownItemId(), 50, NODE_IO_TYPE::SPLITTER));
+	outputs.push_back(NodeIO(CreateId(), dataBase->GetUnkownItemId(), 50, NODE_IO_TYPE::SPLITTER));
+	type = MACHINE_SPLITTER;
 }
 void Node::InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase) {
-	specialNode = false;
+	type = MACHINE_REGULAR;
 	state = std::vector<int>(1, 0);
 	id = CreateId();
 	ChangeState(dataBase, 0, 0, CreateId);
@@ -361,7 +414,7 @@ json11::Json Node::ToJson() const {
 		{"idlePower", idlePower},
 		{"workingPower", workingPower},
 		{"state", state},
-		{"specialNode", specialNode} });
+		{"type", type} });
 }
 
 Node::Node(const json11::Json& json) {
@@ -374,7 +427,7 @@ Node::Node(const json11::Json& json) {
 	time = obj.at("time").number_value();
 	idlePower = obj.at("idlePower").int_value();
 	workingPower = obj.at("workingPower").int_value();
-	specialNode = obj.at("specialNode").bool_value();
+	type = int2MachineType(obj.at("type").int_value());
 }
 
 //============================== Viewer ==============================//
@@ -400,10 +453,10 @@ NodeViewer::NodeViewer(const NodeViewer& nodeViewer, const Node* node) : NodeVie
 
 // View, only draw data
 void NodeViewer::Draw() {
-	if (node->GetSpecial())
-		DrawInput();
-	else
+	if (node->GetType() == MACHINE_REGULAR)
 		DrawMachine();
+	else
+		DrawInput();
 }
 
 void NodeViewer::DrawMachineTitle() {

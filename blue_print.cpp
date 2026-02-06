@@ -117,7 +117,7 @@ static const std::vector<Node> createRecipes() {
 	return recipies;
 }
 
-BluePrint::BluePrint(DataBase* dataBase) : name("Blueprint"), filename(""), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase(dataBase), ioPanel(dataBase), editorContext(ImNodes::EditorContextCreate()) {
+BluePrint::BluePrint(DataBase* dataBase) : name("Blueprint"), filename(""), nodes(), nodeViewers(), links(), linkViewers(), recipes(createRecipes()), swapingNodeViewerId(-1), dataBase(dataBase), ioPanel(dataBase), editorContext(ImNodes::EditorContextCreate()), solved(false) {
 	nodeUpdator = new NodeUpdator();
 	linkUpdator = new LinkUpdator();
 }
@@ -270,7 +270,7 @@ void BluePrint::DeleteLinkedLink(int nodeId, GraphEvent* Event) {
 
 void BluePrint::DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event) {
 	//TODO delete assosciated links
-	
+
 	for (int nodeId : nodeIds) {
 		if (Event != nullptr) {
 			Event->Push_Node(nodes[nodeId], nodeViewers[nodeId]);
@@ -295,15 +295,154 @@ void BluePrint::DeleteNodes(const std::vector<int>& nodeIds, GraphEvent* Event) 
 }
 
 
+bool BluePrint::checkGraph() {
+	//create classe of equivalence with Links
+	//set the object
+	std::map<int, std::vector<int>> linkContact = std::map<int, std::vector<int>>();
+	std::map<int, int> linkClass = std::map<int, int>();
+
+	int nb_pin = 0;
+	int nb_node = 0;
+	int nb_link = 0;
+	int nb_io_given = 0;
+
+	//maybe create this map only once and update it when creating/deleting nodes
+	for (const auto& [nodeId, node] : nodes) {
+		nb_node++;
+		if (node->GetType() == MACHINE_SPLITTER)
+			linkContact.insert({ nodeId, std::vector<int>() });
+		for(const NodeIO& nodeIO : node->GetInputs()){
+			linkContact.insert({ nodeIO.id, std::vector<int>() });
+			nb_pin++;
+			if (nodeIO.type == NODE_IO_TYPE::IO)
+				nb_io_given++;
+		}
+		for (const NodeIO& nodeIO : node->GetOutputs()) {
+			linkContact.insert({ nodeIO.id, std::vector<int>() });
+			nb_pin++;
+			if (nodeIO.type == NODE_IO_TYPE::IO)
+				nb_io_given++;
+		}
+	}
+
+	for (const auto& [linkId, link] : links) {
+		nb_link++;
+		linkContact[link->GetInputId()].push_back(linkId);
+		linkContact[link->GetOutputId()].push_back(linkId);
+		if(nodes[link->GetNodeInputId()]->GetType() == MACHINE_SPLITTER)
+			linkContact[link->GetNodeInputId()].push_back(linkId);
+		if (nodes[link->GetNodeOutputId()]->GetType() == MACHINE_SPLITTER)
+			linkContact[link->GetNodeOutputId()].push_back(linkId);
+		linkClass.insert({ linkId, -1 });
+	}
+
+	std::vector<int> stack = std::vector<int>();
+	int current_class = 0;
+	bool complete = (nb_pin+nb_io_given == nb_node+nb_link);
+	/*
+		each pin, link and node will introduce one variable in the final problem
+		to solve it, wee need nb_constraint == nb_variable
+		each pin will add two contrainte (relation with the node and relation with the links)
+		each given_io will give one constrainte (the throuput of the node)
+		this lead to nb_constraint = 2*nb_pin+nb_io_given
+		and nb_variable = nb_pin+nb_link+nb_node.
+		for the problem to be solvable wee need :
+
+		2*nb_pin+nb_io_given == nb_link+nb_node+nb_pin
+						<=>
+		nb_pin+nb_io_given == nb_node+nb_link
+		*/
+	for (const auto& [id, linkIds] : linkContact) {
+
+		if (linkContact[id].size() == 0)
+			complete = false; //there exist at least one pin without link
+		else if(linkClass[linkContact[id][0]] == -1)
+			stack.push_back(id); //if the first link of the bundle has no class (then they all have no class
+
+		while (stack.size() != 0)
+		{
+			int id = stack[stack.size() - 1];
+			stack.pop_back();
+			for (int linkId : linkContact[id]) {
+				if (linkClass[linkId] != -1)
+					continue;
+				linkClass[linkId] = current_class;
+				const Link* link = links[linkId];
+				stack.push_back(link->GetInputId());
+				stack.push_back(link->GetOutputId());
+				if (nodes[link->GetNodeInputId()]->GetType() == MACHINE_SPLITTER)
+					stack.push_back(link->GetNodeInputId());
+				if (nodes[link->GetNodeOutputId()]->GetType() == MACHINE_SPLITTER)
+					stack.push_back(link->GetNodeOutputId());
+			}
+		}
+		current_class++;
+	}
+
+	std::vector<int> classItem = std::vector<int>(current_class, dataBase->GetUnkownItemId());
+
+	//search for item class
+	const int unkownItemId = dataBase->GetUnkownItemId();
+	const int incorrectItemId = dataBase->GetIncorrectItemId();
+
+	for (auto& [nodeId, node] : nodes) {
+		node->ResetIOItemId(unkownItemId);
+	}
+
+	for (const auto& [linkId, link] : links) {
+		{//input
+			const Node* node = nodes[link->GetNodeInputId()];
+			NodeIO const* nodeIO = node->GetIO(link->GetInputId());
+			if (nodeIO->type == ITEM) {
+
+				if (classItem[linkClass[linkId]] == unkownItemId)
+					classItem[linkClass[linkId]] = nodeIO->itemId;
+
+				if (classItem[linkClass[linkId]] != nodeIO->itemId)
+				{
+					classItem[linkClass[linkId]] = incorrectItemId;
+					complete = false;
+				}
+			}
+		}
+		{//output
+			const Node* node = nodes[link->GetNodeOutputId()];
+			NodeIO const* nodeIO = node->GetIO(link->GetOutputId());
+			if (nodeIO->type == ITEM) {
+
+				if (classItem[linkClass[linkId]] == unkownItemId)
+					classItem[linkClass[linkId]] = nodeIO->itemId;
+
+				if (classItem[linkClass[linkId]] != nodeIO->itemId)
+				{
+					classItem[linkClass[linkId]] = incorrectItemId;
+					complete = false;
+				}
+			}
+		}
+	}
+
+	//set the itemId for input/output/splitter 
+	for (const auto& [linkId, link] : links) {
+		nodes[link->GetNodeInputId()]->SetIOItem(link->GetInputId(), classItem[linkClass[linkId]]);
+		nodes[link->GetNodeOutputId()]->SetIOItem(link->GetOutputId(), classItem[linkClass[linkId]]);
+	}
+
+	return complete;
+}
 
 void BluePrint::Update() {
 
 	int nodeCreateType = -1;
 	ioPanel.Update(nodeCreateType);
 	if (nodeCreateType != -1)
+	{
 		CreateNewNode(nodeCreateType);
+		solved = false;
+	}
 	
 	if (nodeUpdator->UpdateNode()) {
+		solved = false;
 		int eventId = CreateId();
 		GraphEvent Event(eventId, NODE_UPDATE);
 
@@ -325,6 +464,7 @@ void BluePrint::Update() {
 	}
 
 	if (nodeUpdator->UpdateNodeIO()) {
+		solved = false;
 		int nodeId = findNodeContainingAttr(nodeUpdator->GetNodeIOId(), nodes);
 		Node* nodePrev = new Node(*nodes[nodeId]);
 		
@@ -362,10 +502,14 @@ void BluePrint::Update() {
 
 	int start_attr, end_attr;
 	if (ImNodes::IsLinkCreated(&start_attr, &end_attr))
+	{
+		solved = false;
 		CreateNewLink(start_attr, end_attr);
+	}
 
 	int link_id;
 	if (ImNodes::IsLinkDestroyed(&link_id)) {
+		solved = false;
 		int eventId = CreateId();
 		graphEvents.push(GraphEvent(eventId, DESTRUCTION, links[link_id], linkViewers[link_id]));
 		ImNodes::PushEvent(eventId);
@@ -380,6 +524,7 @@ void BluePrint::Update() {
 		int nb_selected_link = ImNodes::NumSelectedLinks();
 		
 		if (nb_selected_node > 0 || nb_selected_link > 0) {
+			solved = false;
 			int eventId = CreateId();
 			GraphEvent Event(eventId, DESTRUCTION);
 			if (nb_selected_node > 0) {
@@ -437,6 +582,7 @@ void BluePrint::Update() {
 			{
 			case CREATION:
 			{
+				solved = false;
 				if(dest->nodeDatas.size() > 0)
 					DeleteNodes(ExtractIds(dest->nodeDatas));
 				if (dest->linkDatas.size() > 0)
@@ -445,6 +591,7 @@ void BluePrint::Update() {
 			}
 			case DESTRUCTION:
 			{
+				solved = false;
 				for (int i = 0; i < dest->nodeDatas.size(); i++) {
 					CreateNode(dest->nodeDatas[i], dest->nodeViewerDatas[i], dest->nodeImNodesDatas[i]);
 				}
@@ -460,6 +607,7 @@ void BluePrint::Update() {
 			}
 			case NODE_UPDATE:
 			{
+				solved = false;
 				delete nodes[dest->nodeDatas[0]->GetId()];
 				nodes[dest->nodeDatas[0]->GetId()] = new Node(*dest->nodeDatas[0]);
 
@@ -476,6 +624,7 @@ void BluePrint::Update() {
 			}
 			case NODE_IO_UPDATE:
 			{
+				solved = false;
 				nodes[dest->nodeDatas[0]->GetId()]->Overide(*dest->nodeDatas[0]);
 				break;
 			}
@@ -496,6 +645,7 @@ void BluePrint::Update() {
 			{
 			case CREATION:
 			{
+				solved = false;
 				for (int i = 0; i < dest->nodeDatas.size(); i++) {
 					CreateNode(dest->nodeDatas[i], dest->nodeViewerDatas[i], dest->nodeImNodesDatas[i]);
 				}
@@ -506,6 +656,7 @@ void BluePrint::Update() {
 			}
 			case DESTRUCTION:
 			{
+				solved = false;
 				if(dest->nodeDatas.size() > 0)
 					DeleteNodes(ExtractIds(dest->nodeDatas));
 				if (dest->linkDatas.size() > 0)
@@ -519,6 +670,7 @@ void BluePrint::Update() {
 			}
 			case NODE_UPDATE:
 			{
+				solved = false;
 				delete nodes[dest->nodeDatas[1]->GetId()];
 				nodes[dest->nodeDatas[1]->GetId()] = new Node(*dest->nodeDatas[1]);
 
@@ -530,6 +682,7 @@ void BluePrint::Update() {
 			}
 			case NODE_IO_UPDATE:
 			{
+				solved = false;
 				nodes[dest->nodeDatas[1]->GetId()]->Overide(*dest->nodeDatas[1]);
 				break;
 			}
@@ -538,6 +691,11 @@ void BluePrint::Update() {
 				break;
 			}
 		}
+	}
+
+	if (!solved && checkGraph()) {
+		std::cout << "try to solve" << std::endl;
+		solved = true;
 	}
 }
 

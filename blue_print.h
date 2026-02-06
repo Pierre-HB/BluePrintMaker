@@ -68,6 +68,8 @@ private:
 	*/
 	DataBase* dataBase;
 	IOPanel ioPanel;
+
+	bool solved;
 private:
 
 	void clearStack();
@@ -87,6 +89,7 @@ public:
 	void Draw() const;
 
 	void Update();
+	bool checkGraph();
 
 	int CreateNewNode(int type);
 	int CreateNewLink(int input_attr_id, int output_attr_id);

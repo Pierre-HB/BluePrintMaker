@@ -279,6 +279,12 @@ std::vector<Consumable> readConsumable(const json11::Json& json, const std::map<
 //	loadPlaceHolders();
 //}
 
+
+MACHINE_TYPE int2MachineType(int i) {
+	static const MACHINE_TYPE types[6] = { MACHINE_REGULAR, MACHINE_INPUT, MACHINE_OUTPUT, MACHINE_SPLITTER, MACHINE_MERGER, MACHINE_BLACKBOX };
+	return types[i];
+}
+
 static Machine createMAM(const DataBase* dataBase) {
 	std::vector<int> recipeId = std::vector<int>(dataBase->getNbRecipe());
 	for (int i = 0; i < recipeId.size(); i++)
@@ -312,7 +318,8 @@ void DataBase::addSpecialMachines() {
 }
 
 void DataBase::loadPlaceHolders() {
-	items.push_back(Item());
+	items.push_back(Item());//all items
+	items.push_back(Item());//incorect item
 	modifiers.push_back(Modifier());
 	modifierCategories.push_back(ModiferCategory());
 	recipes.push_back(Recipe());

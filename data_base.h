@@ -13,6 +13,8 @@ enum MACHINE_TYPE {
 	MACHINE_BLACKBOX,
 };
 
+MACHINE_TYPE int2MachineType(int i);
+
 struct Item {//1
 	std::string name;
 	int iconeId;
@@ -132,6 +134,8 @@ public:
 	int getNbMachine() const;
 	int getNbSpecialMachine() const;
 	int getNbRecipe() const;
+	int GetUnkownItemId() const;
+	int GetIncorrectItemId() const;
 	std::string getFileName() const;
 };
 
@@ -155,6 +159,12 @@ inline int DataBase::getNbSpecialMachine() const {
 }
 inline int DataBase::getNbRecipe() const {
 	return recipes.size();
+}
+inline int DataBase::GetUnkownItemId() const {
+	return items.size() - 2;
+}
+inline int DataBase::GetIncorrectItemId() const {
+	return items.size() - 1;
 }
 
 inline std::string DataBase::getFileName() const {

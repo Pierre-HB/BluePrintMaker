@@ -183,6 +183,10 @@ struct NodeIOViewer {
 	}
 
 	void Draw();
+	void DrawItem(const Item& item);
+	void DrawLockIO(const Item& item);
+	void DrawIO(const Item& item);
+	void DrawSplitter(const Item& item);
 };
 
 // MODEL class
@@ -198,14 +202,13 @@ protected:
 	float idlePower;
 	float workingPower;
 	std::vector<int> state; //for the selected recipe and the selected modifier
-	bool specialNode;//true for merger, splitter, intput and output
-
+	MACHINE_TYPE type;
 public:
 	Node();
 	Node(int id);
 	Node(const Node& node);
 	Node(const Node& node, int(*CreateId)());
-	Node(const DataBase* dataBase, int type, int(*CreateId)());
+	Node(const DataBase* dataBase, int machineId, int(*CreateId)());
 	Node(const json11::Json& json);
 	void Overide(const Node& node, int(*CreateId)());
 	void Overide(const Node& node);
@@ -221,7 +224,7 @@ public:
 	float GetTime() const;
 	int GetState(int i) const;
 	int GetStateSize() const;
-	bool GetSpecial() const;
+	MACHINE_TYPE GetType() const;
 
 	const std::vector<NodeIO>& GetInputs() const;
 	const std::vector<NodeIO>& GetOutputs() const;
@@ -235,6 +238,10 @@ public:
 
 	void AddInputs(NodeIO nodeIO);
 	void AddOutputs(NodeIO nodeIO);
+
+	NodeIO const* GetIO(int nodeIOId) const;
+	void SetIOItem(int nodeIOId, int itemId);
+	void ResetIOItemId(int unkownItemId);
 
 private:
 	void SetIOIds(int(*CreateId)());
