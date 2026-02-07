@@ -1,7 +1,8 @@
 #include "link.h"
 #include "imnodes.h"
+#include <format>
 
-Link::Link(int id, int inputId, int outputId, int inputNodeId, int outputNodeId) : id(id), inputId(inputId), outputId(outputId), inputNodeId(inputNodeId), outputNodeId(outputNodeId) {
+Link::Link(int id, int inputId, int outputId, int inputNodeId, int outputNodeId) : id(id), inputId(inputId), outputId(outputId), inputNodeId(inputNodeId), outputNodeId(outputNodeId), throuput(-1), valid(true) {
 
 }
 
@@ -37,6 +38,22 @@ int Link::GetNodeOutputId() const {
 	return outputNodeId;
 }
 
+float Link::GetThrouput() const {
+	return throuput;
+}
+
+void Link::SetThrouput(float newThrouput) {
+	throuput = newThrouput;
+}
+
+void Link::SetValid(bool newValid) {
+	valid = newValid;
+}
+
+bool Link::IsValid() const{
+	return valid;
+}
+
 json11::Json Link::ToJson() const {
 	return json11::Json({ {"id", id}, {"inputId", inputId}, {"outputId", outputId}, {"inputNodeId", inputNodeId}, {"outputNodeId", outputNodeId }});
 }
@@ -48,6 +65,8 @@ Link::Link(const json11::Json& json) {
 	outputId = obj.at("outputId").int_value();
 	inputNodeId = obj.at("inputNodeId").int_value();
 	outputNodeId = obj.at("outputNodeId").int_value();
+	throuput = -1;
+	valid = true;
 }
 
 //============================== Viewer ==============================//
@@ -62,7 +81,17 @@ LinkViewer::LinkViewer(const LinkViewer& linkViewer, const Link* link) : LinkVie
 }
 
 void LinkViewer::Draw() const {
+	if (!link->IsValid())
+		ImNodes::PushColorStyle(ImNodesCol_Link, ImColor(230, 60, 80));
 	ImNodes::Link(GetId(), link->GetInputId(), link->GetOutputId(), ImNodesLinkType_::ImNodesLinkType_Sloped);
+	if (!link->IsValid())
+		ImNodes::PopColorStyle();
+	if (link->GetThrouput() >= 0) {
+		ImNodes::BeginLinkLabel(GetId(), GetId());
+		std::string throuput = std::format("{}", link->GetThrouput());
+		ImGui::Text(throuput.c_str());
+		ImNodes::EndLinkLabel();
+	}
 }
 
 int LinkViewer::GetId() const {

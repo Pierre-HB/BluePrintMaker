@@ -20,10 +20,10 @@ void NodeIOViewer::DrawLockIO(const Item& item) {
 	ImGui::Checkbox("Guess", &guess);
 	ImGui::SameLine();
 
-	ImGui::BeginDisabled();
+	/*ImGui::BeginDisabled();
 	ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
 	ImGui::InputInt("##throuput", &tmp, 0, 0);
-	ImGui::EndDisabled();
+	ImGui::EndDisabled();*/
 	if(nodeIO->itemId != dataBase->GetUnkownItemId())
 	{
 		ImGui::SameLine();
@@ -118,16 +118,16 @@ void NodeIOViewer::Draw() {
 }
 
 
-Node::Node() : id() {
+Node::Node() : id(), throuput(-1) {
 
 }
 
-Node::Node(int id) : id(id) {
+Node::Node(int id) : id(id), throuput(-1) {
 
 }
 
 //copy a node
-Node::Node(const Node& node) : id(node.id), inputs(node.inputs), outputs(node.outputs), machineId(node.machineId), time(node.time), idlePower(node.idlePower), workingPower(node.workingPower), state(node.state), type(node.type) {
+Node::Node(const Node& node) : id(node.id), inputs(node.inputs), outputs(node.outputs), machineId(node.machineId), time(node.time), idlePower(node.idlePower), workingPower(node.workingPower), state(node.state), type(node.type), throuput(throuput) {
 
 }
 
@@ -138,7 +138,7 @@ Node::Node(const Node& node, int(*CreateId)() ) : Node(node) {
 }
 
 //create node from dataBase
-Node::Node(const DataBase* dataBase, int machineId, int(*CreateId)()) : machineId(machineId) {
+Node::Node(const DataBase* dataBase, int machineId, int(*CreateId)()) : machineId(machineId), throuput(-1) {
 	const Machine& machine = dataBase->getMachine(machineId);
 	switch (machine.type)
 	{
@@ -268,6 +268,14 @@ int Node::GetState(int i) const {
 
 int Node::GetStateSize() const {
 	return state.size();
+}
+
+float Node::GetThrouput() const {
+	return throuput;
+}
+
+void Node::SetThrouput(float newThrouput){
+	throuput = newThrouput;
 }
 
 MACHINE_TYPE Node::GetType() const {
@@ -437,6 +445,7 @@ Node::Node(const json11::Json& json) {
 	idlePower = obj.at("idlePower").int_value();
 	workingPower = obj.at("workingPower").int_value();
 	type = int2MachineType(obj.at("type").int_value());
+	throuput = -1;
 }
 
 //============================== Viewer ==============================//

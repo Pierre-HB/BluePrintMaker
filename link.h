@@ -21,6 +21,8 @@ private:
 	int outputId;
 	int inputNodeId;
 	int outputNodeId;
+	float throuput;
+	bool valid;
 public:
 	Link();
 	Link(int id);
@@ -35,7 +37,10 @@ public:
 	int GetOutputId() const;
 	int GetNodeInputId() const;
 	int GetNodeOutputId() const;
-
+	float GetThrouput() const;
+	void SetThrouput(float newThrouput);
+	void SetValid(bool newValid);
+	bool IsValid() const;
 	json11::Json ToJson() const;
 
 	//void AddLabels();

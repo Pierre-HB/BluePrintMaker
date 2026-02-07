@@ -426,6 +426,7 @@ bool BluePrint::CheckGraph() {
 	for (const auto& [linkId, link] : links) {
 		nodes[link->GetNodeInputId()]->SetIOItem(link->GetInputId(), classItem[linkClass[linkId]]);
 		nodes[link->GetNodeOutputId()]->SetIOItem(link->GetOutputId(), classItem[linkClass[linkId]]);
+		link->SetValid(classItem[linkClass[linkId]] != incorrectItemId);
 	}
 
 	return complete;
@@ -602,15 +603,31 @@ bool BluePrint::SolveGraph() {
 			return false; //hill formed blueprint, need for negative throuput
 
 	for (const auto& [nodeId, node] : nodes)
+	{
+		node->SetThrouput(state.at(variables[nodeId]));
 		if (node->GetType() == MACHINE_INPUT || node->GetType() == MACHINE_OUTPUT)
 			node->SetIOQuantity(state.at(variables[nodeId]));
+	}
 	
-	/*for (const auto& [linkId, link] : links) {
+	for (const auto& [linkId, link] : links) {
 		link->SetThrouput(state.at(variables[linkId]));
-	}*/
+	}
 
 
 	return true;
+}
+
+void BluePrint::ResetGraph() {
+	for (const auto& [nodeId, node] : nodes)
+	{
+		node->SetThrouput(-1);
+		/*if (node->GetType() == MACHINE_INPUT || node->GetType() == MACHINE_OUTPUT)
+			node->SetIOQuantity(-1);*/
+	}
+
+	for (const auto& [linkId, link] : links) 
+		link->SetThrouput(-1);
+
 }
 
 void BluePrint::Update() {
@@ -875,12 +892,15 @@ void BluePrint::Update() {
 		}
 	}
 
-	if (!solved && CheckGraph()) {
-		if (!SolveGraph())
+	if (!solved) {
+		if(CheckGraph())
 		{
-			//TODO clear all throuput
+			if (!SolveGraph())
+				ResetGraph();
+			solved = true;
 		}
-		solved = true;
+		else
+			ResetGraph();
 	}
 }
 

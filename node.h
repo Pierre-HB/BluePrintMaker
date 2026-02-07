@@ -203,6 +203,7 @@ protected:
 	float workingPower;
 	std::vector<int> state; //for the selected recipe and the selected modifier
 	MACHINE_TYPE type;
+	float throuput;
 public:
 	Node();
 	Node(int id);
@@ -224,6 +225,8 @@ public:
 	float GetTime() const;
 	int GetState(int i) const;
 	int GetStateSize() const;
+	float GetThrouput() const;
+	void SetThrouput(float newThrouput);
 	MACHINE_TYPE GetType() const;
 
 	const std::vector<NodeIO>& GetInputs() const;

@@ -92,6 +92,7 @@ public:
 	void Update();
 	bool CheckGraph();
 	bool SolveGraph();
+	void ResetGraph();
 
 	int CreateNewNode(int type);
 	int CreateNewLink(int input_attr_id, int output_attr_id);
