@@ -49,6 +49,28 @@ struct Rat {
         reduce();
     }
 
+    Rat(const char* c, char** endptr = NULL) {
+        //assume the word beeing writen in the form [0-9]^*/[0-9]^* without any space or funny character
+        const int base = 10;
+        char* end;
+        char* slash;
+        num = Num(c, base, &end);
+        if (*end != '\0')
+            num = num / base;
+        if (*end == '/')
+        {
+            slash = end;
+            den = Num(slash + 1, base, &end);
+            if (*end != '\0')
+                den = den / base;
+        }
+        else
+            den = 1;
+        if (endptr) *endptr = end;
+        
+        reduce();
+    }
+
     void reduce(){
         Num a = Num::gcd(num, den);
         if (a != 1){
@@ -114,6 +136,26 @@ struct Rat {
     friend Rat operator/(int i, const Rat& b);
 };
 
-Rat operator/(int i, const Rat& b) {
-    return Rat(i) / b;
-}
+//Rat operator/(int i, const Rat& b) {
+//    return Rat(i) / b;
+//}
+
+struct Time {
+private:
+    Rat second;
+public:
+    Time(const char* str) {
+        char* end;
+        second = Rat(str, &end);
+        if (strncmp(end, "min", 3))
+            second = second * 60;
+    }
+
+    Rat GetSecond() const {
+        return second;
+    }
+
+    Rat GetMinute() const {
+        return second*60;
+    }
+};

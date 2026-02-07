@@ -6,7 +6,7 @@
 #include "blue_print.h"
 #include "json11.hpp"
 //#include "smatrix.h"
-//#include "rat.hpp"
+#include "rat.hpp"
 
 /*
 +---------------------------------------------------------------------------+
@@ -902,6 +902,14 @@ void BluePrint::Update() {
 		else
 			ResetGraph();
 	}
+
+	Rat test = Rat("42/2");
+	//Rat test = Rat(42, 2);
+	std::vector<char> c;
+	test.print(c);
+	for (int i = c.size()-1; i >=0; i--)
+		std::cout << c[i];
+	std::cout << std::endl;
 }
 
 json11::Json BluePrint::ToJson() const {
