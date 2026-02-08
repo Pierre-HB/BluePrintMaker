@@ -71,7 +71,7 @@
 			"name": "Proliferator II",
 			"iconeId": 4,
 			"speedModifier": 1,
-			"outputModifier": 1.2,
+			"outputModifier": "6/5",
 			"idlePower": 0,
 			"workingPower": 0,
 			"consumables": [

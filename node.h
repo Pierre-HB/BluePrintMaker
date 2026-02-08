@@ -6,6 +6,17 @@
 #include "json11.hpp"
 #include "data_base.h"
 #include <format>
+#include "rat.hpp"
+
+inline std::string Rat2string(const Rat& r) {
+	std::vector<char> q;
+	r.print(q);
+	std::string q_str;
+	for (int i = q.size() - 1; i >= 0; i--)
+		q_str += q[i];
+	return q_str;
+}
+
 
 enum NODE_IO_TYPE {
 	ITEM=0,//regular item
@@ -24,7 +35,7 @@ private:
 	int stateChannel = -1;
 	int newState = -1;
 	int nodeIOId = -1;
-	float data = -1;
+	Rat data = -1;
 	int nodeUpdatorState = -1;
 
 	const static int NODE_UPDATOR_IO_LOCK = 0;
@@ -64,7 +75,7 @@ public:
 		return newState;
 	}
 
-	float GetIOQuantity() const {
+	Rat GetIOQuantity() const {
 		return data;
 	}
 
@@ -95,14 +106,14 @@ public:
 		IM_ASSERT(nodeIOId == -1);
 	}
 
-	void SetNodeIOQuantity(float newData, int _nodeIOId) {
+	void SetNodeIOQuantity(Rat newData, int _nodeIOId) {
 		data = newData;
 		nodeIOId = _nodeIOId;
 		IM_ASSERT(nodeId == -1);
 		IM_ASSERT(newData >= 0);
 	}
 
-	void SetNodeIOSplitterPercent(float newPercent, int _nodeIOId) {
+	void SetNodeIOSplitterPercent(Rat newPercent, int _nodeIOId) {
 		data = newPercent;
 		nodeIOId = _nodeIOId;
 		nodeUpdatorState = NODE_UPDATOR_IO_SPLITTER;
@@ -131,7 +142,7 @@ public:
 struct NodeIO {
 	int id;
 	int itemId;
-	float quantity;//serve also for throuput value and splitter
+	Rat quantity;//serve also for throuput value and splitter
 	//int proliferator_lvl;
 	//int proliferator_lvl2;
 	//int proliferator_lvl3;
@@ -142,9 +153,9 @@ struct NodeIO {
 	NodeIO() : id(), itemId(), quantity(), type(NODE_IO_TYPE::ITEM) {}
 	NodeIO(int id) : id(id), itemId(), quantity(), type(NODE_IO_TYPE::ITEM) {}
 	NodeIO(int id, int itemId) : id(id), itemId(itemId), quantity(), type(NODE_IO_TYPE::ITEM) {}
-	NodeIO(int id, int itemId, float quantity) : id(id), itemId(itemId), quantity(quantity), type(NODE_IO_TYPE::ITEM) {}
-	NodeIO(int id, int itemId, float quantity, NODE_IO_TYPE type) : id(id), itemId(itemId), quantity(quantity), type(type) {}
-	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), itemId(json.object_items().at("itemId").int_value()), quantity(json.object_items().at("quantity").number_value()), type(int2NodeIOType(json.object_items().at("type").int_value() )){}
+	NodeIO(int id, int itemId, Rat quantity) : id(id), itemId(itemId), quantity(quantity), type(NODE_IO_TYPE::ITEM) {}
+	NodeIO(int id, int itemId, Rat quantity, NODE_IO_TYPE type) : id(id), itemId(itemId), quantity(quantity), type(type) {}
+	NodeIO(const json11::Json& json) : id(json.object_items().at("id").int_value()), itemId(json.object_items().at("itemId").int_value()), quantity(json.object_items().at("quantity").string_value().c_str()), type(int2NodeIOType(json.object_items().at("type").int_value() )){}
 	//TODO save and load type 
 
 	int GetId() const {
@@ -157,7 +168,7 @@ struct NodeIO {
 	}
 
 	json11::Json ToJson() const {
-		return json11::Json({ {"id", id}, {"itemId", itemId}, {"quantity", quantity}, {"type", type} });
+		return json11::Json({ {"id", id}, {"itemId", itemId}, {"quantity", Rat2string(quantity).c_str()}, {"type", type}});
 	}
 
 	void Overide(const NodeIO& nodeIO) {
@@ -198,12 +209,12 @@ protected:
 	//name ?
 	//std::string name;
 	int machineId;
-	float time;
-	float idlePower;
-	float workingPower;
+	Rat time;
+	Rat idlePower;
+	Rat workingPower;
 	std::vector<int> state; //for the selected recipe and the selected modifier
 	MACHINE_TYPE type;
-	float throuput;
+	Rat throuput;
 public:
 	Node();
 	Node(int id);
@@ -222,18 +233,18 @@ public:
 
 	int GetId() const;
 	int GetMachineId() const;
-	float GetTime() const;
+	Rat GetTime() const;
 	int GetState(int i) const;
 	int GetStateSize() const;
-	float GetThrouput() const;
-	void SetThrouput(float newThrouput);
+	Rat GetThrouput() const;
+	void SetThrouput(Rat newThrouput);
 	MACHINE_TYPE GetType() const;
 
 	const std::vector<NodeIO>& GetInputs() const;
 	const std::vector<NodeIO>& GetOutputs() const;
 
-	void UpdateNodeIOData(int ioId, float newData);
-	void UpdateNodeIOSplitterData(int ioId, float newData);
+	void UpdateNodeIOData(int ioId, Rat newData);
+	void UpdateNodeIOSplitterData(int ioId, Rat newData);
 	void UpdateNodeIOType(int ioId, NODE_IO_TYPE type);
 	void InitNodeAsIO(int(*CreateId)(), const DataBase* dataBase, bool input);
 	void InitNodeAsRegular(int(*CreateId)(), const DataBase* dataBase);
@@ -244,7 +255,7 @@ public:
 
 	NodeIO const* GetIO(int nodeIOId) const;
 	void SetIOItem(int nodeIOId, int itemId);
-	void SetIOQuantity(float quantity);
+	void SetIOQuantity(Rat quantity);
 	void ResetIOItemId(int unkownItemId);
 
 private:

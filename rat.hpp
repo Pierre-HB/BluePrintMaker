@@ -109,7 +109,7 @@ struct Rat {
         return num.to_double() / den.to_double();
     }
 
-    void print(std::vector<char> &c){
+    void print(std::vector<char> &c) const{
         num.print(c);
         c.back() = '/';
         den.print(c);
@@ -136,9 +136,9 @@ struct Rat {
     friend Rat operator/(int i, const Rat& b);
 };
 
-//Rat operator/(int i, const Rat& b) {
-//    return Rat(i) / b;
-//}
+inline Rat operator/(int i, const Rat& b) {
+    return Rat(i) / b;
+}
 
 struct Time {
 private:

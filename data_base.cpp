@@ -34,6 +34,33 @@ static float readFloat(const json11::Json& json, const std::string& key, const s
 	}
 }
 
+static Rat readRat(const json11::Json& json, const std::string& key, const std::string& struct_name, Rat default_value) {
+	if (json.object_items().count(key)) {
+		if (json.object_items().at(key).is_number())
+			return Rat(float(json.object_items().at(key).number_value()));
+		else if (json.object_items().at(key).is_string()) {
+				return Rat(json.object_items().at(key).string_value().c_str());
+		}
+		else {
+			std::cout << "[WARNING] Wrong type for '" << key << "' (should be float or string) for " << struct_name << " : " << json.dump() << std::endl;
+			return default_value;
+		}
+	}
+	else {
+		std::cout << "[WARNING] did not found '" << key << "' for " << struct_name << " : " << json.dump() << std::endl;
+		return default_value;
+	}
+}
+
+static Rat readRat(const json11::Json& json) {
+	if (json.is_number())
+		return Rat(float(json.number_value()));
+	else if (json.is_string()) {
+		return Rat(json.string_value().c_str());
+	}
+	return 0;
+}
+
 std::string readString(const json11::Json& json, const std::string& key, const std::string& struct_name, std::string default_value) {
 	if (json.object_items().count(key)) {
 		if (json.object_items().at(key).is_string())
@@ -81,37 +108,69 @@ std::vector<int> readMap(const json11::Json& json, const std::map<std::string, i
 	}
 }
 
-std::vector<std::pair<int, int>> readList(const json11::Json& json, const std::map<std::string, int>& idMap, const std::string& key, const std::string& struct_name, const std::string& mapName) {
+std::vector<std::pair<int, Rat>> readList(const json11::Json& json, const std::map<std::string, int>& idMap, const std::string& key, const std::string& struct_name, const std::string& mapName) {
 
 	if (json.object_items().count(key)) {
 		if (json.object_items().at(key).is_object()) {
-			std::vector<std::pair<int, int>> idQuantityList = std::vector<std::pair<int, int>>();
+			std::vector<std::pair<int, Rat>> idQuantityList = std::vector<std::pair<int, Rat>>();
 			for (const auto& va : json.object_items().at(key).object_items()) {
 
-				if (va.second.is_number()) {
+				if (isRat(va.second)) {
 					if (idMap.count(va.first)) {
-						idQuantityList.push_back(std::pair<int, int>(idMap.at(va.first), va.second.int_value()));
+						idQuantityList.push_back(std::pair<int, Rat>(idMap.at(va.first), readRat(va.second)));
 					}
 					else {
 						std::cout << "[WARNING] did not found '" << va.first << "' in " << mapName << " list for " << struct_name << " : " << json.dump() << std::endl;
 					}
 				}
 				else {
-					std::cout << "[WARNING] Wrong type for '" << va.second.dump() << "' (should be int) at key : " << va.first << " in map '" << key << "' for " << struct_name << " : " << json.dump() << std::endl;
+					std::cout << "[WARNING] Wrong type for '" << va.second.dump() << "' (should be number or srting) at key : " << va.first << " in map '" << key << "' for " << struct_name << " : " << json.dump() << std::endl;
 				}
 			}
 			return idQuantityList;
 		}
 		else {
 			std::cout << "[WARNING] Wrong type for '" << key << "' (should be map) for " << struct_name << " : " << json.dump() << std::endl;
-			return std::vector<std::pair<int, int>>();
+			return std::vector<std::pair<int, Rat>>();
 		}
 	}
 	else {
 		std::cout << "[WARNING] did not found '" << key << "' for " << struct_name << " : " << json.dump() << std::endl;
-		return std::vector<std::pair<int, int>>();
+		return std::vector<std::pair<int, Rat>>();
 	}
 }
+
+//std::vector<std::pair<int, int>> readList(const json11::Json& json, const std::map<std::string, int>& idMap, const std::string& key, const std::string& struct_name, const std::string& mapName) {
+//
+//	if (json.object_items().count(key)) {
+//		if (json.object_items().at(key).is_object()) {
+//			std::vector<std::pair<int, Rat>> idQuantityList = std::vector<std::pair<int, Rat>>();
+//			for (const auto& va : json.object_items().at(key).object_items()) {
+//
+//				if (va.second.is_number()) {
+//					if (idMap.count(va.first)) {
+//						idQuantityList.push_back(std::pair<int, int>(idMap.at(va.first), va.second.int_value()));
+//					}
+//					else {
+//						std::cout << "[WARNING] did not found '" << va.first << "' in " << mapName << " list for " << struct_name << " : " << json.dump() << std::endl;
+//					}
+//				}
+//				else {
+//					std::cout << "[WARNING] Wrong type for '" << va.second.dump() << "' (should be int) at key : " << va.first << " in map '" << key << "' for " << struct_name << " : " << json.dump() << std::endl;
+//				}
+//			}
+//			return idQuantityList;
+//		}
+//		else {
+//			std::cout << "[WARNING] Wrong type for '" << key << "' (should be map) for " << struct_name << " : " << json.dump() << std::endl;
+//			return std::vector<std::pair<int, int>>();
+//		}
+//	}
+//	else {
+//		std::cout << "[WARNING] did not found '" << key << "' for " << struct_name << " : " << json.dump() << std::endl;
+//		return std::vector<std::pair<int, int>>();
+//	}
+//}
 
 
 std::vector<Consumable> readConsumable(const json11::Json& json, const std::map<std::string, int>& itemIdMap) {
@@ -396,11 +455,19 @@ Consumable::Consumable(const json11::Json& json, const std::map<std::string, int
 		}
 	}
 
-	inputConsumtion = readFloat(json, "inputConsumtion", "Consumable", 0.0f);
-	outputConsumtion = readFloat(json, "outputConsumtion", "Consumable", 0.0f);
+	inputConsumtion = readRat(json, "inputConsumtion", "Consumable", 0.0f);
+	outputConsumtion = readRat(json, "outputConsumtion", "Consumable", 0.0f);
 	
 }
 
+inline std::string _Rat2string(const Rat& r) {
+	std::vector<char> q;
+	r.print(q);
+	std::string q_str;
+	for (int i = q.size() - 1; i >= 0; i--)
+		q_str += q[i];
+	return q_str;
+}
 
 Modifier::Modifier(const json11::Json& json, const std::map<std::string, int>& itemIdMap) {
 	/*std::string name;
@@ -415,10 +482,10 @@ Modifier::Modifier(const json11::Json& json, const std::map<std::string, int>& i
 
 	name = readString(json, "name", "Modifier", "Modifier");
 	iconeId = readInt(json, "iconeId", "Modifier");
-	speedModifier = readFloat(json, "speedModifier", "Modifier", 1.0);
-	outputModifier = readFloat(json, "outputModifier", "Modifier", 1.0);
-	idlePower = readFloat(json, "idlePower", "Modifier", 0.0f);
-	workingPower = readFloat(json, "workingPower", "Modifier", 0.0f);
+	speedModifier = readRat(json, "speedModifier", "Modifier", 1);
+	outputModifier = readRat(json, "outputModifier", "Modifier", 1);
+	idlePower = readRat(json, "idlePower", "Modifier", 0.0f);
+	workingPower = readRat(json, "workingPower", "Modifier", 0.0f);
 
 	consumables = readConsumable(json, itemIdMap);
 }
@@ -454,7 +521,7 @@ Recipe::Recipe(const json11::Json& json, const std::map<std::string, int>& itemI
 
 	name = readString(json, "name", "Recipe", "Recipe");
 	iconeId = readInt(json, "iconeId", "Recipe");
-	time = readFloat(json, "time", "Recipe", 0.0f);
+	time = readRat(json, "time", "Recipe", 0.0f);
 	modifierCategoriesId = readMap(json, modifierCategoryIdMap, "modifierCategories", "Recipe", "modifierCategories");
 
 	inputsId = readList(json, itemIdMap, "inputs", "Recipe", "items");

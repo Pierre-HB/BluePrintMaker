@@ -38,11 +38,11 @@ int Link::GetNodeOutputId() const {
 	return outputNodeId;
 }
 
-float Link::GetThrouput() const {
+Rat Link::GetThrouput() const {
 	return throuput;
 }
 
-void Link::SetThrouput(float newThrouput) {
+void Link::SetThrouput(Rat newThrouput) {
 	throuput = newThrouput;
 }
 
@@ -88,7 +88,7 @@ void LinkViewer::Draw() const {
 		ImNodes::PopColorStyle();
 	if (link->GetThrouput() >= 0) {
 		ImNodes::BeginLinkLabel(GetId(), GetId());
-		std::string throuput = std::format("{}", link->GetThrouput());
+		std::string throuput = std::format("{}", link->GetThrouput().to_double());
 		ImGui::Text(throuput.c_str());
 		ImNodes::EndLinkLabel();
 	}

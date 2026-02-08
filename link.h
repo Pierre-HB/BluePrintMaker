@@ -2,6 +2,7 @@
 
 #include "json11.hpp"
 #include "data_base.h"
+#include "rat.hpp"
 
 struct LinkUpdator {
 
@@ -21,7 +22,7 @@ private:
 	int outputId;
 	int inputNodeId;
 	int outputNodeId;
-	float throuput;
+	Rat throuput;
 	bool valid;
 public:
 	Link();
@@ -37,8 +38,8 @@ public:
 	int GetOutputId() const;
 	int GetNodeInputId() const;
 	int GetNodeOutputId() const;
-	float GetThrouput() const;
-	void SetThrouput(float newThrouput);
+	Rat GetThrouput() const;
+	void SetThrouput(Rat newThrouput);
 	void SetValid(bool newValid);
 	bool IsValid() const;
 	json11::Json ToJson() const;

@@ -9,13 +9,12 @@ NODE_IO_TYPE int2NodeIOType(int i){
 }
 
 void NodeIOViewer::DrawItem(const Item& item) {
-	ImGui::Text((item.iconeString + item.name + std::format(" {}", nodeIO->quantity)).c_str());
+	ImGui::Text((item.iconeString + item.name + std::format(" {}", nodeIO->quantity.to_double())).c_str());
+	//std::cout << "quantity : " << nodeIO->quantity.to_double() << ", " << std::format(" {}", nodeIO->quantity.to_double()) << ", " << Rat2string(nodeIO->quantity) << std::endl;
 }
 
 void NodeIOViewer::DrawLockIO(const Item& item) {
 	static bool guess;
-	static int tmp;
-	tmp = int(nodeIO->quantity);
 	guess = true;
 	ImGui::Checkbox("Guess", &guess);
 	ImGui::SameLine();
@@ -37,14 +36,14 @@ void NodeIOViewer::DrawLockIO(const Item& item) {
 void NodeIOViewer::DrawIO(const Item& item) {
 	static bool guess;
 	static int tmp;
-	tmp = int(nodeIO->quantity);
+	tmp = int(nodeIO->quantity.to_double());
 	guess = false;
 	ImGui::Checkbox("Guess", &guess);
 	ImGui::SameLine();
 	ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
 	ImGui::InputInt("##throuput", &tmp, 0, 0);
 
-	if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
+	if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity.to_double()) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
 		nodeUpdator->SetNodeIOQuantity(tmp, nodeIO->GetId());
 
 	if (nodeIO->itemId != dataBase->GetUnkownItemId())
@@ -58,11 +57,11 @@ void NodeIOViewer::DrawIO(const Item& item) {
 
 void NodeIOViewer::DrawSplitter(const Item& item) {
 	static int tmp;
-	tmp = int(nodeIO->quantity);
+	tmp = int(nodeIO->quantity.to_double());
 	static std::string quantity;
 	quantity = "";
 	if (!isInput) {
-		quantity = std::format(" {}", nodeIO->quantity);
+		quantity = std::format(" {}", nodeIO->quantity.to_double());
 	}
 	if (!isInput) {
 		ImNodes::SetNextItemWidth(45);
@@ -72,7 +71,7 @@ void NodeIOViewer::DrawSplitter(const Item& item) {
 		if (tmp > 100)
 			tmp = 100;
 
-		if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
+		if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity.to_double()) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
 		{
 			nodeUpdator->SetNodeIOSplitterPercent(tmp, nodeIO->GetId());
 		}
@@ -84,7 +83,7 @@ void NodeIOViewer::DrawSplitter(const Item& item) {
 		ImGui::SameLine();
 	}
 	if(isInput)
-		ImGui::Text(std::format(" {}", nodeIO->quantity).c_str());
+		ImGui::Text(std::format(" {}", nodeIO->quantity.to_double()).c_str());
 }
 
 void NodeIOViewer::Draw() {
@@ -219,20 +218,16 @@ void Node::ChangeState(const DataBase* dataBase, int stateChannel, int newState,
 	
 	//Asume outputs and outputs already in place
 	for (int i = 0; i < recipe.outputsId.size(); i++) {
-		int itemId = recipe.outputsId[i].first;
-		int itemQuantity = recipe.outputsId[i].second;
-		outputs[i].quantity = itemQuantity;
-		outputs[i].itemId = itemId;
+		outputs[i].quantity = recipe.outputsId[i].second;
+		outputs[i].itemId = recipe.outputsId[i].first;
 	}
 	for (int i = 0; i < recipe.inputsId.size(); i++) {
-		int itemId = recipe.inputsId[i].first;
-		int itemQuantity = recipe.inputsId[i].second;
-		inputs[i].quantity = itemQuantity;
-		inputs[i].itemId = itemId;
+		inputs[i].quantity = recipe.inputsId[i].second;
+		inputs[i].itemId = recipe.inputsId[i].first;
 	}
 	time = recipe.time;
-	idlePower = 0.0;
-	workingPower = 0.0;
+	idlePower = 0;
+	workingPower = 0;
 	//name = recipe.name;
 
 	
@@ -245,8 +240,13 @@ void Node::ChangeState(const DataBase* dataBase, int stateChannel, int newState,
 		workingPower += modifier.workingPower;
 		time *= modifier.speedModifier;
 		for(int i = 0; i < recipe.outputsId.size(); i++)
+		{
+			std::cout << "old output : " << Rat2string(outputs[i].quantity) << std::endl;
 			outputs[i].quantity *= modifier.outputModifier;
-		std::cout << "Output quantity modifier : " << modifier.outputModifier << std::endl;
+			std::cout << "new output : " << Rat2string(outputs[i].quantity);
+			std::cout << ", modifier : " << Rat2string(modifier.outputModifier) << std::endl;
+		}
+		std::cout << "Output quantity modifier : " << modifier.outputModifier.to_double() << std::endl;
 	}
 }
 
@@ -258,7 +258,7 @@ int Node::GetMachineId() const {
 	return machineId;
 }
 
-float Node::GetTime() const {
+Rat Node::GetTime() const {
 	return time;
 }
 
@@ -270,11 +270,11 @@ int Node::GetStateSize() const {
 	return state.size();
 }
 
-float Node::GetThrouput() const {
+Rat Node::GetThrouput() const {
 	return throuput;
 }
 
-void Node::SetThrouput(float newThrouput){
+void Node::SetThrouput(Rat newThrouput){
 	throuput = newThrouput;
 }
 
@@ -317,7 +317,7 @@ void Node::SetIOItem(int nodeIOId, int itemId) {
 	}
 }
 
-void Node::SetIOQuantity(float quantity) {
+void Node::SetIOQuantity(Rat quantity) {
 	for (NodeIO& nodeIO : inputs)
 		if (nodeIO.type == LOCK_IO) 
 			nodeIO.quantity = quantity;
@@ -336,7 +336,7 @@ void Node::ResetIOItemId(int unkownItemId) {
 			nodeIO.itemId = unkownItemId;
 }
 
-void Node::UpdateNodeIOData(int nodeIOId, float newData) {
+void Node::UpdateNodeIOData(int nodeIOId, Rat newData) {
 	for (NodeIO& nodeIO : inputs)
 		if (nodeIO.GetId() == nodeIOId)
 			nodeIO.quantity = newData;
@@ -345,13 +345,13 @@ void Node::UpdateNodeIOData(int nodeIOId, float newData) {
 			nodeIO.quantity = newData;
 }
 
-void Node::UpdateNodeIOSplitterData(int nodeIOId, float newData) {
+void Node::UpdateNodeIOSplitterData(int nodeIOId, Rat newData) {
 	for (NodeIO& nodeIO : outputs)
 	{
 		if (nodeIO.GetId() == nodeIOId)
 			nodeIO.quantity = newData;
 		else
-			nodeIO.quantity = 100 - newData;
+			nodeIO.quantity = Rat(100) - newData;
 	}
 }
 
@@ -427,9 +427,9 @@ json11::Json Node::ToJson() const {
 		{"outputs", VectorToJson(outputs)},
 		{"id", id},
 		{"machineId", machineId},
-		{"time", time},
-		{"idlePower", idlePower},
-		{"workingPower", workingPower},
+		{"time", Rat2string(time).c_str()},
+		{"idlePower", Rat2string(idlePower).c_str()},
+		{"workingPower", Rat2string(workingPower).c_str()},
 		{"state", state},
 		{"type", type} });
 }
@@ -441,9 +441,9 @@ Node::Node(const json11::Json& json) {
 	state = JsonToVectorInt(obj.at("state").array_items());
 	id = obj.at("id").int_value();
 	machineId = obj.at("machineId").int_value();
-	time = obj.at("time").number_value();
-	idlePower = obj.at("idlePower").int_value();
-	workingPower = obj.at("workingPower").int_value();
+	time = Rat(obj.at("time").string_value().c_str());
+	idlePower = Rat(obj.at("idlePower").string_value().c_str());
+	workingPower = Rat(obj.at("workingPower").string_value().c_str());
 	type = int2MachineType(obj.at("type").int_value());
 	throuput = -1;
 }
@@ -573,7 +573,10 @@ void NodeViewer::DrawMachineContent() {
 
 void NodeViewer::DrawMachineFooter() {
 	ImNodes::BeginNodeFooter();
-	ImGui::Text(std::format("nb machines : {}  -  time : {}s", "?", node->GetTime()).c_str());
+	if(node->GetThrouput() >= 0)
+		ImGui::Text(std::format("nb machines : {}  -  time : {}s", int(ceil((node->GetThrouput()*node->GetTime()/60).to_double())), node->GetTime().to_double()).c_str());
+	else
+		ImGui::Text(std::format("time : {}s", node->GetTime().to_double()).c_str());
 	ImNodes::EndNodeFooter();
 }
 

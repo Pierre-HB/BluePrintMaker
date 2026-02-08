@@ -3,6 +3,7 @@
 #include "imnodes.h"
 #include "json11.hpp"
 #include <string>
+#include "rat.hpp"
 
 enum MACHINE_TYPE {
 	MACHINE_REGULAR,
@@ -26,8 +27,8 @@ struct Item {//1
 
 struct Consumable {//2
 	int itemId;
-	float inputConsumtion;
-	float outputConsumtion;
+	Rat inputConsumtion;
+	Rat outputConsumtion;
 
 	Consumable(const json11::Json& json, const std::map<std::string, int>& itemIdMap);
 };
@@ -36,10 +37,10 @@ struct Modifier {//3
 	std::string name;
 	int iconeId;
 	std::string iconeString;
-	float speedModifier = 1.0f;
-	float outputModifier = 1.0f;
-	float idlePower = 0.0f;
-	float workingPower = 0.0f;
+	Rat speedModifier = 1.0f;
+	Rat outputModifier = 1.0f;
+	Rat idlePower = 0.0f;
+	Rat workingPower = 0.0f;
 	std::vector<Consumable> consumables; //consumables ar items
 
 	Modifier(const json11::Json& json, const std::map<std::string, int>& itemIdMap);
@@ -61,9 +62,9 @@ struct Recipe {//5
 	std::string name;
 	int iconeId;
 	std::string iconeString;
-	std::vector<std::pair<int, int>> inputsId;
-	std::vector<std::pair<int, int>> outputsId;
-	float time;
+	std::vector<std::pair<int, Rat>> inputsId;
+	std::vector<std::pair<int, Rat>> outputsId;
+	Rat time;
 	std::vector<int> modifierCategoriesId;
 	std::vector<std::vector<std::string>> modifierNames; // precomputed modifier icones for ImGui combo
 
@@ -95,7 +96,7 @@ std::map<std::string, int> createIdMap(std::vector<T> objects) {
 	return idMap;
 }
 
-const ImVec2 iconeSize = ImVec2(32, 32); //size of one icone in the spreadsheet
+//const ImVec2 iconeSize = ImVec2(32, 32); //size of one icone in the spreadsheet
 
 class DataBase {
 
@@ -189,15 +190,22 @@ inline const Recipe& DataBase::getRecipe(int recipeId) const {
 	return recipes[recipeId];
 }
 
+inline bool isRat(const json11::Json& json) {
+	return json.is_number() || json.is_string();
+}
 
 int readInt(const json11::Json& json, const std::string& key, const std::string& struct_name, int default_value = -1);
 
 float readFloat(const json11::Json& json, const std::string& key, const std::string& struct_name, float default_value = 1.0f);
 
+Rat readRat(const json11::Json& json);
+
+Rat readRat(const json11::Json& json, const std::string& key, const std::string& struct_name, Rat default_value = 1);
+
 std::string readString(const json11::Json& json, const std::string& key, const std::string& struct_name, std::string default_value = "");
 
 std::vector<int> readMap(const json11::Json& json, const std::map<std::string, int>& idMap, const std::string& key, const std::string& struct_name, const std::string& mapName);
 
-std::vector<std::pair<int, int>> readList(const json11::Json& json, const std::map<std::string, int>& idMap, const std::string& key, const std::string& struct_name, const std::string& mapName);
+std::vector<std::pair<int, Rat>> readList(const json11::Json& json, const std::map<std::string, int>& idMap, const std::string& key, const std::string& struct_name, const std::string& mapName);
 
 std::vector<Consumable> readConsumable(const json11::Json& json, const std::map<std::string, int>& itemIdMap);

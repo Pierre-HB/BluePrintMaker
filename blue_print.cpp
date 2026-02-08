@@ -488,8 +488,8 @@ bool BluePrint::SolveGraph() {
 	}
 
 	int n = pow2roundup(variableIdx);
-	SMatrix<float> problem = SMatrix<float>(n);
-	SVector<float> state = SVector<float>(n);
+	SMatrix<Rat> problem = SMatrix<Rat>(n);
+	SVector<Rat> state = SVector<Rat>(n);
 
 	std::map<int, int> nodeIOConstraint = std::map<int, int>();
 
@@ -507,7 +507,7 @@ bool BluePrint::SolveGraph() {
 
 						problem.insert(1, constraintIdx, variables[nodeId]);
 						state.insert(nodeIO.quantity, constraintIdx);
-						std::cout << "insert user throuput : " << nodeIO.quantity << std::endl;
+						//std::cout << "insert user throuput : " << nodeIO.quantity << std::endl;
 					}
 				}
 				else
@@ -535,7 +535,7 @@ bool BluePrint::SolveGraph() {
 
 						problem.insert(1, constraintIdx, variables[nodeId]);
 						state.insert(nodeIO.quantity, constraintIdx);
-						std::cout << "insert user throuput : " << nodeIO.quantity << std::endl;
+						//std::cout << "insert user throuput : " << nodeIO.quantity << std::endl;
 					}
 				}
 				else 
@@ -559,17 +559,17 @@ bool BluePrint::SolveGraph() {
 	for(int i = constraintIdx; i < n; i++)
 		problem.insert(1, i, i);//make sure the matrix is invertible
 
-	std::cout << std::endl << "state before solve " << std::endl;
+	/*std::cout << std::endl << "state before solve " << std::endl;
 	for (int i = 0; i < n; i++) {
 		std::cout << state.at(i) << "\t";
-	}
-	std::cout << std::endl << "problem : " << std::endl;
+	}*/
+	/*std::cout << std::endl << "problem : " << std::endl;
 	for (int i = 0; i < constraintIdx; i++) {
 		for (int j = 0; j < constraintIdx; j++) {
 			std::cout << problem.at(i, j) << "\t";
 		}
 		std::cout << std::endl;
-	}
+	}*/
 
 	bool inverted = true;
 	problem = problem.inversed(&inverted);
@@ -581,22 +581,22 @@ bool BluePrint::SolveGraph() {
 		std::cout << "not invertible ?" << std::endl;
 	}
 
-	for (int i = 0; i < constraintIdx; i++) {
+	/*for (int i = 0; i < constraintIdx; i++) {
 		for (int j = 0; j < constraintIdx; j++) {
 			std::cout << problem.at(i, j) << "\t";
 		}
 		std::cout << std::endl;
-	}
+	}*/
 
 	
-	std::cout << std::endl;
+	//std::cout << std::endl;
 
 	state = problem * state;
-	std::cout << std::endl << "state after solve " << std::endl;
+	/*std::cout << std::endl << "state after solve " << std::endl;
 	for (int i = 0; i < constraintIdx; i++) {
 		std::cout << state.at(i) << "\t";
 	}
-	std::cout << std::endl;
+	std::cout << std::endl;*/
 
 	for (int i = 0; i < constraintIdx; i++)
 		if (state.at(i) < 0)
@@ -902,14 +902,6 @@ void BluePrint::Update() {
 		else
 			ResetGraph();
 	}
-
-	Rat test = Rat("42/2");
-	//Rat test = Rat(42, 2);
-	std::vector<char> c;
-	test.print(c);
-	for (int i = c.size()-1; i >=0; i--)
-		std::cout << c[i];
-	std::cout << std::endl;
 }
 
 json11::Json BluePrint::ToJson() const {
