@@ -1,0 +1,460 @@
+{
+	"spreadsheet": "dyson_sphere_icones.png",
+	"iconeWidth": 80,
+	"iconeHeight": 80,
+	"items": [
+		{
+			"iconeId": 1,
+			"name": "Iron Ore"
+		},
+		{
+			"iconeId": 2,
+			"name": "Copper Ore"
+		},
+		{
+			"iconeId": 3,
+			"name": "Stone"
+		},
+		{
+			"iconeId": 4,
+			"name": "Coal"
+		},
+		{
+			"iconeId": 5,
+			"name": "Silicon Ore"
+		},
+		{
+			"iconeId": 6,
+			"name": "Titanium Ore"
+		},
+		{
+			"iconeId": 7,
+			"name": "Water"
+		},
+		{
+			"iconeId": 8,
+			"name": "Crude Oil"
+		},
+		{
+			"iconeId": 9,
+			"name": "Hydrogen"
+		},
+		{
+			"iconeId": 10,
+			"name": "Deuterium"
+		},
+		{
+			"iconeId": 11,
+			"name": "Antimatter"
+		},
+		{
+			"iconeId": 12,
+			"name": "Core Element"
+		},
+		{
+			"iconeId": 13,
+			"name": "Critical Photon"
+		},
+		{
+			"iconeId": 14,
+			"name": "Kimberlite Ore"
+		},
+		{
+			"iconeId": 15,
+			"name": "Iron Ingot"
+		},
+		{
+			"iconeId": 16,
+			"name": "Copper Ingot"
+		},
+		{
+			"iconeId": 17,
+			"name": "Stone Brick"
+		},
+		{
+			"iconeId": 18,
+			"name": "Energetic Graphite"
+		},
+		{
+			"iconeId": 19,
+			"name": "High-Purity Silicon"
+		},
+		{
+			"iconeId": 20,
+			"name": "Titanium Ingot"
+		},
+		{
+			"iconeId": 21,
+			"name": "Sulfuric Acid"
+		},
+		{
+			"iconeId": 22,
+			"name": "Refined Oil"
+		},
+		{
+			"iconeId": 23,
+			"name": "Hydrogen Fuel Rod"
+		},
+		{
+			"iconeId": 24,
+			"name": "Deuteron Fuel Rod"
+		},
+		{
+			"iconeId": 25,
+			"name": "Antimatter Fuel Rod"
+		},
+		{
+			"iconeId": 26,
+			"name": "Strange Annihilation Fuel Rod"
+		},
+		{
+			"iconeId": 27,
+			"name": "Missile Set"
+		},
+		{
+			"iconeId": 28,
+			"name": "Fractal Silicon"
+		},
+		{
+			"iconeId": 29,
+			"name": "Magnet"
+		},
+		{
+			"iconeId": 30,
+			"name": "Magnetic Coil"
+		},
+		{
+			"iconeId": 31,
+			"name": "Glass"
+		},
+		{
+			"iconeId": 32,
+			"name": "Diamond"
+		},
+		{
+			"iconeId": 33,
+			"name": "Crystal Silicon"
+		},
+		{
+			"iconeId": 34,
+			"name": "Titanium Alloy"
+		},
+		{
+			"iconeId": 35,
+			"name": "Combustible Unit"
+		},
+		{
+			"iconeId": 36,
+			"name": "Plasitc"
+		},
+		{
+			"iconeId": 37,
+			"name": "Organic Crystal"
+		},
+		{
+			"iconeId": 38,
+			"name": "Graphene"
+		},
+		{
+			"iconeId": 39,
+			"name": "Annihilation Constraint Sphere"
+		},
+		{
+			"iconeId": 40,
+			"name": "Magnum Ammo Box"
+		},
+		{
+			"iconeId": 41,
+			"name": "Supersonic Missile Set"
+		},
+		{
+			"iconeId": 42,
+			"name": "Grating Crystal"
+		},
+		{
+			"iconeId": 43,
+			"name": "Steel"
+		},
+		{
+			"iconeId": 44,
+			"name": "Circuit Board"
+		},
+		{
+			"iconeId": 45,
+			"name": "Prism"
+		},
+		{
+			"iconeId": 46,
+			"name": "Electric Motor"
+		},
+		{
+			"iconeId": 47,
+			"name": "Microcrystalline Component"
+		},
+		{
+			"iconeId": 48,
+			"name": "Proliferator Mk.I"
+		},
+		{
+			"iconeId": 49,
+			"name": "Explosive Unit"
+		},
+		{
+			"iconeId": 50,
+			"name": "Strange Matter"
+		},
+		{
+			"iconeId": 51,
+			"name": "Titanium Crystal"
+		},
+		{
+			"iconeId": 52,
+			"name": "Carbon Nanotube"
+		},
+		{
+			"iconeId": 53,
+			"name": "Particle Broadband"
+		},
+		{
+			"iconeId": 54,
+			"name": "Diamond"
+		},
+		{
+			"iconeId": 55,
+			"name": "Titanium Ammo Box"
+		},
+		{
+			"iconeId": 56,
+			"name": "Gravity Missile Set"
+		},
+		{
+			"iconeId": 57,
+			"name": "Stalagmite Crystal"
+		},
+		{
+			"iconeId": 58,
+			"name": "Gear"
+		},
+		{
+			"iconeId": 99,
+			"name": "Electromagnetic Matrix"
+		}
+	],
+	"modifiers": [
+		{
+			"name": "Assembling Machine Mk.I",
+			"iconeId": 156,
+			"speedModifier": 0.75,
+			"outputModifier": 1,
+			"idlePower": 12,
+			"workingPower": 270,
+			"consumables": []
+		},
+		{
+			"name": "Arc Smelter",
+			"iconeId": 153,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 12,
+			"workingPower": 360,
+			"consumables": []
+		},
+		{
+			"name": "Matrix Lab",
+			"iconeId": 160,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 12,
+			"workingPower": 480,
+			"consumables": []
+		},
+		{
+			"name": "None",
+			"iconeId": 0,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 0,
+			"workingPower": 0,
+			"consumables": []
+		},
+		{
+			"name": "Proliferator I",
+			"iconeId": 48,
+			"speedModifier": 1,
+			"outputModifier": 1.125,
+			"idlePower": 0,
+			"workingPower": 0,
+			"consumables": [
+				{
+					"item": "Proliferator I",
+					"inputConsumtion": "1/12",
+					"outputConsumtion": 0
+				}
+			]
+		},
+		{
+			"name": "Proliferator II",
+			"iconeId": 62,
+			"speedModifier": 1,
+			"outputModifier": "6/5",
+			"idlePower": 0,
+			"workingPower": 0,
+			"consumables": [
+				{
+					"item": "Proliferator II",
+					"inputConsumtion": "1/24",
+					"outputConsumtion": 0
+				}
+			]
+		}
+	],
+	"modifierCategories": [
+		{
+			"name": "Assembler",
+			"modifiers": [
+				"Assembling Machine Mk.I"
+			]
+		},
+		{
+			"name": "Smelter",
+			"modifiers": [
+				"Arc Smelter"
+			]
+		},
+		{
+			"name": "Lab",
+			"modifiers": [
+				"Matrix Lab"
+			]
+		},
+		{
+			"name": "Proliferator",
+			"modifiers": [
+				"None",
+				"Proliferator I",
+				"Proliferator II"
+			]
+		}
+	],
+	"recipes": [
+		{
+			"name": "Electromagnetic Matrix",
+			"iconeId": 99,
+			"inputs": {
+				"Magnetic Coil": 1,
+				"Circuit Board": 1
+			},
+			"outputs": {
+				"Electromagnetic Matrix": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Lab",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Magnetic Coil",
+			"iconeId": 30,
+			"inputs": {
+				"Magnet": 2,
+				"Copper Ingot": 1
+			},
+			"outputs": {
+				"Magnetic Coil": 2
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Circuit Board",
+			"iconeId": 44,
+			"inputs": {
+				"Iron Ingot": 2,
+				"Copper Ingot": 1
+			},
+			"outputs": {
+				"Circuit Board": 2
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Magnet",
+			"iconeId": 29,
+			"inputs": {
+				"Iron Ore": 1
+			},
+			"outputs": {
+				"Magnet": 1
+			},
+			"time": 1.5,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Iron Ingot",
+			"iconeId": 15,
+			"inputs": {
+				"Iron Ore": 1
+			},
+			"outputs": {
+				"Iron Ingot": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Copper Ingot",
+			"iconeId": 16,
+			"inputs": {
+				"Copper Ore": 1
+			},
+			"outputs": {
+				"Copper Ingot": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		}
+	],
+	"machines": [
+		{
+			"name": "Lab",
+			"iconeId": 159,
+			"recipes": [
+				"Electromagnetic Matrix"
+			]
+		},
+		{
+			"name": "Assembler",
+			"iconeId": 156,
+			"recipes": [
+				"Magnetic Coil",
+				"Circuit Board"
+			]
+		},
+		{
+			"name": "Smelter",
+			"iconeId": 153,
+			"recipes": [
+				"Magnet",
+				"Iron Ingot",
+				"Copper Ingot"
+			]
+		}
+	]
+}

@@ -9,11 +9,12 @@
 #include "rat.hpp"
 
 inline std::string Rat2string(const Rat& r) {
-	std::vector<char> q;
+	std::vector<char> q = std::vector<char>();
 	r.print(q);
-	std::string q_str;
-	for (int i = q.size() - 1; i >= 0; i--)
-		q_str += q[i];
+	std::string q_str = std::string(q.size()-1, ' ');
+	for (int i = q.size() - 1; i >= 1; i--)
+		q_str[q.size() - i - 1] = q[i-1];
+	
 	return q_str;
 }
 

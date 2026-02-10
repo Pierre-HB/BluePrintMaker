@@ -191,5 +191,8 @@
     <None Include="dataBaseTest.json">
       <Filter>sources</Filter>
     </None>
+    <None Include="dysonSphereProgramDataBase.json">
+      <Filter>sources</Filter>
+    </None>
   </ItemGroup>
 </Project>

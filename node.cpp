@@ -238,7 +238,7 @@ void Node::ChangeState(const DataBase* dataBase, int stateChannel, int newState,
 
 		idlePower += modifier.idlePower;
 		workingPower += modifier.workingPower;
-		time *= modifier.speedModifier;
+		time = time / modifier.speedModifier;
 		for(int i = 0; i < recipe.outputsId.size(); i++)
 		{
 			std::cout << "old output : " << Rat2string(outputs[i].quantity) << std::endl;
@@ -502,7 +502,7 @@ void NodeViewer::DrawMachineTitle() {
 
 	const int nbState = node->GetStateSize() - 1;
 	for (int i = 0; i < nbState; i++) {
-		ImGui::SameLine();
+		//ImGui::SameLine();
 
 		int newState = node->GetState(i + 1);
 		char comboName[16];

@@ -111,7 +111,8 @@ struct Rat {
 
     void print(std::vector<char> &c) const{
         num.print(c);
-        c.back() = '/';
+        //c.back() = '/';
+        c[c.size()-1] = '/';
         den.print(c);
     }
 

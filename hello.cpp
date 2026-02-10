@@ -611,7 +611,8 @@ void NodeEditorInitialize() {
     //ImGuiKeyData  KeysData[ImGuiKey_NamedKey_COUNT];// Key state for all known keys. Use IsKeyXXX() functions to access this.
     ImNodes::StyleColorsBluePrint();
     ImNodes::PushAttributeFlag(ImNodesStyleFlags_AttributeSwappable);
-    dataBase = new DataBase("dataBaseTest.json");
+    //dataBase = new DataBase("dataBaseTest.json");
+    dataBase = new DataBase("dysonSphereProgramDataBase.json");
     dataBase->CreateIcones(ImNodes::GetContextFont(ImNodes::GetCurrentContext()));
 
     bp = new BluePrint(dataBase);
