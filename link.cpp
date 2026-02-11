@@ -88,7 +88,7 @@ void LinkViewer::Draw() const {
 		ImNodes::PopColorStyle();
 	if (link->GetThrouput() >= 0) {
 		ImNodes::BeginLinkLabel(GetId(), GetId());
-		std::string throuput = std::format("{}", link->GetThrouput().to_double());
+		std::string throuput = std::format("{}", ceil(link->GetThrouput().to_double()));
 		ImGui::Text(throuput.c_str());
 		ImNodes::EndLinkLabel();
 	}

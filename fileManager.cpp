@@ -146,7 +146,7 @@ DataBase::DataBase(const std::string& filename) : filename(filename), nbSpecialM
 BluePrint* BluePrint::CreateBluePrint(DataBase* dataBase) {
 	std::string filename;
 	if (!FileDialogOpen(filename, "bp"))
-		return new BluePrint();
+		return nullptr;
 
 	json11::Json json = file2json(filename);
 
@@ -167,11 +167,11 @@ BluePrint* BluePrint::CreateBluePrint(DataBase* dataBase) {
 	return new BluePrint(dataBase, filename, json);
 }
 
-void BluePrint::saveBluePrint() const {
+void BluePrint::saveBluePrint() {
 	if (filename == "") 		
-		return saveUnderBluePrint();
-
-	writeFile(filename, ToJson().dump());
+		filename = saveUnderBluePrint();
+	else
+		writeFile(filename, ToJson().dump());
 }
 
 static bool endsWith(const std::string& fullString,
@@ -190,12 +190,13 @@ static bool endsWith(const std::string& fullString,
 		== 0;
 }
 
-void BluePrint::saveUnderBluePrint() const {
+std::string BluePrint::saveUnderBluePrint() const {
 	std::string newFilename;
 	if (!FileDialogSave(newFilename, "bp"))
-		return;//no filename and aborted file search
+		return "";//no filename and aborted file search
 	if(!endsWith(newFilename, ".bp"))
 		newFilename += ".bp";
 
 	writeFile(newFilename, ToJson().dump());
+	return newFilename;
 }

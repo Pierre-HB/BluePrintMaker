@@ -105,8 +105,8 @@ public:
 	json11::Json ToJson() const;
 
 	static BluePrint* CreateBluePrint(DataBase* dataBase);
-	void saveBluePrint() const;
-	void saveUnderBluePrint() const;//don't use internal filename
+	void saveBluePrint();
+	std::string saveUnderBluePrint() const;//don't use internal filename
 };
 
 template<typename T>

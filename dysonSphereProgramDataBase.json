@@ -1,7 +1,7 @@
 {
-	"spreadsheet": "dyson_sphere_icones.png",
-	"iconeWidth": 80,
-	"iconeHeight": 80,
+	"spreadsheet": "dyson_sphere_icones32.png",
+	"iconeWidth": 32,
+	"iconeHeight": 32,
 	"items": [
 		{
 			"iconeId": 1,
@@ -217,22 +217,18 @@
 		},
 		{
 			"iconeId": 54,
-			"name": "Diamond"
-		},
-		{
-			"iconeId": 55,
 			"name": "Titanium Ammo Box"
 		},
 		{
-			"iconeId": 56,
+			"iconeId": 55,
 			"name": "Gravity Missile Set"
 		},
 		{
-			"iconeId": 57,
+			"iconeId": 56,
 			"name": "Stalagmite Crystal"
 		},
 		{
-			"iconeId": 58,
+			"iconeId": 57,
 			"name": "Gear"
 		},
 		{
@@ -429,6 +425,38 @@
 				"Smelter",
 				"Proliferator"
 			]
+		},
+		{
+			"name": "Gear",
+			"iconeId": 57,
+			"inputs": {
+				"Iron Ingot": 1
+			},
+			"outputs": {
+				"Gear": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Electric Motor",
+			"iconeId": 46,
+			"inputs": {
+				"Iron Ingot": 2,
+				"Gear": 1,
+				"Magnetic Coil": 1
+			},
+			"outputs": {
+				"Electric Motor": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
 		}
 	],
 	"machines": [
@@ -444,7 +472,9 @@
 			"iconeId": 156,
 			"recipes": [
 				"Magnetic Coil",
-				"Circuit Board"
+				"Circuit Board",
+				"Gear",
+				"Electric Motor"
 			]
 		},
 		{

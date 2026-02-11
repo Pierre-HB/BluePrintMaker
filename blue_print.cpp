@@ -621,8 +621,8 @@ void BluePrint::ResetGraph() {
 	for (const auto& [nodeId, node] : nodes)
 	{
 		node->SetThrouput(-1);
-		/*if (node->GetType() == MACHINE_INPUT || node->GetType() == MACHINE_OUTPUT)
-			node->SetIOQuantity(-1);*/
+		if (node->GetType() == MACHINE_INPUT || node->GetType() == MACHINE_OUTPUT)
+			node->SetIOQuantity(-1);
 	}
 
 	for (const auto& [linkId, link] : links) 

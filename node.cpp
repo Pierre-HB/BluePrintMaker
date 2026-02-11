@@ -9,7 +9,7 @@ NODE_IO_TYPE int2NodeIOType(int i){
 }
 
 void NodeIOViewer::DrawItem(const Item& item) {
-	ImGui::Text((item.iconeString + item.name + std::format(" {}", nodeIO->quantity.to_double())).c_str());
+	ImGui::Text((item.iconeString + item.name + std::format(" {}", ceil(nodeIO->quantity.to_double()))).c_str());
 	//std::cout << "quantity : " << nodeIO->quantity.to_double() << ", " << std::format(" {}", nodeIO->quantity.to_double()) << ", " << Rat2string(nodeIO->quantity) << std::endl;
 }
 
@@ -19,10 +19,15 @@ void NodeIOViewer::DrawLockIO(const Item& item) {
 	ImGui::Checkbox("Guess", &guess);
 	ImGui::SameLine();
 
-	/*ImGui::BeginDisabled();
-	ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
-	ImGui::InputInt("##throuput", &tmp, 0, 0);
-	ImGui::EndDisabled();*/
+	static int tmp;
+	tmp = int(nodeIO->quantity.to_double());
+	if(tmp >= 0)
+	{
+		ImGui::BeginDisabled();
+		ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
+		ImGui::InputInt("##throuput", &tmp, 0, 0);
+		ImGui::EndDisabled();
+	}
 	if(nodeIO->itemId != dataBase->GetUnkownItemId())
 	{
 		ImGui::SameLine();
@@ -37,12 +42,13 @@ void NodeIOViewer::DrawIO(const Item& item) {
 	static bool guess;
 	static int tmp;
 	tmp = int(nodeIO->quantity.to_double());
+	/*if (tmp < 0)
+		tmp = 360;*/
 	guess = false;
 	ImGui::Checkbox("Guess", &guess);
 	ImGui::SameLine();
-	ImNodes::SetNextItemWidth(15 * int(1 + log10f(tmp)));
+	ImNodes::SetNextItemWidth(15 * int(1 + log10f(abs(tmp))));
 	ImGui::InputInt("##throuput", &tmp, 0, 0);
-
 	if (ImGui::IsItemDeactivatedAfterEdit() && tmp != int(nodeIO->quantity.to_double()) && !ImGui::IsKeyPressed(ImGuiKey_Escape))
 		nodeUpdator->SetNodeIOQuantity(tmp, nodeIO->GetId());
 
@@ -536,7 +542,7 @@ void NodeViewer::DrawMachineContent() {
 	if (input_perm.size() == 0 || output_perm.size() == 0)
 		nb_col = 1;
 		
-	if (ImGui::BeginTable("table1", nb_col, ImGuiTableFlags_SizingFixedFit, size))
+	if (ImGui::BeginTable("table1", nb_col, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX, size))
 	{
 		for (int i = 0; i < std::max(input_perm.size(), output_perm.size()); i++) {
 			ImGui::TableNextRow();
@@ -574,9 +580,14 @@ void NodeViewer::DrawMachineContent() {
 void NodeViewer::DrawMachineFooter() {
 	ImNodes::BeginNodeFooter();
 	if(node->GetThrouput() >= 0)
-		ImGui::Text(std::format("nb machines : {}  -  time : {}s", int(ceil((node->GetThrouput()*node->GetTime()/60).to_double())), node->GetTime().to_double()).c_str());
+	{
+		Rat nbMachine = node->GetThrouput() * node->GetTime() / 60;
+		int nbMachineCeil = ceil(nbMachine.to_double());
+		int usage = nbMachine.to_double() * 100 / nbMachineCeil;
+		ImGui::Text(std::format("nb machines : {} ({}%%) -  time : {:.2f}s", nbMachineCeil, usage, node->GetTime().to_double()).c_str());
+	}
 	else
-		ImGui::Text(std::format("time : {}s", node->GetTime().to_double()).c_str());
+		ImGui::Text(std::format("time : {:.2f}s", node->GetTime().to_double()).c_str());
 	ImNodes::EndNodeFooter();
 }
 
