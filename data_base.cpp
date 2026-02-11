@@ -373,7 +373,7 @@ void DataBase::addSpecialMachines() {
 	machines.push_back(createSplitter());
 	machines.push_back(createInput());
 	machines.push_back(createOutput());
-	nbSpecialMachine = 5;
+	nbSpecialMachine = 4;
 }
 
 void DataBase::loadPlaceHolders() {

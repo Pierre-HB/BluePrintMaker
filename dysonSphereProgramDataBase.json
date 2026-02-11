@@ -232,8 +232,464 @@
 			"name": "Gear"
 		},
 		{
+			"iconeId": 58,
+			"name": "Plasma Exciter"
+		},
+		{
+			"iconeId": 59,
+			"name": "Photon Combiner"
+		},
+		{
+			"iconeId": 60,
+			"name": "Electromagnetic Turbine"
+		},
+		{
+			"iconeId": 61,
+			"name": "Processor"
+		},
+		{
+			"iconeId": 62,
+			"name": "Proliferator Mk.II"
+		},
+		{
+			"iconeId": 63,
+			"name": "Crystal Explosive Unit"
+		},
+		{
+			"iconeId": 64,
+			"name": "Casimir Crystal"
+		},
+		{
+			"iconeId": 65,
+			"name": "Titanium Glass"
+		},
+		{
+			"iconeId": 66,
+			"name": "Plane Filter"
+		},
+		{
+			"iconeId": 67,
+			"name": "Quantum Chip"
+		},
+		{
+			"iconeId": 68,
+			"name": "Superalloy Ammo Box"
+		},
+		{
+			"iconeId": 69,
+			"name": "Shell Set"
+		},
+		{
+			"iconeId": 70,
+			"name": "Unipolar Magnet"
+		},
+		{
+			"iconeId": 71,
+			"name": "Engine"
+		},
+		{
+			"iconeId": 72,
+			"name": "Thruster"
+		},
+		{
+			"iconeId": 73,
+			"name": "Reinforced Thruster"
+		},
+		{
+			"iconeId": 74,
+			"name": "Super-Magnetic Ring"
+		},
+		{
+			"iconeId": 75,
+			"name": "Particle Container"
+		},
+		{
+			"iconeId": 76,
+			"name": "Proliferator Mk.III"
+		},
+		{
+			"iconeId": 77,
+			"name": "Prototype"
+		},
+		{
+			"iconeId": 78,
+			"name": "Precision Drone"
+		},
+		{
+			"iconeId": 79,
+			"name": "Attack Drone"
+		},
+		{
+			"iconeId": 80,
+			"name": "Corvette"
+		},
+		{
+			"iconeId": 81,
+			"name": "Destroyer"
+		},
+		{
+			"iconeId": 82,
+			"name": "Plasma Capsule"
+		},
+		{
+			"iconeId": 83,
+			"name": "High-Explosive Shell Set"
+		},
+		{
+			"iconeId": 84,
+			"name": "Fire Ice"
+		},
+		{
+			"iconeId": 85,
+			"name": "Logistics Bot"
+		},
+		{
+			"iconeId": 86,
+			"name": "Logistics Drone"
+		},
+		{
+			"iconeId": 87,
+			"name": "Interstellar Logistics Vessel"
+		},
+		{
+			"iconeId": 88,
+			"name": "Space Warper"
+		},
+		{
+			"iconeId": 89,
+			"name": "Graviton Lens"
+		},
+		{
+			"iconeId": 90,
+			"name": "Foundation"
+		},
+		{
+			"iconeId": 92,
+			"name": "Solar Sail"
+		},
+		{
+			"iconeId": 93,
+			"name": "Frame Material"
+		},
+		{
+			"iconeId": 94,
+			"name": "Dyson Sphere Component"
+		},
+		{
+			"iconeId": 95,
+			"name": "Small Carrier Rocket"
+		},
+		{
+			"iconeId": 96,
+			"name": "Antimatter Capsule"
+		},
+		{
+			"iconeId": 97,
+			"name": "Crystal Shell Set"
+		},
+		{
+			"iconeId": 98,
+			"name": "Log"
+		},
+		{
 			"iconeId": 99,
 			"name": "Electromagnetic Matrix"
+		},
+		{
+			"iconeId": 100,
+			"name": "Energy Matrix"
+		},
+		{
+			"iconeId": 101,
+			"name": "Structure Matrix"
+		},
+		{
+			"iconeId": 102,
+			"name": "Information Matrix"
+		},
+		{
+			"iconeId": 103,
+			"name": "Gravity Matrix"
+		},
+		{
+			"iconeId": 104,
+			"name": "Universe Matrix"
+		},
+		{
+			"iconeId": 105,
+			"name": "Dark Fog Matrix"
+		},
+		{
+			"iconeId": 106,
+			"name": "Energy Shard"
+		},
+		{
+			"iconeId": 107,
+			"name": "Silicon-Based Neuron"
+		},
+		{
+			"iconeId": 108,
+			"name": "Negentropy Singularity"
+		},
+		{
+			"iconeId": 109,
+			"name": "Matter Recombinator"
+		},
+		{
+			"iconeId": 110,
+			"name": "Jamming Capsule"
+		},
+		{
+			"iconeId": 111,
+			"name": "Suppressing Capsule"
+		},
+		{
+			"iconeId": 112,
+			"name": "Plant Fuel"
+		},
+		{
+			"iconeId": 113,
+			"name": "Tesla Tower"
+		},
+		{
+			"iconeId": 114,
+			"name": "Wireless Power Tower"
+		},
+		{
+			"iconeId": 115,
+			"name": "Satellite Substation"
+		},
+		{
+			"iconeId": 116,
+			"name": "Wind Turbine"
+		},
+		{
+			"iconeId": 117,
+			"name": "Thermal Power Plant"
+		},
+		{
+			"iconeId": 118,
+			"name": "Solar Panel"
+		},
+		{
+			"iconeId": 119,
+			"name": "Geothermal Power Station"
+		},
+		{
+			"iconeId": 120,
+			"name": "Mini Fusion Power Plant"
+		},
+		{
+			"iconeId": 121,
+			"name": "Energy Exchanger"
+		},
+		{
+			"iconeId": 122,
+			"name": "Accumulator"
+		},
+		{
+			"iconeId": 123,
+			"name": "Accumulator (Full)"
+		},
+		{
+			"iconeId": 124,
+			"name": "Ray Receiver"
+		},
+		{
+			"iconeId": 125,
+			"name": "Artificial Star"
+		},
+		{
+			"iconeId": 126,
+			"name": "Conveyor Belt Mk.I"
+		},
+		{
+			"iconeId": 127,
+			"name": "Conveyor Belt Mk.II"
+		},
+		{
+			"iconeId": 128,
+			"name": "Conveyor Belt Mk.III"
+		},
+		{
+			"iconeId": 129,
+			"name": "Splitter"
+		},
+		{
+			"iconeId": 130,
+			"name": "Automatic Piler"
+		},
+		{
+			"iconeId": 131,
+			"name": "Traffic Monitor"
+		},
+		{
+			"iconeId": 132,
+			"name": "Spray Coater"
+		},
+		{
+			"iconeId": 133,
+			"name": "Depot Mk.I"
+		},
+		{
+			"iconeId": 134,
+			"name": "Depot Mk.II"
+		},
+		{
+			"iconeId": 135,
+			"name": "Storage Tank"
+		},
+		{
+			"iconeId": 136,
+			"name": "Logistics Distributor"
+		},
+		{
+			"iconeId": 137,
+			"name": "Planetary Logistics Station"
+		},
+		{
+			"iconeId": 138,
+			"name": "Interstellar Logistics Station"
+		},
+		{
+			"iconeId": 139,
+			"name": "Orbital Collector"
+		},
+		{
+			"iconeId": 140,
+			"name": "Sorter Mk.I"
+		},
+		{
+			"iconeId": 141,
+			"name": "Sorter Mk.II"
+		},
+		{
+			"iconeId": 142,
+			"name": "Sorter Mk.III"
+		},
+		{
+			"iconeId": 143,
+			"name": "Pile Sorter"
+		},
+		{
+			"iconeId": 144,
+			"name": "Mining Machine"
+		},
+		{
+			"iconeId": 145,
+			"name": "Advanced Mining Machine"
+		},
+		{
+			"iconeId": 146,
+			"name": "Water Pump"
+		},
+		{
+			"iconeId": 147,
+			"name": "Oil Extractor"
+		},
+		{
+			"iconeId": 148,
+			"name": "Oil Refinery"
+		},
+		{
+			"iconeId": 149,
+			"name": "Fractionator"
+		},
+		{
+			"iconeId": 150,
+			"name": "Chemical Plant"
+		},
+		{
+			"iconeId": 151,
+			"name": "Quantum Chemical Plant"
+		},
+		{
+			"iconeId": 152,
+			"name": "Miniature Particle Collider"
+		},
+		{
+			"iconeId": 153,
+			"name": "Arc Smelter"
+		},
+		{
+			"iconeId": 154,
+			"name": "Plane Smelter"
+		},
+		{
+			"iconeId": 155,
+			"name": "Negentropy Smelter"
+		},
+		{
+			"iconeId": 156,
+			"name": "Assembling Machine Mk.I"
+		},
+		{
+			"iconeId": 157,
+			"name": "Assembling Machine Mk.II"
+		},
+		{
+			"iconeId": 158,
+			"name": "Assembling Machine Mk.III"
+		},
+		{
+			"iconeId": 159,
+			"name": "Re-Composing Assembler"
+		},
+		{
+			"iconeId": 160,
+			"name": "Matrix Lab"
+		},
+		{
+			"iconeId": 161,
+			"name": "Self-Evolution Lab"
+		},
+		{
+			"iconeId": 162,
+			"name": "EM-Rail Ejector"
+		},
+		{
+			"iconeId": 163,
+			"name": "Vertical Launching Silo"
+		},
+		{
+			"iconeId": 164,
+			"name": "Gauss Turret"
+		},
+		{
+			"iconeId": 165,
+			"name": "Missile Turret"
+		},
+		{
+			"iconeId": 166,
+			"name": "Implosion Cannon"
+		},
+		{
+			"iconeId": 167,
+			"name": "Laser Turret"
+		},
+		{
+			"iconeId": 168,
+			"name": "Plasma Turret"
+		},
+		{
+			"iconeId": 169,
+			"name": "SR Plasma Turret"
+		},
+		{
+			"iconeId": 170,
+			"name": "Battlefield Analysis Base"
+		},
+		{
+			"iconeId": 171,
+			"name": "Jammer Tower"
+		},
+		{
+			"iconeId": 172,
+			"name": "Signal Tower"
+		},
+		{
+			"iconeId": 173,
+			"name": "Planetary Shield Generator"
 		}
 	],
 	"modifiers": [
@@ -457,12 +913,58 @@
 				"Assembler",
 				"Proliferator"
 			]
+		},
+		{
+			"name": "Steel",
+			"iconeId": 43,
+			"inputs": {
+				"Iron Ingot": 3
+			},
+			"outputs": {
+				"Steel": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Stone Brick",
+			"iconeId": 17,
+			"inputs": {
+				"Stone": 1
+			},
+			"outputs": {
+				"Stone Brick": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Foundation",
+			"iconeId": 90,
+			"inputs": {
+				"Stone Brick": 3,
+				"Steel" : 1
+			},
+			"outputs": {
+				"Foundation": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
 		}
 	],
 	"machines": [
 		{
 			"name": "Lab",
-			"iconeId": 159,
+			"iconeId": 160,
 			"recipes": [
 				"Electromagnetic Matrix"
 			]
@@ -474,7 +976,8 @@
 				"Magnetic Coil",
 				"Circuit Board",
 				"Gear",
-				"Electric Motor"
+				"Electric Motor",
+				"Foundation"
 			]
 		},
 		{
@@ -483,7 +986,9 @@
 			"recipes": [
 				"Magnet",
 				"Iron Ingot",
-				"Copper Ingot"
+				"Copper Ingot",
+				"Stone Brick",
+				"Steel"
 			]
 		}
 	]
