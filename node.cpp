@@ -9,7 +9,7 @@ NODE_IO_TYPE int2NodeIOType(int i){
 }
 
 void NodeIOViewer::DrawItem(const Item& item) {
-	ImGui::Text((item.iconeString + item.name + std::format(" {}", ceil(nodeIO->quantity.to_double()))).c_str());
+	ImGui::Text((item.iconeString + item.name + std::format(" {}", (nodeIO->quantity.to_double()))).c_str());
 	//std::cout << "quantity : " << nodeIO->quantity.to_double() << ", " << std::format(" {}", nodeIO->quantity.to_double()) << ", " << Rat2string(nodeIO->quantity) << std::endl;
 }
 

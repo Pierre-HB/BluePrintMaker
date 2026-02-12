@@ -721,6 +721,33 @@
 			"consumables": []
 		},
 		{
+			"name": "Oil Refinery",
+			"iconeId": 148,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 24,
+			"workingPower": 960,
+			"consumables": []
+		},
+		{
+			"name": "Fractionator",
+			"iconeId": 149,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 18,
+			"workingPower": 720,
+			"consumables": []
+		},
+		{
+			"name": "Miniature Particle Collider",
+			"iconeId": 152,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 120,
+			"workingPower": 12000,
+			"consumables": []
+		},
+		{
 			"name": "None",
 			"iconeId": 0,
 			"speedModifier": 1,
@@ -780,6 +807,24 @@
 			]
 		},
 		{
+			"name": "Fractionator",
+			"modifiers": [
+				"Fractionator"
+			]
+		},
+		{
+			"name": "Oil Refinery",
+			"modifiers": [
+				"Oil Refinery"
+			]
+		},
+		{
+			"name": "Miniature Particle Collider",
+			"modifiers": [
+				"Miniature Particle Collider"
+			]
+		},
+		{
 			"name": "Proliferator",
 			"modifiers": [
 				"None",
@@ -789,22 +834,6 @@
 		}
 	],
 	"recipes": [
-		{
-			"name": "Electromagnetic Matrix",
-			"iconeId": 99,
-			"inputs": {
-				"Magnetic Coil": 1,
-				"Circuit Board": 1
-			},
-			"outputs": {
-				"Electromagnetic Matrix": 1
-			},
-			"time": 3,
-			"modifierCategories": [
-				"Lab",
-				"Proliferator"
-			]
-		},
 		{
 			"name": "Magnetic Coil",
 			"iconeId": 30,
@@ -834,51 +863,6 @@
 			"time": 1,
 			"modifierCategories": [
 				"Assembler",
-				"Proliferator"
-			]
-		},
-		{
-			"name": "Magnet",
-			"iconeId": 29,
-			"inputs": {
-				"Iron Ore": 1
-			},
-			"outputs": {
-				"Magnet": 1
-			},
-			"time": 1.5,
-			"modifierCategories": [
-				"Smelter",
-				"Proliferator"
-			]
-		},
-		{
-			"name": "Iron Ingot",
-			"iconeId": 15,
-			"inputs": {
-				"Iron Ore": 1
-			},
-			"outputs": {
-				"Iron Ingot": 1
-			},
-			"time": 1,
-			"modifierCategories": [
-				"Smelter",
-				"Proliferator"
-			]
-		},
-		{
-			"name": "Copper Ingot",
-			"iconeId": 16,
-			"inputs": {
-				"Copper Ore": 1
-			},
-			"outputs": {
-				"Copper Ingot": 1
-			},
-			"time": 1,
-			"modifierCategories": [
-				"Smelter",
 				"Proliferator"
 			]
 		},
@@ -915,15 +899,62 @@
 			]
 		},
 		{
-			"name": "Steel",
-			"iconeId": 43,
+			"name": "Foundation",
+			"iconeId": 90,
 			"inputs": {
-				"Iron Ingot": 3
-			},
-			"outputs": {
+				"Stone Brick": 3,
 				"Steel": 1
 			},
-			"time": 3,
+			"outputs": {
+				"Foundation": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+
+		{
+			"name": "Iron Ingot",
+			"iconeId": 15,
+			"inputs": {
+				"Iron Ore": 1
+			},
+			"outputs": {
+				"Iron Ingot": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Magnet",
+			"iconeId": 29,
+			"inputs": {
+				"Iron Ore": 1
+			},
+			"outputs": {
+				"Magnet": 1
+			},
+			"time": 1.5,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Copper Ingot",
+			"iconeId": 16,
+			"inputs": {
+				"Copper Ore": 1
+			},
+			"outputs": {
+				"Copper Ingot": 1
+			},
+			"time": 1,
 			"modifierCategories": [
 				"Smelter",
 				"Proliferator"
@@ -945,28 +976,392 @@
 			]
 		},
 		{
-			"name": "Foundation",
-			"iconeId": 90,
+			"name": "Energetic Graphite",
+			"iconeId": 18,
 			"inputs": {
-				"Stone Brick": 3,
-				"Steel" : 1
+				"Coal": 2
 			},
 			"outputs": {
-				"Foundation": 1
+				"Energetic Graphite": 1
 			},
-			"time": 1,
+			"time": 2,
 			"modifierCategories": [
-				"Assembler",
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Silicon Ore",
+			"iconeId": 5,
+			"inputs": {
+				"Stone": 10
+			},
+			"outputs": {
+				"Silicon Ore": 1
+			},
+			"time": 10,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Crystal Silicon",
+			"iconeId": 33,
+			"inputs": {
+				"High-Purity Silicon": 1
+			},
+			"outputs": {
+				"Crystal Silicon": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Glass",
+			"iconeId": 31,
+			"inputs": {
+				"Stone": 2
+			},
+			"outputs": {
+				"Glass": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "High-Purity Silicon",
+			"iconeId": 19,
+			"inputs": {
+				"Silicon Ore": 2
+			},
+			"outputs": {
+				"High-Purity Silicon": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Diamond",
+			"iconeId": 32,
+			"inputs": {
+				"Energetic Graphite": 1
+			},
+			"outputs": {
+				"Diamond": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Diamond (Advanced)",
+			"iconeId": 174,
+			"inputs": {
+				"Kimberlite Ore": 1
+			},
+			"outputs": {
+				"Diamond": 2
+			},
+			"time": 1.5,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Steel",
+			"iconeId": 43,
+			"inputs": {
+				"Iron Ingot": 3
+			},
+			"outputs": {
+				"Steel": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Titanium Ingot",
+			"iconeId": 20,
+			"inputs": {
+				"Titanium Ore": 2
+			},
+			"outputs": {
+				"Titanium Ingot": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Titanium Alloy",
+			"iconeId": 34,
+			"inputs": {
+				"Titanium Ingot": 4,
+				"Steel": 4,
+				"Sulfuric Acid": 8
+			},
+			"outputs": {
+				"Titanium Alloy": 4
+			},
+			"time": 12,
+			"modifierCategories": [
+				"Smelter",
+				"Proliferator"
+			]
+		},
+
+
+		{
+			"name": "Electromagnetic Matrix",
+			"iconeId": 99,
+			"inputs": {
+				"Magnetic Coil": 1,
+				"Circuit Board": 1
+			},
+			"outputs": {
+				"Electromagnetic Matrix": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Lab",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Energy Matrix",
+			"iconeId": 100,
+			"inputs": {
+				"Energetic Graphite": 2,
+				"Hydrogen": 2
+			},
+			"outputs": {
+				"Energy Matrix": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Lab",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Structure Matrix",
+			"iconeId": 101,
+			"inputs": {
+				"Diamond": 1,
+				"Titanium Crystal": 1
+			},
+			"outputs": {
+				"Structure Matrix": 1
+			},
+			"time": 8,
+			"modifierCategories": [
+				"Lab",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Information Matrix",
+			"iconeId": 102,
+			"inputs": {
+				"Processor": 2,
+				"Particle Broadband": 1
+			},
+			"outputs": {
+				"Information Matrix": 1
+			},
+			"time": 10,
+			"modifierCategories": [
+				"Lab",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Gravity Matrix",
+			"iconeId": 103,
+			"inputs": {
+				"Graviton Lens": 1,
+				"Quantum Chip": 1
+			},
+			"outputs": {
+				"Gravity Matrix": 2
+			},
+			"time": 24,
+			"modifierCategories": [
+				"Lab",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Universe Matrix",
+			"iconeId": 104,
+			"inputs": {
+				"Electromagnetic Matrix": 1,
+				"Energy Matrix": 1,
+				"Structure Matrix": 1,
+				"Information Matrix": 1,
+				"Gravity Matrix": 1,
+				"Antimatter": 1
+			},
+			"outputs": {
+				"Universe Matrix": 1
+			},
+			"time": 15,
+			"modifierCategories": [
+				"Lab",
+				"Proliferator"
+			]
+		},
+
+
+		{
+			"name": "Deuterium Fractionation",
+			"iconeId": 178,
+			"inputs": {
+				"Hydrogen": 100
+			},
+			"outputs": {
+				"Hydrogen": 99,
+				"Deuterium": 1
+			},
+			"time": 0,
+			"modifierCategories": [
+				"Fractionator"
+			]
+		},
+
+
+		{
+			"name": "Plasma Refining",
+			"iconeId": 175,
+			"inputs": {
+				"Crude Oil": 2
+			},
+			"outputs": {
+				"Hydrogen": 1,
+				"Refined Oil": 2
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Oil Refinery",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "X-Ray Cracking",
+			"iconeId": 176,
+			"inputs": {
+				"Hydrogen": 2,
+				"Refined Oil": 1
+			},
+			"outputs": {
+				"Hydrogen": 3,
+				"Energetic Graphite": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Oil Refinery",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Reformed Refinement",
+			"iconeId": 177,
+			"inputs": {
+				"Hydrogen": 1,
+				"Refined Oil": 2,
+				"Coal": 1
+			},
+			"outputs": {
+				"Refined Oil": 3
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Oil Refinery",
+				"Proliferator"
+			]
+		},
+
+
+		{
+			"name": "Deuterium",
+			"iconeId": 10,
+			"inputs": {
+				"Hydrogen": 10
+			},
+			"outputs": {
+				"Deuterium": 5
+			},
+			"time": 2.5,
+			"modifierCategories": [
+				"Miniature Particle Collider",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Antimatter",
+			"iconeId": 11,
+			"inputs": {
+				"Critical Photon": 2
+			},
+			"outputs": {
+				"Antimatter": 2,
+				"Hydrogen": 2
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Miniature Particle Collider",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Strange Matter",
+			"iconeId": 50,
+			"inputs": {
+				"Particle Container": 2,
+				"Iron Ingot": 2,
+				"Deuterium": 10
+			},
+			"outputs": {
+				"Strange Matter": 1
+			},
+			"time": 8,
+			"modifierCategories": [
+				"Miniature Particle Collider",
 				"Proliferator"
 			]
 		}
+
+
 	],
 	"machines": [
 		{
 			"name": "Lab",
 			"iconeId": 160,
 			"recipes": [
-				"Electromagnetic Matrix"
+				"Electromagnetic Matrix",
+				"Energy Matrix",
+				"Structure Matrix",
+				"Information Matrix",
+				"Gravity Matrix",
+				"Universe Matrix"
 			]
 		},
 		{
@@ -984,11 +1379,45 @@
 			"name": "Smelter",
 			"iconeId": 153,
 			"recipes": [
-				"Magnet",
 				"Iron Ingot",
+				"Magnet",
 				"Copper Ingot",
 				"Stone Brick",
-				"Steel"
+				"Energetic Graphite",
+				"Silicon Ore",
+				"Crystal Silicon",
+				"Glass",
+				"High-Purity Silicon",
+				"Diamond",
+				"Diamond (Advanced)",
+				"Steel",
+				"Titanium Ingot",
+				"Titanium Alloy"
+			]
+		},
+		{
+			"name": "Fractionator",
+			"iconeId": 149,
+			"recipes": [
+				"Deuterium Fractionation"
+			]
+		},
+		{
+			"name": "Oil Refinery",
+			"iconeId": 148,
+			"recipes": [
+				"Plasma Refining",
+				"X-Ray Cracking",
+				"Reformed Refinement"
+			]
+		},
+		{
+			"name": "Miniature Particle Collider",
+			"iconeId": 152,
+			"recipes": [
+				"Deuterium",
+				"Antimatter",
+				"Strange Matter"
 			]
 		}
 	]
