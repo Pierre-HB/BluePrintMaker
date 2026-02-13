@@ -145,7 +145,7 @@
 		},
 		{
 			"iconeId": 36,
-			"name": "Plasitc"
+			"name": "Plastic"
 		},
 		{
 			"iconeId": 37,
@@ -703,12 +703,39 @@
 			"consumables": []
 		},
 		{
+			"name": "Assembling Machine Mk.II",
+			"iconeId": 157,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 18,
+			"workingPower": 540,
+			"consumables": []
+		},
+		{
+			"name": "Assembling Machine Mk.III",
+			"iconeId": 158,
+			"speedModifier": 1.5,
+			"outputModifier": 1,
+			"idlePower": 24,
+			"workingPower": 1080,
+			"consumables": []
+		},
+		{
 			"name": "Arc Smelter",
 			"iconeId": 153,
 			"speedModifier": 1,
 			"outputModifier": 1,
 			"idlePower": 12,
 			"workingPower": 360,
+			"consumables": []
+		},
+		{
+			"name": "Plane Smelter",
+			"iconeId": 154,
+			"speedModifier": 2,
+			"outputModifier": 1,
+			"idlePower": 48,
+			"workingPower": 1440,
 			"consumables": []
 		},
 		{
@@ -745,6 +772,24 @@
 			"outputModifier": 1,
 			"idlePower": 120,
 			"workingPower": 12000,
+			"consumables": []
+		},
+		{
+			"name": "Chemical Plant",
+			"iconeId": 150,
+			"speedModifier": 1,
+			"outputModifier": 1,
+			"idlePower": 24,
+			"workingPower": 720,
+			"consumables": []
+		},
+		{
+			"name": "Quantum Chemical Plant",
+			"iconeId": 151,
+			"speedModifier": 2,
+			"outputModifier": 1,
+			"idlePower": 24,
+			"workingPower": 720,
 			"consumables": []
 		},
 		{
@@ -791,13 +836,16 @@
 		{
 			"name": "Assembler",
 			"modifiers": [
-				"Assembling Machine Mk.I"
+				"Assembling Machine Mk.I",
+				"Assembling Machine Mk.II",
+				"Assembling Machine Mk.III"
 			]
 		},
 		{
 			"name": "Smelter",
 			"modifiers": [
-				"Arc Smelter"
+				"Arc Smelter",
+				"Plane Smelter"
 			]
 		},
 		{
@@ -825,6 +873,13 @@
 			]
 		},
 		{
+			"name": "Chemical Plant",
+			"modifiers": [
+				"Chemical Plant",
+				"Quantum Chemical Plant"
+			]
+		},
+		{
 			"name": "Proliferator",
 			"modifiers": [
 				"None",
@@ -834,6 +889,21 @@
 		}
 	],
 	"recipes": [
+		{
+			"name": "Gear",
+			"iconeId": 57,
+			"inputs": {
+				"Iron Ingot": 1
+			},
+			"outputs": {
+				"Gear": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
 		{
 			"name": "Magnetic Coil",
 			"iconeId": 30,
@@ -845,6 +915,236 @@
 				"Magnetic Coil": 2
 			},
 			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Prism",
+			"iconeId": 45,
+			"inputs": {
+				"Glass": 3
+			},
+			"outputs": {
+				"Prism": 2
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Plasma Exciter",
+			"iconeId": 58,
+			"inputs": {
+				"Magnetic Coil": 4,
+				"Prism": 2
+			},
+			"outputs": {
+				"Plasma Exciter": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Hydrogen Fuel Rod",
+			"iconeId": 23,
+			"inputs": {
+				"Titanium Ingot": 1,
+				"Hydrogen": 10
+			},
+			"outputs": {
+				"Hydrogen Fuel Rod": 2
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Thruster",
+			"iconeId": 72,
+			"inputs": {
+				"Steel": 2,
+				"Copper Ingot": 3
+			},
+			"outputs": {
+				"Thruster": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Reinforced Thruster",
+			"iconeId": 73,
+			"inputs": {
+				"Titanium Alloy": 5,
+				"Electromagnetic Turbine": 5
+			},
+			"outputs": {
+				"Reinforced Thruster": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Titanium Crystal",
+			"iconeId": 51,
+			"inputs": {
+				"Organic Crystal": 1,
+				"Titanium Ingot": 3
+			},
+			"outputs": {
+				"Titanium Crystal": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Casimir Crystal",
+			"iconeId": 64,
+			"inputs": {
+				"Titanium Crystal": 1,
+				"Graphene": 2,
+				"Hydrogen": 12
+			},
+			"outputs": {
+				"Casimir Crystal": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Casimir Crystal (Advanced)",
+			"iconeId": 64,
+			"inputs": {
+				"Grating Crystal": 8,
+				"Graphene": 2,
+				"Hydrogen": 12
+			},
+			"outputs": {
+				"Casimir Crystal": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Titanium Glass",
+			"iconeId": 65,
+			"inputs": {
+				"Glass": 2,
+				"Titanium Ingot": 2,
+				"Water": 2
+			},
+			"outputs": {
+				"Titanium Glass": 2
+			},
+			"time": 5,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Particle Broadband",
+			"iconeId": 53,
+			"inputs": {
+				"Carbon Nanotube": 2,
+				"Crystal Silicon": 2,
+				"Plastic": 1
+			},
+			"outputs": {
+				"Particle Broadband": 1
+			},
+			"time": 8,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Plane Filter",
+			"iconeId": 66,
+			"inputs": {
+				"Casimir Crystal": 1,
+				"Titanium Glass": 2
+			},
+			"outputs": {
+				"Plane Filter": 1
+			},
+			"time": 12,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Deuteron Fuel Rod",
+			"iconeId": 24,
+			"inputs": {
+				"Titanium Alloy": 1,
+				"Deuterium": 20,
+				"Super-Magnetic Ring": 1
+			},
+			"outputs": {
+				"Deuteron Fuel Rod": 2
+			},
+			"time": 12,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Annihilation Constraint Sphere",
+			"iconeId": 39,
+			"inputs": {
+				"Particle Container": 1,
+				"Processor": 1
+			},
+			"outputs": {
+				"Annihilation Constraint Sphere": 1
+			},
+			"time": 20,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Antimatter Fuel Rod",
+			"iconeId": 25,
+			"inputs": {
+				"Antimatter": 12,
+				"Hydrogen": 12,
+				"Annihilation Constraint Sphere": 1,
+				"Titanium Alloy": 1
+			},
+			"outputs": {
+				"Antimatter Fuel Rod": 2
+			},
+			"time": 24,
 			"modifierCategories": [
 				"Assembler",
 				"Proliferator"
@@ -866,21 +1166,7 @@
 				"Proliferator"
 			]
 		},
-		{
-			"name": "Gear",
-			"iconeId": 57,
-			"inputs": {
-				"Iron Ingot": 1
-			},
-			"outputs": {
-				"Gear": 1
-			},
-			"time": 1,
-			"modifierCategories": [
-				"Assembler",
-				"Proliferator"
-			]
-		},
+
 		{
 			"name": "Electric Motor",
 			"iconeId": 46,
@@ -1347,6 +1633,155 @@
 				"Miniature Particle Collider",
 				"Proliferator"
 			]
+		},
+
+
+		{
+			"name": "Plastic",
+			"iconeId": 36,
+			"inputs": {
+				"Refined Oil": 2,
+				"Energetic Graphite": 1
+			},
+			"outputs": {
+				"Plastic": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Sulfuric Acid",
+			"iconeId": 21,
+			"inputs": {
+				"Refined Oil": 6,
+				"Stone": 8,
+				"Water": 4
+			},
+			"outputs": {
+				"Sulfuric Acid": 4
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Organic Crystal",
+			"iconeId": 37,
+			"inputs": {
+				"Plastic": 2,
+				"Refined Oil": 1,
+				"Water": 1
+			},
+			"outputs": {
+				"Organic Crystal": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Graphene",
+			"iconeId": 38,
+			"inputs": {
+				"Energetic Graphite": 3,
+				"Sulfuric Acid": 1
+			},
+			"outputs": {
+				"Graphene": 2
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Graphene (Advanced)",
+			"iconeId": 38,
+			"inputs": {
+				"Fire Ice": 2
+			},
+			"outputs": {
+				"Graphene": 2,
+				"Hydrogen": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Carbon Nanotube",
+			"iconeId": 52,
+			"inputs": {
+				"Graphene": 3,
+				"Titanium Ingot": 1
+			},
+			"outputs": {
+				"Carbon Nanotube": 2
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Carbon Nanotube (Advanced)",
+			"iconeId": 52,
+			"inputs": {
+				"Stalagmite Crystal": 6
+			},
+			"outputs": {
+				"Carbon Nanotube": 2
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Explosive Unit",
+			"iconeId": 49,
+			"inputs": {
+				"Combustible Unit": 2,
+				"Plastic": 2,
+				"Sulfuric Acid": 1
+			},
+			"outputs": {
+				"Explosive Unit": 2
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Crystal Explosive Unit",
+			"iconeId": 63,
+			"inputs": {
+				"Explosive Unit": 8,
+				"Casimir Crystal": 1,
+				"Crystal Silicon": 8
+			},
+			"outputs": {
+				"Crystal Explosive Unit": 8
+			},
+			"time": 24,
+			"modifierCategories": [
+				"Chemical Plant",
+				"Proliferator"
+			]
 		}
 
 
@@ -1368,10 +1803,26 @@
 			"name": "Assembler",
 			"iconeId": 156,
 			"recipes": [
-				"Magnetic Coil",
-				"Circuit Board",
 				"Gear",
+				"Magnetic Coil",
+				"Prism",
+				"Plasma Exciter",
+				"Hydrogen Fuel Rod",
+				"Thruster",
+				"Reinforced Thruster",
+				"Titanium Crystal",
+				"Casimir Crystal",
+				"Casimir Crystal (Advanced)",
+				"Titanium Glass",
+				"Particle Broadband",
+				"Plane Filter",
+				"Deuteron Fuel Rod",
+				"Annihilation Constraint Sphere",
+				"Antimatter Fuel Rod",
+				"Circuit Board",
+
 				"Electric Motor",
+
 				"Foundation"
 			]
 		},
@@ -1418,6 +1869,21 @@
 				"Deuterium",
 				"Antimatter",
 				"Strange Matter"
+			]
+		},
+		{
+			"name": "Chemical Plant",
+			"iconeId": 150,
+			"recipes": [
+				"Plastic",
+				"Sulfuric Acid",
+				"Organic Crystal",
+				"Graphene",
+				"Graphene (Advanced)",
+				"Carbon Nanotube",
+				"Carbon Nanotube (Advanced)",
+				"Explosive Unit",
+				"Crystal Explosive Unit"
 			]
 		}
 	]
