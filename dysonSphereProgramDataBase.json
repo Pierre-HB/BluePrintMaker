@@ -802,7 +802,7 @@
 			"consumables": []
 		},
 		{
-			"name": "Proliferator I",
+			"name": "Proliferator Production I",
 			"iconeId": 48,
 			"speedModifier": 1,
 			"outputModifier": 1.125,
@@ -810,14 +810,14 @@
 			"workingPower": 0,
 			"consumables": [
 				{
-					"item": "Proliferator I",
+					"item": "Proliferator Mk.I",
 					"inputConsumtion": "1/12",
 					"outputConsumtion": 0
 				}
 			]
 		},
 		{
-			"name": "Proliferator II",
+			"name": "Proliferator Production II",
 			"iconeId": 62,
 			"speedModifier": 1,
 			"outputModifier": "6/5",
@@ -825,8 +825,23 @@
 			"workingPower": 0,
 			"consumables": [
 				{
-					"item": "Proliferator II",
+					"item": "Proliferator Mk.II",
 					"inputConsumtion": "1/24",
+					"outputConsumtion": 0
+				}
+			]
+		},
+		{
+			"name": "Proliferator Production III",
+			"iconeId": 76,
+			"speedModifier": 1,
+			"outputModifier": 1.25,
+			"idlePower": 0,
+			"workingPower": 0,
+			"consumables": [
+				{
+					"item": "Proliferator Mk.III",
+					"inputConsumtion": "1/60",
 					"outputConsumtion": 0
 				}
 			]
@@ -883,8 +898,9 @@
 			"name": "Proliferator",
 			"modifiers": [
 				"None",
-				"Proliferator I",
-				"Proliferator II"
+				"Proliferator Production I",
+				"Proliferator Production II",
+				"Proliferator Production III"
 			]
 		}
 	],
@@ -1166,7 +1182,249 @@
 				"Proliferator"
 			]
 		},
-
+		{
+			"name": "Processor",
+			"iconeId": 61,
+			"inputs": {
+				"Circuit Board": 2,
+				"Microcrystalline Component": 2
+			},
+			"outputs": {
+				"Processor": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Quantum Chip",
+			"iconeId": 67,
+			"inputs": {
+				"Processor": 2,
+				"Plane Filter": 2
+			},
+			"outputs": {
+				"Quantum Chip": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Microcrystalline Component",
+			"iconeId": 47,
+			"inputs": {
+				"High-Purity Silicon": 2,
+				"Copper Ingot": 1
+			},
+			"outputs": {
+				"Microcrystalline Component": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Organic Crystal (Original)",
+			"iconeId": 37,
+			"inputs": {
+				"Log": 20,
+				"Plant Fuel": 30,
+				"Water": 10
+			},
+			"outputs": {
+				"Organic Crystal": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Crystal Silicon (Advanced)",
+			"iconeId": 33,
+			"inputs": {
+				"Fractal Silicon": 1
+			},
+			"outputs": {
+				"Crystal Silicon": 2
+			},
+			"time": 1.5,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Photon Combiner",
+			"iconeId": 59,
+			"inputs": {
+				"Prism": 2,
+				"Circuit Board": 1
+			},
+			"outputs": {
+				"Photon Combiner": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Photon Combiner (Advanced)",
+			"iconeId": 59,
+			"inputs": {
+				"Grating Crystal": 1,
+				"Circuit Board": 1
+			},
+			"outputs": {
+				"Photon Combiner": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Solar Sail",
+			"iconeId": 92,
+			"inputs": {
+				"Graphene": 1,
+				"Photon Combiner": 1
+			},
+			"outputs": {
+				"Solar Sail": 2
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Space Warper",
+			"iconeId": 88,
+			"inputs": {
+				"Graviton Lens": 1
+			},
+			"outputs": {
+				"Space Warper": 1
+			},
+			"time": 10,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Space Warper (Advanced)",
+			"iconeId": 88,
+			"inputs": {
+				"Gravity Matrix": 1
+			},
+			"outputs": {
+				"Space Warper": 8
+			},
+			"time": 10,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Frame Material",
+			"iconeId": 93,
+			"inputs": {
+				"Carbon Nanotube": 4,
+				"Titanium Alloy": 1,
+				"High-Purity Silicon": 1
+			},
+			"outputs": {
+				"Frame Material": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Dyson Sphere Component",
+			"iconeId": 94,
+			"inputs": {
+				"Frame Material": 3,
+				"Solar Sail": 3,
+				"Processor": 3
+			},
+			"outputs": {
+				"Dyson Sphere Component": 1
+			},
+			"time": 8,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Small Carrier Rocket",
+			"iconeId": 95,
+			"inputs": {
+				"Dyson Sphere Component": 2,
+				"Deuteron Fuel Rod": 4,
+				"Quantum Chip": 2
+			},
+			"outputs": {
+				"Small Carrier Rocket": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Logistics Drone",
+			"iconeId": 86,
+			"inputs": {
+				"Iron Ingot": 5,
+				"Processor": 2,
+				"Thruster": 2
+			},
+			"outputs": {
+				"Logistics Drone": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Interstellar Logistics Vessel",
+			"iconeId": 87,
+			"inputs": {
+				"Titanium Alloy": 10,
+				"Processor": 10,
+				"Reinforced Thruster": 2
+			},
+			"outputs": {
+				"Interstellar Logistics Vessel": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
 		{
 			"name": "Electric Motor",
 			"iconeId": 46,
@@ -1177,6 +1435,151 @@
 			},
 			"outputs": {
 				"Electric Motor": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Electromagnetic Turbine",
+			"iconeId": 60,
+			"inputs": {
+				"Electric Motor": 2,
+				"Magnetic Coil": 2
+			},
+			"outputs": {
+				"Electromagnetic Turbine": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Particle Container",
+			"iconeId": 75,
+			"inputs": {
+				"Electromagnetic Turbine": 2,
+				"Copper Ingot": 2,
+				"Graphene": 2
+			},
+			"outputs": {
+				"Particle Container": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Particle Container (Advanced)",
+			"iconeId": 75,
+			"inputs": {
+				"Unipolar Magnet": 10,
+				"Copper Ingot": 2
+			},
+			"outputs": {
+				"Particle Container": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Graviton Lens",
+			"iconeId": 89,
+			"inputs": {
+				"Diamond": 4,
+				"Strange Matter": 1
+			},
+			"outputs": {
+				"Graviton Lens": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Super-Magnetic Ring",
+			"iconeId": 74,
+			"inputs": {
+				"Electromagnetic Turbine": 2,
+				"Magnet": 3,
+				"Energetic Graphite": 1
+			},
+			"outputs": {
+				"Super-Magnetic Ring": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Engine",
+			"iconeId": 71,
+			"inputs": {
+				"Magnetic Coil": 1,
+				"Copper Ingot": 2
+			},
+			"outputs": {
+				"Engine": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Proliferator Mk.I",
+			"iconeId": 48,
+			"inputs": {
+				"Coal": 1
+			},
+			"outputs": {
+				"Proliferator Mk.I": 1
+			},
+			"time": 0.5,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Proliferator Mk.II",
+			"iconeId": 62,
+			"inputs": {
+				"Proliferator Mk.I": 2,
+				"Diamond": 1
+			},
+			"outputs": {
+				"Proliferator Mk.II": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Proliferator Mk.III",
+			"iconeId": 76,
+			"inputs": {
+				"Proliferator Mk.II": 2,
+				"Carbon Nanotube": 1
+			},
+			"outputs": {
+				"Proliferator Mk.III": 1
 			},
 			"time": 2,
 			"modifierCategories": [
@@ -1200,6 +1603,366 @@
 				"Proliferator"
 			]
 		},
+		{
+			"name": "Logistics Bot",
+			"iconeId": 85,
+			"inputs": {
+				"Iron Ingot": 2,
+				"Engine": 1,
+				"Processor": 1
+			},
+			"outputs": {
+				"Logistics Bot": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Combustible Unit",
+			"iconeId": 35,
+			"inputs": {
+				"Coal": 3
+			},
+			"outputs": {
+				"Combustible Unit": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Magnum Ammo Box",
+			"iconeId": 40,
+			"inputs": {
+				"Copper Ingot": 3
+			},
+			"outputs": {
+				"Magnum Ammo Box": 1
+			},
+			"time": 1,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Titanium Ammo Box",
+			"iconeId": 54,
+			"inputs": {
+				"Magnum Ammo Box": 1,
+				"Titanium Ingot": 2
+			},
+			"outputs": {
+				"Titanium Ammo Box": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Superalloy Ammo Box",
+			"iconeId": 68,
+			"inputs": {
+				"Titanium Ammo Box": 1,
+				"Titanium Alloy": 1
+			},
+			"outputs": {
+				"Superalloy Ammo Box": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Shell Set",
+			"iconeId": 69,
+			"inputs": {
+				"Copper Ingot": 9,
+				"Combustible Unit": 2
+			},
+			"outputs": {
+				"Shell Set": 1
+			},
+			"time": 1.5,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "High-Explosive Shell Set",
+			"iconeId": 83,
+			"inputs": {
+				"Shell Set": 1,
+				"Titanium Ingot": 6,
+				"Explosive Unit": 2
+			},
+			"outputs": {
+				"High-Explosive Shell Set": 1
+			},
+			"time": 3,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Crystal Shell Set",
+			"iconeId": 97,
+			"inputs": {
+				"High-Explosive Shell Set": 1,
+				"Titanium Alloy": 3,
+				"Crystal Explosive Unit": 2
+			},
+			"outputs": {
+				"Crystal Shell Set": 1
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Plasma Capsule",
+			"iconeId": 82,
+			"inputs": {
+				"Graphene": 1,
+				"Magnet": 2,
+				"Deuterium": 10
+			},
+			"outputs": {
+				"Plasma Capsule": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Antimatter Capsule",
+			"iconeId": 96,
+			"inputs": {
+				"Plasma Capsule": 1,
+				"Particle Container": 1,
+				"Hydrogen": 10,
+				"Antimatter": 10
+			},
+			"outputs": {
+				"Antimatter Capsule": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Missile Set",
+			"iconeId": 27,
+			"inputs": {
+				"Copper Ingot": 6,
+				"Circuit Board": 3,
+				"Combustible Unit": 2,
+				"Engine": 1
+			},
+			"outputs": {
+				"Missile Set": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Supersonic Missile Set",
+			"iconeId": 41,
+			"inputs": {
+				"Missile Set": 2,
+				"Processor": 4,
+				"Explosive Unit": 4,
+				"Thruster": 2
+			},
+			"outputs": {
+				"Supersonic Missile Set": 2
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Gravity Missile Set",
+			"iconeId": 55,
+			"inputs": {
+				"Supersonic Missile Set": 3,
+				"Crystal Explosive Unit": 6,
+				"Strange Matter": 3
+			},
+			"outputs": {
+				"Gravity Missile Set": 3
+			},
+			"time": 6,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Prototype",
+			"iconeId": 77,
+			"inputs": {
+				"Iron Ingot": 3,
+				"Engine": 1,
+				"Circuit Board": 2,
+				"Plasma Exciter": 1
+			},
+			"outputs": {
+				"Prototype": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Precision Drone",
+			"iconeId": 78,
+			"inputs": {
+				"Prototype": 1,
+				"Electromagnetic Turbine": 1,
+				"Circuit Board": 2,
+				"Photon Combiner": 2
+			},
+			"outputs": {
+				"Precision Drone": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Attack Drone",
+			"iconeId": 79,
+			"inputs": {
+				"Prototype": 1,
+				"Electromagnetic Turbine": 1,
+				"Processor": 1,
+				"Particle Container": 1
+			},
+			"outputs": {
+				"Attack Drone": 1
+			},
+			"time": 4,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Corvette",
+			"iconeId": 80,
+			"inputs": {
+				"Titanium Alloy": 5,
+				"Reinforced Thruster": 1,
+				"Processor": 2,
+				"Particle Container": 3
+			},
+			"outputs": {
+				"Corvette": 1
+			},
+			"time": 5,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Destroyer",
+			"iconeId": 81,
+			"inputs": {
+				"Frame Material": 20,
+				"Reinforced Thruster": 4,
+				"Processor": 4,
+				"Strange Matter": 1
+			},
+			"outputs": {
+				"Destroyer": 1
+			},
+			"time": 8,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Strange Annihilation Fuel Rod",
+			"iconeId": 26,
+			"inputs": {
+				"Antimatter Fuel Rod": 8,
+				"Core Element": 1,
+				"Strange Matter": 2,
+				"Frame Material": 1
+			},
+			"outputs": {
+				"Strange Annihilation Fuel Rod": 1
+			},
+			"time": 32,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Jamming Capsule",
+			"iconeId": 110,
+			"inputs": {
+				"Electromagnetic Turbine": 1,
+				"Plasma Exciter": 1,
+				"Hydrogen": 3
+			},
+			"outputs": {
+				"Jamming Capsule": 1
+			},
+			"time": 2,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+		{
+			"name": "Suppressing Capsule",
+			"iconeId": 111,
+			"inputs": {
+				"Jamming Capsule": 2,
+				"Super-Magnetic Ring": 1,
+				"Titanium Glass": 2
+			},
+			"outputs": {
+				"Suppressing Capsule": 2
+			},
+			"time": 8,
+			"modifierCategories": [
+				"Assembler",
+				"Proliferator"
+			]
+		},
+
 
 		{
 			"name": "Iron Ingot",
@@ -1820,10 +2583,53 @@
 				"Annihilation Constraint Sphere",
 				"Antimatter Fuel Rod",
 				"Circuit Board",
-
+				"Processor",
+				"Quantum Chip",
+				"Microcrystalline Component",
+				"Organic Crystal (Original)",
+				"Crystal Silicon (Advanced)",
+				"Photon Combiner",
+				"Photon Combiner (Advanced)",
+				"Solar Sail",
+				"Space Warper",
+				"Space Warper (Advanced)",
+				"Frame Material",
+				"Dyson Sphere Component",
+				"Small Carrier Rocket",
+				"Logistics Drone",
+				"Interstellar Logistics Vessel",
 				"Electric Motor",
-
-				"Foundation"
+				"Electromagnetic Turbine",
+				"Particle Container",
+				"Particle Container (Advanced)",
+				"Graviton Lens",
+				"Super-Magnetic Ring",
+				"Engine",
+				"Proliferator Mk.I",
+				"Proliferator Mk.II",
+				"Proliferator Mk.III",
+				"Foundation",
+				"Logistics Bot",
+				"Combustible Unit",
+				"Magnum Ammo Box",
+				"Titanium Ammo Box",
+				"Superalloy Ammo Box",
+				"Shell Set",
+				"High-Explosive Shell Set",
+				"Crystal Shell Set",
+				"Plasma Capsule",
+				"Antimatter Capsule",
+				"Missile Set",
+				"Supersonic Missile Set",
+				"Gravity Missile Set",
+				"Prototype",
+				"Precision Drone",
+				"Attack Drone",
+				"Corvette",
+				"Destroyer",
+				"Strange Annihilation Fuel Rod",
+				"Jamming Capsule",
+				"Suppressing Capsule"
 			]
 		},
 		{
