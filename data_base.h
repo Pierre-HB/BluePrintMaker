@@ -41,6 +41,7 @@ struct Modifier {//3
 	Rat outputModifier = 1.0f;
 	Rat idlePower = 0.0f;
 	Rat workingPower = 0.0f;
+	Rat powerModifier = 1.0f;
 	std::vector<Consumable> consumables; //consumables ar items
 
 	Modifier(const json11::Json& json, const std::map<std::string, int>& itemIdMap);

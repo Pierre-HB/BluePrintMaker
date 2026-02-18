@@ -410,7 +410,7 @@ void DataBase::precomputeComboText() {
 
 			for (int j = 0; j < mc.modifiersId.size(); j++) {
 				const Modifier& modifier = getModifier(mc.modifiersId[j]);
-				recipe.modifierNames[i][j] = modifier.iconeString;
+				recipe.modifierNames[i][j] = modifier.iconeString+"##"+modifier.name;
 			}
 		}
 	}
@@ -486,6 +486,7 @@ Modifier::Modifier(const json11::Json& json, const std::map<std::string, int>& i
 	outputModifier = readRat(json, "outputModifier", "Modifier", 1);
 	idlePower = readRat(json, "idlePower", "Modifier", 0.0f);
 	workingPower = readRat(json, "workingPower", "Modifier", 0.0f);
+	powerModifier = readRat(json, "powerModifier", "Modifier", 1.0f);
 
 	consumables = readConsumable(json, itemIdMap);
 }

@@ -700,6 +700,7 @@
 			"outputModifier": 1,
 			"idlePower": 12,
 			"workingPower": 270,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -709,6 +710,7 @@
 			"outputModifier": 1,
 			"idlePower": 18,
 			"workingPower": 540,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -718,6 +720,17 @@
 			"outputModifier": 1,
 			"idlePower": 24,
 			"workingPower": 1080,
+			"powerModifier": 1,
+			"consumables": []
+		},
+		{
+			"name": "Re-Composing Assembler",
+			"iconeId": 159,
+			"speedModifier": 3,
+			"outputModifier": 1,
+			"idlePower": 120,
+			"workingPower": 2700,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -727,6 +740,7 @@
 			"outputModifier": 1,
 			"idlePower": 12,
 			"workingPower": 360,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -736,6 +750,17 @@
 			"outputModifier": 1,
 			"idlePower": 48,
 			"workingPower": 1440,
+			"powerModifier": 1,
+			"consumables": []
+		},
+		{
+			"name": "Negentropy Smelter",
+			"iconeId": 155,
+			"speedModifier": 3,
+			"outputModifier": 1,
+			"idlePower": 96,
+			"workingPower": 2880,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -745,6 +770,17 @@
 			"outputModifier": 1,
 			"idlePower": 12,
 			"workingPower": 480,
+			"powerModifier": 1,
+			"consumables": []
+		},
+		{
+			"name": "Self-Evolution Lab",
+			"iconeId": 161,
+			"speedModifier": 3,
+			"outputModifier": 1,
+			"idlePower": 48,
+			"workingPower": 1920,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -754,6 +790,7 @@
 			"outputModifier": 1,
 			"idlePower": 24,
 			"workingPower": 960,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -763,6 +800,7 @@
 			"outputModifier": 1,
 			"idlePower": 18,
 			"workingPower": 720,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -772,6 +810,7 @@
 			"outputModifier": 1,
 			"idlePower": 120,
 			"workingPower": 12000,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -781,6 +820,7 @@
 			"outputModifier": 1,
 			"idlePower": 24,
 			"workingPower": 720,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -790,6 +830,7 @@
 			"outputModifier": 1,
 			"idlePower": 24,
 			"workingPower": 720,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -799,6 +840,7 @@
 			"outputModifier": 1,
 			"idlePower": 0,
 			"workingPower": 0,
+			"powerModifier": 1,
 			"consumables": []
 		},
 		{
@@ -808,6 +850,23 @@
 			"outputModifier": 1.125,
 			"idlePower": 0,
 			"workingPower": 0,
+			"powerModifier": "130/100",
+			"consumables": [
+				{
+					"item": "Proliferator Mk.I",
+					"inputConsumtion": "1/12",
+					"outputConsumtion": 0
+				}
+			]
+		},
+		{
+			"name": "Proliferator Speed I",
+			"iconeId": 48,
+			"speedModifier": 1.25,
+			"outputModifier": 1,
+			"idlePower": 0,
+			"workingPower": 0,
+			"powerModifier": "130/100",
 			"consumables": [
 				{
 					"item": "Proliferator Mk.I",
@@ -823,6 +882,23 @@
 			"outputModifier": "6/5",
 			"idlePower": 0,
 			"workingPower": 0,
+			"powerModifier": "170/100",
+			"consumables": [
+				{
+					"item": "Proliferator Mk.II",
+					"inputConsumtion": "1/24",
+					"outputConsumtion": 0
+				}
+			]
+		},
+		{
+			"name": "Proliferator Speed II",
+			"iconeId": 62,
+			"speedModifier": 1.5,
+			"outputModifier": 1,
+			"idlePower": 0,
+			"workingPower": 0,
+			"powerModifier": "170/100",
 			"consumables": [
 				{
 					"item": "Proliferator Mk.II",
@@ -838,6 +914,23 @@
 			"outputModifier": 1.25,
 			"idlePower": 0,
 			"workingPower": 0,
+			"powerModifier": "250/100",
+			"consumables": [
+				{
+					"item": "Proliferator Mk.III",
+					"inputConsumtion": "1/60",
+					"outputConsumtion": 0
+				}
+			]
+		},
+		{
+			"name": "Proliferator Speed III",
+			"iconeId": 76,
+			"speedModifier": 2,
+			"outputModifier": 1,
+			"idlePower": 0,
+			"workingPower": 0,
+			"powerModifier": "250/100",
 			"consumables": [
 				{
 					"item": "Proliferator Mk.III",
@@ -853,20 +946,23 @@
 			"modifiers": [
 				"Assembling Machine Mk.I",
 				"Assembling Machine Mk.II",
-				"Assembling Machine Mk.III"
+				"Assembling Machine Mk.III",
+				"Re-Composing Assembler"
 			]
 		},
 		{
 			"name": "Smelter",
 			"modifiers": [
 				"Arc Smelter",
-				"Plane Smelter"
+				"Plane Smelter",
+				"Negentropy Smelter"
 			]
 		},
 		{
 			"name": "Lab",
 			"modifiers": [
-				"Matrix Lab"
+				"Matrix Lab",
+				"Self-Evolution Lab"
 			]
 		},
 		{
@@ -900,7 +996,28 @@
 				"None",
 				"Proliferator Production I",
 				"Proliferator Production II",
+				"Proliferator Production III",
+				"Proliferator Speed I",
+				"Proliferator Speed II",
+				"Proliferator Speed III"
+			]
+		},
+		{
+			"name": "Proliferator Production",
+			"modifiers": [
+				"None",
+				"Proliferator Production I",
+				"Proliferator Production II",
 				"Proliferator Production III"
+			]
+		},
+		{
+			"name": "Proliferator Speed",
+			"modifiers": [
+				"None",
+				"Proliferator Speed I",
+				"Proliferator Speed II",
+				"Proliferator Speed III"
 			]
 		}
 	],
@@ -1050,7 +1167,7 @@
 		},
 		{
 			"name": "Casimir Crystal (Advanced)",
-			"iconeId": 64,
+			"iconeId": 181,
 			"inputs": {
 				"Grating Crystal": 8,
 				"Graphene": 2,
@@ -1232,7 +1349,7 @@
 		},
 		{
 			"name": "Organic Crystal (Original)",
-			"iconeId": 37,
+			"iconeId": 182,
 			"inputs": {
 				"Log": 20,
 				"Plant Fuel": 30,
@@ -1249,7 +1366,7 @@
 		},
 		{
 			"name": "Crystal Silicon (Advanced)",
-			"iconeId": 33,
+			"iconeId": 183,
 			"inputs": {
 				"Fractal Silicon": 1
 			},
@@ -1280,7 +1397,7 @@
 		},
 		{
 			"name": "Photon Combiner (Advanced)",
-			"iconeId": 59,
+			"iconeId": 184,
 			"inputs": {
 				"Grating Crystal": 1,
 				"Circuit Board": 1
@@ -1327,7 +1444,7 @@
 		},
 		{
 			"name": "Space Warper (Advanced)",
-			"iconeId": 88,
+			"iconeId": 185,
 			"inputs": {
 				"Gravity Matrix": 1
 			},
@@ -1477,7 +1594,7 @@
 		},
 		{
 			"name": "Particle Container (Advanced)",
-			"iconeId": 75,
+			"iconeId": 186,
 			"inputs": {
 				"Unipolar Magnet": 10,
 				"Copper Ingot": 2
@@ -2467,7 +2584,7 @@
 		},
 		{
 			"name": "Graphene (Advanced)",
-			"iconeId": 38,
+			"iconeId": 179,
 			"inputs": {
 				"Fire Ice": 2
 			},
@@ -2499,7 +2616,7 @@
 		},
 		{
 			"name": "Carbon Nanotube (Advanced)",
-			"iconeId": 52,
+			"iconeId": 180,
 			"inputs": {
 				"Stalagmite Crystal": 6
 			},

@@ -339,7 +339,7 @@ bool BluePrint::CheckGraph() {
 	std::vector<int> stack = std::vector<int>();
 	int current_class = 0;
 	bool complete = (nb_pin+nb_io_given == nb_node+nb_link);
-	std::cout << "nb_pin : " << nb_pin << ", nb_link : " << nb_link << ", nb_node : " << nb_node << ", 2*pin+IO = " << 2*nb_pin+nb_io_given << ", pin+node+link = " << nb_pin+nb_link+nb_node << std::endl;
+	//std::cout << "nb_pin : " << nb_pin << ", nb_link : " << nb_link << ", nb_node : " << nb_node << ", 2*pin+IO = " << 2*nb_pin+nb_io_given << ", pin+node+link = " << nb_pin+nb_link+nb_node << std::endl;
 	/*
 		each pin, link and node will introduce one variable in the final problem
 		to solve it, wee need nb_constraint == nb_variable
@@ -449,7 +449,7 @@ static int pow2roundup(int x)
 }
 
 bool BluePrint::SolveGraph() {
-	std::cout << "try solving graph" << std::endl;
+	//std::cout << "try solving graph" << std::endl;
 	/*
 	conter nb pin, link, node pour avoir nb variable (taille du pb)
 	créé matric de taille 2^n minimap pour contenir le probelem
@@ -574,7 +574,7 @@ bool BluePrint::SolveGraph() {
 		}
 		std::cout << std::endl;
 	}*/
-	std::cout << "finish creating matrix of size " << n << "x" << n << std::endl;
+	//std::cout << "finish creating matrix of size " << n << "x" << n << std::endl;
 	bool inverted = true;
 	problem = problem.inversed(&inverted);
 	if (inverted)

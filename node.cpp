@@ -254,6 +254,13 @@ void Node::ChangeState(const DataBase* dataBase, int stateChannel, int newState,
 		}
 		std::cout << "Output quantity modifier : " << modifier.outputModifier.to_double() << std::endl;
 	}
+	for (int j = 0; j < recipe.modifierCategoriesId.size(); j++) {
+		int modifierCategory = recipe.modifierCategoriesId[j];
+		int modifierId = dataBase->getModifierCategory(modifierCategory).modifiersId[state[j + 1]];
+		const Modifier& modifier = dataBase->getModifier(modifierId);
+
+		workingPower *= modifier.powerModifier;
+	}
 }
 
 int Node::GetId() const {
